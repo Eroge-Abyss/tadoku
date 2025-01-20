@@ -8,3 +8,6 @@ This template should help get you started developing with Tauri and SvelteKit in
 
 ## What's This
 Fuck VN Manager
+
+## vndb API
+[POST /vn](https://api.vndb.org/kana#post-vn)

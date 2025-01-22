@@ -41,7 +41,6 @@ pub async fn fetch_vn_info(key: String) -> Result<Vec<VndbGame>, String> {
         fields: "id, title, image.url, description",
     };
 
-    // TODO: Add error handling
     let client = reqwest::Client::new();
     let response = client
         .post(VNDB_URL)
@@ -61,7 +60,7 @@ pub async fn fetch_vn_info(key: String) -> Result<Vec<VndbGame>, String> {
 
     let json: VndbResponse = response.json().await.map_err(|e| {
         dbg!(&e);
-        error_message.clone()
+        error_message
     })?;
 
     Ok(json.results)

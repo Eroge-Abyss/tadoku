@@ -26,3 +26,40 @@ html, body {
   justify-content: center;
   align-items: center;
 }
+
+.titlebar {
+  height: 30px;
+  background: transparent;
+  user-select: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0; 
+}
+.titlebar-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 20px;
+  user-select: none;
+  -webkit-user-select: none;  
+  padding: 16px; 
+  & img {
+    width: 14px;
+    height: 14px;
+   filter: invert(100%) sepia(7%) saturate(3%) hue-rotate(348deg) brightness(112%) contrast(99%);
+  }
+}
+
+.titlebar-button:hover {
+  background: var(--main-mauve);
+  cursor: pointer;
+}
+
+#titlebar-close:hover {
+  background: #E72525;
+}

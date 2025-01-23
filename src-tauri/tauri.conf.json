@@ -14,7 +14,8 @@
       {
         "title": "seikou",
         "width": 800,
-        "height": 600
+        "height": 200,
+        "decorations": false
       }
     ],
     "security": {

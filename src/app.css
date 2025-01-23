@@ -18,8 +18,11 @@ html, body {
   font-family: "Noto Sans JP", serif;
 }
 
+body {
+ background-color: var(--main-background);
+}
+
 .container {
-  background-color: var(--main-background);
   color: var(--main-text);
   height: 100%;
   display: flex;

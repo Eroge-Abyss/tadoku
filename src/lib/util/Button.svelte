@@ -1,0 +1,62 @@
+<script>
+  import Icon from "@iconify/svelte";
+  let { text, image, icon, style } = $props();
+</script>
+
+
+<div style>
+  <span id="border"></span>
+  <div id="btn">
+    <div id="btn__content">
+      {#if icon}
+        <Icon icon={icon} style="font-size: 24px"/> 
+      {:else if image}
+        <img src={image} height="56px" width="56px"/>
+      {:else}
+        {text}
+      {/if}
+    </div>
+  </div>
+</div>
+
+
+<style>
+  div {
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    &:hover #border {
+        opacity: 1;
+    } 
+    & #btn {
+      width: 56px;
+      height: 56px; 
+      border: 0;
+      color: var(--main-text);
+      overflow: hidden;
+       /* From https://css.glass */
+      background: rgba(185, 154, 250, 0.17);
+      border-radius: 12px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(185, 154, 250, 0.13);      &  #btn__content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+    & #border {
+      height: 28px;
+      width: 3px;
+      opacity: 0;
+      border-radius: 0px 8px 8px 0px;
+      background-color: var(--main-mauve);
+      margin-right: 10px;
+      transition: opacity 0.2s ease-in-out;
+    }
+  }
+</style>

@@ -1,5 +1,6 @@
 <script>
   import '../app.css';
+  import Sidebar from "$lib/Sidebar.svelte"; 
   import { getCurrentWindow } from '@tauri-apps/api/window';
 
   // when using `"withGlobalTauri": true`, you may use
@@ -12,5 +13,5 @@
   document.getElementById('titlebar-close')
     ?.addEventListener('click', () => appWindow.close());
 </script>
-
+<Sidebar />
 <slot />

@@ -8,6 +8,9 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "http:default"
+    "http:default",
+    "dialog:default",
+    "store:default",
+    "fs:default"
   ]
 }

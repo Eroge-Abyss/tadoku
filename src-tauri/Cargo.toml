@@ -29,11 +29,3 @@ tauri-plugin-fs = "2"
 
 [profile.dev]
 opt-level = 0
-
-# [profile.release]
-# codegen-units = 1 # Allows LLVM to perform better optimization.
-# lto = true # Enables link-time-optimizations.
-# opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
-# panic = "abort" # Higher performance by disabling panic handlers.
-# strip = true # Ensures debug symbols are removed.
->>>>>>> 0034147e7c91b8b180ccdf96c140475ef6920e62

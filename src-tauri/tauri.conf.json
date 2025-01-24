@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "seikou",
+  "productName": "Tadoku",
   "version": "0.1.0",
-  "identifier": "性交",
+  "identifier": "tadoku",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "seikou",
+        "title": "Tadoku",
         "width": 800,
         "height": 200,
         "decorations": false

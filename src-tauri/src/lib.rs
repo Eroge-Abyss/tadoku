@@ -17,6 +17,7 @@ fn greet(name: &str) -> String {
 struct GameState {
     id: String,
     pid: u32,
+    current_playtime: u64,
 }
 
 #[derive(Default)]

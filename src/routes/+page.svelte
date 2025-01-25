@@ -1,7 +1,14 @@
 <script>
     import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+    import { listen } from "@tauri-apps/api/event";
     let imageUrl = "";
     let id = null;
+    let playtime = null;
+
+    listen("play-time", (e) => {
+        playtime = e.payload;
+    });
+
     const test = async () => {
         const data = await invoke("fetch_vn_info", { key: "chaos head" });
         const item = data[1];
@@ -13,7 +20,7 @@
                 title: item.title,
                 description: item.description,
                 image_url: item.image.url,
-                exe_file_path: "test",
+                exe_file_path: "/usr/bin/waypaper",
                 play_time: 0,
             },
         });
@@ -40,6 +47,7 @@
     <button on:click={test}>test</button>
     <button on:click={del}>del</button>
     <button on:click={open}>open</button>
+    <h1>{playtime}</h1>
     <img src={imageUrl} alt="t" />
 </main>
 

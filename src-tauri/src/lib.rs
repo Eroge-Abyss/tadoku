@@ -1,9 +1,10 @@
+use std::fs;
 use tauri::Manager;
 use tauri_plugin_fs::FsExt;
-use tauri_plugin_store::StoreExt;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod storage;
+mod util;
 mod vndb;
 
 #[tauri::command]
@@ -20,18 +21,29 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            app.fs_scope()
-                .allow_directory(
-                    app.path().app_local_data_dir().unwrap().join("/images"),
-                    true,
-                )
-                .unwrap();
+            if let Ok(app_local_data_dir) = app.path().app_local_data_dir() {
+                let path = app_local_data_dir.join("images");
+
+                if let Err(err) = fs::create_dir_all(&path) {
+                    if err.kind() != std::io::ErrorKind::AlreadyExists {
+                        return Err(Box::new(err));
+                    }
+                }
+
+                let scope = app.fs_scope();
+                scope.allow_directory(path, true).unwrap();
+            } else {
+                return Err("Failed to get app local data directory".into());
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             greet,
             vndb::fetch_vn_info,
-            storage::save_game
+            storage::save_game,
+            storage::load_games,
+            storage::delete_game
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

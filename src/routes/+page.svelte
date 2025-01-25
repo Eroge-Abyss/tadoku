@@ -32,7 +32,7 @@
     };
 
     const open = async () => {
-        await invoke("open_game", { exePath: "/usr/bin/waypaper" });
+        await invoke("open_game", { gameId: "v3091" });
     };
 </script>
 

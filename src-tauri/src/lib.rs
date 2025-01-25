@@ -14,8 +14,14 @@ fn greet(name: &str) -> String {
 }
 
 #[derive(Default)]
+struct GameState {
+    id: String,
+    pid: u32,
+}
+
+#[derive(Default)]
 struct AppState {
-    game_pid: u32,
+    game: GameState,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

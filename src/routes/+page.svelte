@@ -30,11 +30,16 @@
     const del = async () => {
         await invoke("delete_game", { gameId: "v3091" });
     };
+
+    const open = async () => {
+        await invoke("open_game", { exePath: "/usr/bin/waypaper" });
+    };
 </script>
 
 <main class="container">
     <button on:click={test}>test</button>
     <button on:click={del}>del</button>
+    <button on:click={open}>open</button>
     <img src={imageUrl} alt="t" />
 </main>
 

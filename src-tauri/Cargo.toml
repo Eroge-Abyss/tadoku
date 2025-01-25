@@ -28,6 +28,8 @@ tauri-plugin-dialog = "2"
 tauri-plugin-store = "2"
 tauri-plugin-fs = "2"
 url = "2.5.4"
+tauri-plugin-shell = "2"
+sysinfo = "0.33.1"
 
 [profile.dev]
 opt-level = 0

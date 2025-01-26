@@ -4,6 +4,7 @@ use tauri_plugin_fs::FsExt;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod commands;
+mod services;
 mod util;
 
 #[derive(Default)]
@@ -54,7 +55,7 @@ pub fn run() {
             commands::storage::save_game,
             commands::storage::load_games,
             commands::storage::delete_game,
-            commands::playtime::open_game
+            commands::opener::open_game
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

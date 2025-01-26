@@ -22,7 +22,7 @@ struct GameState {
 
 #[derive(Default)]
 struct AppState {
-    game: GameState,
+    game: Option<GameState>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

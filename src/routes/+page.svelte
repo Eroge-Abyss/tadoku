@@ -3,9 +3,9 @@
     import { listen } from "@tauri-apps/api/event";
     let imageUrl = "";
     let id = null;
-    let playtime = null;
+    let playtime = 0;
 
-    listen("play-time", (e) => {
+    listen("playtime", (e) => {
         playtime = e.payload;
     });
 

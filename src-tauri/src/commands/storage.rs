@@ -1,4 +1,4 @@
-use crate::util::extract_image;
+use crate::util;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs, io::Cursor};
 use tauri::{AppHandle, Manager};
@@ -29,26 +29,28 @@ pub async fn save_game(
     game_id: String,
     mut game: Game,
 ) -> Result<(), String> {
-    let response = reqwest::get(&game.image_url).await.unwrap();
+    let response = reqwest::get(&game.image_url)
+        .await
+        .map_err(|_| "Failed to fetch image")?;
     let path = app_handle
         .path()
         .app_local_data_dir()
         .map_err(|err| err.to_string())?
         .join("images")
-        .join(extract_image(&game.image_url));
+        .join(util::extract_image(&game.image_url));
 
     let mut file = fs::File::create(&path).map_err(|err| err.to_string())?;
     let mut content = Cursor::new(response.bytes().await.map_err(|err| err.to_string())?);
 
-    std::io::copy(&mut content, &mut file).unwrap();
+    std::io::copy(&mut content, &mut file).map_err(|_| "Failed to download image")?;
 
     let store = app_handle.store("store.json").unwrap();
     let mut games_data: Games = store
         .get("gamesData")
-        .map(|v| serde_json::from_value(v).expect("Error here"))
+        .map(|v| serde_json::from_value(v).expect("Value should be JSON"))
         .unwrap_or(HashMap::new());
 
-    game.image_url = String::from(path.to_str().unwrap());
+    game.image_url = String::from(path.to_str().expect("Path should be a string"));
 
     // TODO: Make games with same ID throw error / overwrite
     games_data.insert(game_id, game);
@@ -67,7 +69,7 @@ pub fn load_games(app_handle: AppHandle) -> Result<Games, String> {
 
     Ok(store
         .get("gamesData")
-        .map(|v| serde_json::from_value(v).expect("Error here"))
+        .map(|v| serde_json::from_value(v).expect("Value should be JSON"))
         .unwrap_or(HashMap::new()))
 }
 
@@ -80,14 +82,14 @@ pub fn delete_game(app_handle: AppHandle, game_id: String) -> Result<(), String>
 
     let mut games_data: Games = store
         .get("gamesData")
-        .map(|v| serde_json::from_value(v).expect("Error here"))
+        .map(|v| serde_json::from_value(v).expect("Value should be JSON"))
         .unwrap_or(HashMap::new());
 
     if let Some(game) = games_data.remove(&game_id) {
         let path = app_handle
             .path()
             .app_local_data_dir()
-            .expect("Error happened while getting path")
+            .map_err(|_| "Error happened while getting path")?
             .join(game.image_url);
 
         fs::remove_file(path).map_err(|err| err.to_string())?;

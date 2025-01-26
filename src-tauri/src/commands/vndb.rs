@@ -47,8 +47,7 @@ pub async fn fetch_vn_info(key: String) -> Result<Vec<VndbGame>, String> {
         .json(&request_data)
         .send()
         .await
-        .map_err(|e| {
-            dbg!(&e);
+        .map_err(|_| {
             // Idk if using clone is correct but, it should be dropped from stack anyway
             // + function will return on only of of the errors
             error_message.clone()
@@ -58,10 +57,7 @@ pub async fn fetch_vn_info(key: String) -> Result<Vec<VndbGame>, String> {
         return Err(error_message);
     }
 
-    let json: VndbResponse = response.json().await.map_err(|e| {
-        dbg!(&e);
-        error_message
-    })?;
+    let json: VndbResponse = response.json().await.map_err(|_| error_message)?;
 
     Ok(json.results)
 }

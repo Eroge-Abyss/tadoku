@@ -1,26 +1,38 @@
-use std::fs;
+use std::{fs, sync::Mutex};
 use tauri::Manager;
 use tauri_plugin_fs::FsExt;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-mod storage;
+mod commands;
+mod services;
 mod util;
-mod vndb;
 
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+#[derive(Default)]
+struct GameState {
+    id: String,
+    pid: u32,
+    current_playtime: u64,
+}
+
+#[derive(Default)]
+struct AppState {
+    game: Option<GameState>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            // Create game pid state
+            app.manage(Mutex::new(AppState::default()));
+
+            // Create images folder if it doesn't exist
             if let Ok(app_local_data_dir) = app.path().app_local_data_dir() {
                 let path = app_local_data_dir.join("images");
 
@@ -39,11 +51,11 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet,
-            vndb::fetch_vn_info,
-            storage::save_game,
-            storage::load_games,
-            storage::delete_game
+            commands::vndb::fetch_vn_info,
+            commands::storage::save_game,
+            commands::storage::load_games,
+            commands::storage::delete_game,
+            commands::opener::open_game
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

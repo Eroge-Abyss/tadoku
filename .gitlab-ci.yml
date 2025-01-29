@@ -50,7 +50,7 @@ build windows installer:
     - yarn install --frozen-lockfile # Install app dependencies
     - *print_versions
   script:
-    - yarn build-windows # Build for Windows 64-bit target
+    - tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc # Build for Windows 64-bit target
     # This is a shortcut command in my package.json that does the following:
     # tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc
   artifacts:

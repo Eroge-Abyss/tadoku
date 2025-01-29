@@ -54,9 +54,11 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                         .expect("Error happened while acquiring mutex lock");
                     state.game = None;
 
-                    let pres = &mut state.presence;
-                    pres.clear()
-                        .expect("Error happened while clearing presence");
+                    if let Some(pres) = &mut state.presence {
+                        pres.clear()
+                            .expect("Error happened while clearing presence");
+                    }
+
                     break;
                 }
             }

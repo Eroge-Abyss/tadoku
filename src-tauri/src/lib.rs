@@ -18,7 +18,7 @@ struct GameState {
 #[derive(Default)]
 struct AppState {
     game: Option<GameState>,
-    presence: DiscordPresence,
+    presence: Option<DiscordPresence>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -32,7 +32,12 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             // Create state
-            app.manage(Mutex::new(AppState::default()));
+            let state = AppState {
+                presence: DiscordPresence::new().ok(),
+                ..Default::default()
+            };
+
+            app.manage(Mutex::new(state));
 
             // Create images folder if it doesn't exist
             if let Ok(app_local_data_dir) = app.path().app_local_data_dir() {

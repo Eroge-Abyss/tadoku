@@ -10,11 +10,11 @@
     let results = $state.raw([]);
     let selectedVn = $state.raw();
 
-    $effect(async () => {
+    async function updateSearch(e) {
+        search = e.target.value;
         const data = await invoke("fetch_vn_info", { key: search });
         results = search ? data : [];
-        console.log(results);
-    });
+    }
 
     const openModal = () => (showModal = true);
     const closeModal = () => {
@@ -35,7 +35,6 @@
                 },
             ],
         });
-        console.log(file);
         exe_path = file;
     };
 
@@ -43,7 +42,6 @@
         selectedVn = game;
         results = [];
         search = "";
-        console.log(selectedVn);
     };
 
     const saveGame = (vn) => {
@@ -84,7 +82,11 @@
             </header>
             <section class="game-form">
                 <div class="form-group">
-                    <input bind:value={search} placeholder="Name or ID" />
+                    <input
+                        value={search}
+                        oninput={updateSearch}
+                        placeholder="Name or ID"
+                    />
                 </div>
 
                 <div id="suggestions">

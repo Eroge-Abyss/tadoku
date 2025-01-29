@@ -1,5 +1,15 @@
 <script>
     import Icon from "@iconify/svelte";
+    /**
+     * @typedef {Object} Props
+     * @property {string} [text]
+     * @property {string|null} [image]
+     * @property {string|null} [icon]
+     * @property {string} [style]
+     * @property {(event: MouseEvent) => void} [onclick]
+     */
+
+    /** @type {Props} */
     let {
         text = "",
         image = null,
@@ -11,7 +21,9 @@
 
 <div {style}>
     <span id="border"></span>
-    <div id="btn">
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div id="btn" {onclick}>
         <div id="btn__content">
             {#if icon}
                 <Icon {icon} style="font-size: 24px" />

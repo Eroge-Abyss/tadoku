@@ -3,6 +3,17 @@
     import AddGame from "$lib/AddGame.svelte";
     // import Icon from "@iconify/svelte";
     import { goto } from "$app/navigation";
+    import { appState } from "../routes/state.svelte";
+    import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+
+    let pinnedGames = $derived.by(() =>
+        Object.entries(appState.gamesList)
+            .filter(([k, v]) => v.is_pinned)
+            .map(([k, v]) => ({
+                id: k,
+                image: convertFileSrc(v.image_url),
+            })),
+    );
 </script>
 
 <nav>
@@ -10,18 +21,13 @@
         <h1>多</h1>
         <div id="sidebar__header__buttons">
             <Button onclick={() => goto("/")} icon="heroicons:squares-2x2" />
-            <Button
-                image="https://i.pinimg.com/736x/e2/ea/a3/e2eaa30319b978175c9156ae1a2fe1e5.jpg"
-            />
-            <Button
-                image="https://i.pinimg.com/736x/e2/ea/a3/e2eaa30319b978175c9156ae1a2fe1e5.jpg"
-            />
-            <Button
-                image="https://i.pinimg.com/736x/e2/ea/a3/e2eaa30319b978175c9156ae1a2fe1e5.jpg"
-            />
-            <Button
-                image="https://i.pinimg.com/736x/e2/ea/a3/e2eaa30319b978175c9156ae1a2fe1e5.jpg"
-            />
+
+            {#each pinnedGames as { id, image } (id)}
+                <Button
+                    onclick={() => invoke("open_game", { gameId: id })}
+                    {image}
+                />
+            {/each}
 
             <AddGame />
         </div>

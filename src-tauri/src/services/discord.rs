@@ -29,7 +29,7 @@ pub struct DiscordPresence {
 }
 
 impl DiscordPresence {
-    fn new() -> Result<Self> {
+    pub fn new() -> Result<Self> {
         let mut client = DiscordIpcClient::new("1333425743572500490")?;
 
         client.connect()?;
@@ -63,11 +63,5 @@ impl DiscordPresence {
     pub fn clear(&mut self) -> Result<()> {
         self.client
             .set_activity(Activity::new().details("In Menus"))
-    }
-}
-
-impl Default for DiscordPresence {
-    fn default() -> Self {
-        DiscordPresence::new().expect("Error happened while initializing presence")
     }
 }

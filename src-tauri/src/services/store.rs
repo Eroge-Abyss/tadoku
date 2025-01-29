@@ -15,6 +15,7 @@ pub struct Game {
     pub exe_file_path: String,
     /// Play time in seconds
     pub playtime: u32,
+    pub is_pinned: bool,
 }
 
 pub type Games = HashMap<String, Game>;

@@ -55,6 +55,7 @@
                 image_url: vn.image.url,
                 exe_file_path: exe_path,
                 playtime: 0,
+                is_pinned: false
             },
         })
             .then(async () => {

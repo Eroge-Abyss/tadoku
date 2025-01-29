@@ -2,7 +2,6 @@
     import { convertFileSrc } from "@tauri-apps/api/core";
 
     const { id, title, image } = $props();
-    console.log(id);
 
     let image_url = $derived(convertFileSrc(image));
 </script>

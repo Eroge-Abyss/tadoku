@@ -35,9 +35,10 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                     }
                 });
 
-                let pres = &mut state.presence;
-                pres.set(DiscordGameDetails::new(game_id, game.title, game.image_url))
-                    .expect("Error happened while setting presence");
+                if let Some(pres) = &mut state.presence {
+                    pres.set(DiscordGameDetails::new(game_id, game.title, game.image_url))
+                        .expect("Error happened while setting presence");
+                }
             }
 
             playtime::spawn_playtime_thread(app_handle);

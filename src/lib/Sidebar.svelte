@@ -1,15 +1,15 @@
 <script>
     import Button from "$lib/util/Button.svelte";
     import AddGame from "$lib/AddGame.svelte";
-    import Icon from "@iconify/svelte";
+    // import Icon from "@iconify/svelte";
     import { goto } from "$app/navigation";
 </script>
 
 <nav>
     <section id="sidebar__header">
         <h1>多</h1>
-        <div id="sidebar__header__buttons" onclick={() => goto("/")}>
-            <Button icon="heroicons:squares-2x2" />
+        <div id="sidebar__header__buttons">
+            <Button onclick={() => goto("/")} icon="heroicons:squares-2x2" />
             <Button
                 image="https://i.pinimg.com/736x/e2/ea/a3/e2eaa30319b978175c9156ae1a2fe1e5.jpg"
             />
@@ -27,10 +27,11 @@
         </div>
     </section>
 
-    <Icon
+    <!-- TODO: Hidden until implemented for completeness -->
+    <!-- <Icon
         icon="material-symbols:settings-outline-rounded"
         style="font-size: 24px; color: #fff; cursor:pointer;"
-    />
+    /> -->
 </nav>
 
 <style>

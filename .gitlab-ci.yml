@@ -35,7 +35,7 @@ windows_build1 (tauri:debian-bookworm-20):
 
 ###
 ### example by @nakedgremlin (https://github.com/tauri-apps/tauri/discussions/11256#discussioncomment-10909210)
-###  ♦️ yarn is used instead of npm
+### ♦️ yarn is used instead of npm
 ###
 build windows installer:
   image: ivangabriele/tauri:debian-bookworm-20

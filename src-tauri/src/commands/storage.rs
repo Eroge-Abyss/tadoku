@@ -60,3 +60,15 @@ pub fn delete_game(app_handle: AppHandle, game_id: String) -> Result<(), String>
 
     Ok(())
 }
+
+/// Toggles the pinned state of a game
+#[tauri::command]
+pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .toggle_pin(&game_id)
+        .map_err(|_| "Error happened while deleting game")?;
+
+    Ok(())
+}

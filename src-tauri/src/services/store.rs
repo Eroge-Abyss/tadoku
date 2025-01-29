@@ -67,7 +67,6 @@ impl GamesStore {
         let mut games: Games = serde_json::from_value(games_data)?;
 
         if let Some(removed_game) = games.remove(game_id) {
-            dbg!("here");
             fs::remove_file(util::construct_image_path(
                 &self.base_app_path,
                 &removed_game.image_url,
@@ -109,5 +108,22 @@ impl GamesStore {
             .expect("Error happened while converting JSON");
 
         Some(game)
+    }
+
+    /// Toggles a game's pinned state
+    pub fn toggle_pin(&self, game_id: &str) -> Result<()> {
+        let mut games_data = self
+            .store
+            .get("gamesData")
+            .unwrap_or_else(|| serde_json::json!({}));
+
+        let game = games_data.get(game_id).expect("Couldn't find game");
+        let mut game = serde_json::from_value::<Game>(game.clone())?;
+
+        game.is_pinned = !game.is_pinned;
+        games_data[game_id] = serde_json::to_value(game)?;
+
+        self.store.set("gamesData", games_data);
+        Ok(())
     }
 }

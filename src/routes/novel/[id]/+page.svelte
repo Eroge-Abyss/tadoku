@@ -22,6 +22,10 @@
         await invoke("open_game", { gameId: novel.id });
     };
 
+    const togglePin = async () => {
+        await invoke("toggle_pin", { gameId: novel.id });
+    };
+
     const deleteGame = async () => {
         await invoke("delete_game", { gameId: novel.id });
         goto("/");
@@ -48,6 +52,9 @@
             </div>
             <div class="buttons">
                 <button onclick={startGame}>Play</button>
+                <button onclick={togglePin}
+                    >{novel.is_pinned ? "Unpin" : "Pin"}</button
+                >
                 <button onclick={deleteGame}>Delete</button>
             </div>
         </div>

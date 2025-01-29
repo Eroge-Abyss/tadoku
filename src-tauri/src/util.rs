@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
 use url::Url;
 
@@ -10,6 +11,10 @@ pub fn extract_image(url: &str) -> String {
         .last()
         .expect("Failed to get filename")
         .to_string()
+}
+
+pub fn construct_image_path(base_path: &PathBuf, url: &str) -> PathBuf {
+    base_path.join("images").join(extract_image(url))
 }
 
 /// Gets the playtime of the current game in seconds

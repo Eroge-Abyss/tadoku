@@ -1,3 +1,4 @@
+use services::discord::DiscordPresence;
 use std::{fs, sync::Mutex};
 use tauri::Manager;
 use tauri_plugin_fs::FsExt;
@@ -7,7 +8,7 @@ mod commands;
 mod services;
 mod util;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct GameState {
     id: String,
     pid: u32,
@@ -17,6 +18,7 @@ struct GameState {
 #[derive(Default)]
 struct AppState {
     game: Option<GameState>,
+    presence: DiscordPresence,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -29,7 +31,7 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            // Create game pid state
+            // Create state
             app.manage(Mutex::new(AppState::default()));
 
             // Create images folder if it doesn't exist

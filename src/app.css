@@ -4,6 +4,9 @@
   --main-background: #212121;
   --main-mauve: #bb9af7;
   --main-text: #f3f3f3;
+  --secondary: #1e1e1e;
+  --main-dark: #9b6fff;
+  --accent: #2a2a2a;
 }
 
 *, *::before, *::after {
@@ -27,7 +30,8 @@ body {
   height: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center; 
+  padding: 400px;
 }
 
 .titlebar {

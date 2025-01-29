@@ -1,0 +1,105 @@
+stages:
+  - build_yarn
+  - build_npm
+
+.print_versions: &print_versions
+  - rustc --version
+  - cargo --version
+  - cargo xwin --version
+  - node -v && npm -v
+  - echo $PATH && pwd
+  - npm run tauri info
+
+###
+### Try to use tauri:debian-bookworm-20 image:
+###
+windows_build1 (tauri:debian-bookworm-20):
+  image: ivangabriele/tauri:debian-bookworm-20
+  stage: build_npm
+  before_script:
+    - apt-get update -yqq
+    - apt-get -yq install nsis # This was needed to resolve a packaging issue
+    - apt-get -yq install clang # Had to add to resolve a dialog issue on launch
+    - apt-get -yq install lld llvm
+    #
+    - rustup target add x86_64-pc-windows-msvc # Install the 64-bit target
+    - cargo install --locked cargo-xwin # Install cargo-xwin
+    - npm ci --no-audit --no-progress
+    # print versions:
+    - *print_versions
+  script:
+    - npm run tauri build
+    - npm run tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc || { echo "❗❗❗ previous command failed❗❗❗"; exit 1; }
+  artifacts:
+    paths: ["src-tauri/target/release/bundle"]
+
+###
+### example by @nakedgremlin (https://github.com/tauri-apps/tauri/discussions/11256#discussioncomment-10909210)
+###  ♦️ yarn is used instead of npm
+###
+build windows installer:
+  image: ivangabriele/tauri:debian-bookworm-20
+  stage: build_yarn
+  before_script:
+    #- cd app # wherever your source is
+    - apt-get -y install nsis # This was needed to resolve a packaging issue
+    - apt-get -y install clang # Had to add to resolve a dialog issue on launch
+    - apt-get -y install lld llvm
+    - rustup target add x86_64-pc-windows-msvc # Install the 64-bit target
+    - cargo install --locked --quiet cargo-xwin # Install cargo-xwin
+    - yarn install --frozen-lockfile # Install app dependencies
+    - *print_versions
+  script:
+    - yarn build-windows # Build for Windows 64-bit target
+    # This is a shortcut command in my package.json that does the following:
+    # tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc
+  artifacts:
+    paths: ["src-tauri/target/release/bundle"]
+
+###
+### Try to use generic image with Rust and Node.js:
+###
+windows_build2 (rust:1.81-node):
+  image: cimg/rust:1.81-node
+  stage: build_npm
+  before_script:
+    - sudo apt-get update -yqq
+    - sudo apt-get install -yqq --no-install-recommends libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev libgtk-3-dev librsvg2-dev patchelf libglib2.0-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
+    ### install windows specific dependencies:
+    - sudo apt-get install -yq nsis lld llvm
+    - rustup target add x86_64-pc-windows-msvc
+    - cargo install --locked cargo-xwin
+    - npm ci --no-audit --no-progress
+    # print versions:
+    - *print_versions
+  script:
+    - npm run tauri build
+    - npm run tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc || { echo "❗❗❗ previous command failed❗❗❗"; exit 1; }
+  artifacts:
+    paths: ["src-tauri/target/release/bundle"]
+
+
+###
+### this image should contain rust and everything for building Tauri windows output, 
+### but executing `rustc --version` ends with command not found
+### probably this image is not suited for following usage:
+###
+windows_build3 (tauri-builder:1.0.3):
+  image: websmurf/tauri-builder:1.0.3
+  stage: build_npm
+  before_script:
+    # setup rust:
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    - . "$HOME/.cargo/env"
+    #
+    - rustup target add x86_64-pc-windows-msvc # Install the 64-bit target
+    - cargo install --locked cargo-xwin # Install cargo-xwin
+    #
+    - npm ci --no-audit --no-progress
+    # print versions:
+    - *print_versions
+  script:
+    - npm run tauri build
+    - npm run tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc --verbose || { echo "❗❗❗tauri build failed❗❗❗"; exit 1; }
+  artifacts:
+    paths: ["src-tauri/target/release/bundle"]

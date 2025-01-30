@@ -2,32 +2,35 @@
     import { convertFileSrc, invoke } from "@tauri-apps/api/core";
     import { fly, fade } from "svelte/transition";
     import { goto } from "$app/navigation";
-
-    /** @type {import('./$types').PageProps} */
-    let { data } = $props();
-
-    // No clue why types aren't typing so
-    /** @type {import('$lib/types').Novel} */
-    let novel = $derived(data.novel);
+    import { appState } from "../../state.svelte";
+    import { page } from "$app/state";
 
     // let characterProgress = $derived(
     //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
     // );
+
+    const novel = $state(appState.loadGame(page.params.id));
+
+    if (!novel) {
+        throw new Error("FIXME");
+    }
 
     // Should I use derived?
     let hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
     let minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
 
     const startGame = async () => {
-        await invoke("open_game", { gameId: novel.id });
+        appState.startGame(novel.id);
     };
 
     const togglePin = async () => {
-        await invoke("toggle_pin", { gameId: novel.id });
+        appState.togglePinned(novel.id);
+
+        novel.is_pinned = !novel.is_pinned;
     };
 
     const deleteGame = async () => {
-        await invoke("delete_game", { gameId: novel.id });
+        appState.deleteGame(novel.id);
         goto("/");
     };
 </script>

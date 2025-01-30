@@ -1,11 +1,11 @@
 <script>
-    import Icon from "@iconify/svelte";
     /**
      * @typedef {Object} Props
      * @property {string} [text]
      * @property {string|null} [image]
      * @property {string|null} [icon]
      * @property {string} [style]
+     * @property {any} [children]
      * @property {(event: MouseEvent) => void} [onclick]
      */
 
@@ -15,8 +15,10 @@
         image = null,
         icon = null,
         style = "",
+        children,
         onclick = () => {},
     } = $props();
+    console.log(children);
 </script>
 
 <div {style}>
@@ -25,12 +27,12 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div id="btn" {onclick}>
         <div id="btn__content">
-            {#if icon}
-                <Icon {icon} style="font-size: 24px" />
-            {:else if image}
+            {#if image}
                 <img src={image} height="56px" width="56px" alt="game-icon" />
-            {:else}
+            {:else if text}
                 {text}
+            {:else}
+                {@render children?.()}
             {/if}
         </div>
     </div>

@@ -5,6 +5,7 @@
     import { goto } from "$app/navigation";
     import { appState } from "../routes/state.svelte";
     import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+    import SquaresIcon from "$lib/util/SquaresIcon.svelte";
 
     let pinnedGames = $derived.by(() =>
         Object.entries(appState.gamesList)
@@ -21,12 +22,15 @@
     <section id="sidebar__header">
         <h1>多</h1>
         <div id="sidebar__header__buttons">
-            <Button onclick={() => goto("/")} icon="heroicons:squares-2x2" />
+            <Button onclick={() => goto("/")}>
+                <SquaresIcon style="font-size: 24px;" />
+            </Button>
 
             {#each pinnedGames as { id, image, char } (id)}
+                {console.log(pinnedGames)}
                 <Button
                     onclick={() => invoke("open_game", { gameId: id })}
-                    {image}
+                    image={image ? image : undefined}
                     text={image ? undefined : char}
                 />
             {/each}

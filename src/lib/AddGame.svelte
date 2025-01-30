@@ -1,8 +1,8 @@
 <script>
-    import Icon from "@iconify/svelte";
     import { open } from "@tauri-apps/plugin-dialog";
     import { invoke } from "@tauri-apps/api/core";
     import { appState } from "../routes/state.svelte";
+    import CloseIcon from "$lib/util/CloseIcon.svelte";
 
     let showModal = $state(false);
     let search = $state();
@@ -24,13 +24,13 @@
         selectedVn = "";
     };
 
-    const debounce = v => {
+    const debounce = (v) => {
         let timer;
         clearTimeout(timer);
         timer = setTimeout(() => {
-           updateSearch(v); // TODO: make this function generic
+            updateSearch(v); // TODO: make this function generic
         }, 750);
-      }
+    };
 
     const pickFile = async () => {
         const file = await open({
@@ -55,7 +55,7 @@
     const saveGame = async (vn) => {
         await appState.saveGame(vn.id, {
             title: vn.title,
-            description: vn.description,
+            description: vn.description || "No Description",
             exe_file_path: exe_path,
             icon_url: null,
             image_url: vn.image.url,
@@ -76,10 +76,7 @@
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <span onclick={closeModal}>
-                    <Icon
-                        icon="material-symbols-light:close-rounded"
-                        style="font-size: 24px;"
-                    />
+                    <CloseIcon style="font-size: 24px;" />
                 </span>
             </header>
             <section class="game-form">
@@ -233,7 +230,8 @@
         margin-top: 10px;
         max-width: 400px;
         max-height: 200px;
-        overflow: scroll;
+        overflow-y: scroll;
+        overflow-x: hidden;
     }
 
     /* Suggestion Item Styling */

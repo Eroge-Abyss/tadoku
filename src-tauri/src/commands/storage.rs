@@ -38,17 +38,18 @@ pub async fn save_game(
 
     #[cfg(windows)]
     {
-        let icon = windows_icons::get_icon_by_path(&game.exe_file_path)
-            .map_err(|_| "Failed to get icon")?;
+        let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
+        let icon_path = format!(
+            "{}.icon.png",
+            path.to_str().ok_or("Couldn't convert path to string")?
+        );
 
-        icon.save(format!("{}.icon.png", path))
+        dbg!(&icon_path);
+
+        icon.save(&icon_path)
             .map_err(|_| "Error happened while saving image")?;
 
-        game.icon_url = Some(
-            path.to_str()
-                .ok_or("Failed to convert path to string")?
-                .to_string(),
-        );
+        game.icon_url = Some(icon_path);
     }
 
     #[cfg(not(windows))]

@@ -2,16 +2,14 @@
     import { convertFileSrc } from "@tauri-apps/api/core";
     import { goto } from "$app/navigation";
     const { id, title, image, playtime } = $props();
-    console.log(playtime)
+    console.log(playtime);
     let hoursPlayed = $derived(Math.floor(playtime / 3600));
     let minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
-
-
 
     let image_url = $derived(convertFileSrc(image));
 </script>
 
-<section onclick="{() => goto(`/novel/${id}`)}" class="card">
+<section onclick={() => goto(`/novel/${id}`)} class="card">
     <div class="card-image">
         <img src={image_url} alt={title} />
         <!-- <span class="category">{category}</span> -->
@@ -25,8 +23,8 @@
                     style="width: {progress.completion}%"
                 ></div>
             </div-->
-            <!-- <span class="progress-text">{progress.completion}% Complete</span> -->     
-        <p class="time">{hoursPlayed}時{minutesPlayed}分</p>
+            <!-- <span class="progress-text">{progress.completion}% Complete</span> -->
+            <p class="time">{hoursPlayed}時{minutesPlayed}分</p>
         </div>
     </div>
 </section>
@@ -49,9 +47,9 @@
     .card:hover {
         transform: translateY(-5px);
         box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
-      & .card-content h3 {
-        color: var(--main-text);
-      } 
+        & .card-content h3 {
+            color: var(--main-text);
+        }
     }
 
     .card-image {
@@ -87,7 +85,16 @@
         margin: 0 0 0.75rem 0;
         font-size: 16px;
         font-weight: 400;
-        transition: color .2s ease-in-out;
+        transition: color 0.2s ease-in-out;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Number of lines before ellipsis */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.5; /* Adjust this value if needed */
+        min-height: calc(
+            1.5em * 2
+        ); /* 1.5em is the line height, 2 is the number of lines */
     }
 
     .progress-info {
@@ -95,8 +102,8 @@
         flex-direction: column;
         gap: 0.5rem;
         & .time {
-          color: var(--main-mauve);
-          font-weight: bold;
+            color: var(--main-mauve);
+            font-weight: bold;
         }
     }
 

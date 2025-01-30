@@ -25,6 +25,7 @@ class AppState {
    */
   async loadGames() {
     this.#gamesList = await invoke("load_games");
+    this.sortGames();
   }
 
   /**
@@ -83,6 +84,19 @@ class AppState {
    */
   async startGame(gameId) {
     await invoke("open_game", { gameId });
+  }
+
+  /**
+   * Sorts the games list by title.
+   */
+  sortGames() {
+    const sortedEntries = Object.entries(this.#gamesList).sort(
+      ([, a], [, b]) => {
+        return a.title.localeCompare(b.title);
+      },
+    );
+
+    this.#gamesList = Object.fromEntries(sortedEntries);
   }
 }
 

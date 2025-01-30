@@ -37,19 +37,16 @@
 </script>
 
 <div class="container">
-    <div class="content" in:fade={{ duration: 300 }}>
+    <div class="content" in:fade={{ duration: 100 }}>
         <div class="header">
-            <div
-                class="novel-info"
-                in:fly={{ x: 50, duration: 500, delay: 300 }}
-            >
+            <div class="novel-info" in:fly={{ x: 10, duration: 500 }}>
                 <img
                     src={convertFileSrc(novel.image_url)}
                     alt={novel.title}
                     class="novel-image"
                     in:fly={{ y: 50, duration: 500, delay: 300 }}
                 />
-                <div>
+                <div class="novel-text">
                     <h1>{novel.title}</h1>
                     <p class="description">{novel.description}</p>
                 </div>
@@ -134,7 +131,6 @@
 
 <style>
     /* TODO: FIX old CSS vars */
-  
 
     /* .back-button {
         display: inline-flex;
@@ -152,16 +148,19 @@
         color: var(--primary-dark);
     } */
 
+    .container {
+        padding: 25px;
+    }
+
     .content {
         border-radius: 12px;
         display: flex;
         flex-direction: column;
+        width: 100%;
     }
 
     .header {
         display: flex;
-        align-items: center;
-        justify-content: center;
         flex-direction: column;
         padding: 2rem;
         gap: 1rem;
@@ -176,6 +175,10 @@
         display: flex;
         align-items: center;
         gap: 1rem;
+    }
+
+    .novel-text {
+        height: 100%;
     }
 
     .novel-image {
@@ -198,7 +201,8 @@
         font-size: 14px;
         font-weight: 600;
         line-height: 1.5;
-        overflow: scroll;
+        overflow-x: hidden;
+        overflow-y: scroll;
         max-height: 200px;
     }
 
@@ -250,13 +254,13 @@
         background-color: var(--accent);
         padding: 1rem;
         border-radius: 8px;
-        transition:
+        /* transition:
             transform 0.2s,
-            box-shadow 0.2s;
+            box-shadow 0.2s; */
     }
 
     .stat-item:hover {
-        transform: translateY(-5px);
+        /* transform: translateY(-5px); */
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 

@@ -5,6 +5,7 @@
     --secondary: #1e1e1e;
     --main-dark: #9b6fff;
     --accent: #2a2a2a;
+    --dark-handle: #444444; /* New variable for dark handle color */
 }
 
 *,
@@ -31,7 +32,7 @@ body {
     height: 100%;
     width: 100%;
     display: flex;
-  }
+}
 
 .titlebar {
     height: 30px;
@@ -44,7 +45,9 @@ body {
     top: 0;
     left: 0;
     right: 0;
+    z-index: 3;
 }
+
 .titlebar-button {
     display: inline-flex;
     justify-content: center;
@@ -74,4 +77,25 @@ body {
 html {
     visibility: visible;
     opacity: 1;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--secondary);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--dark-handle);
+  border-radius: 4px; /* Less rounded */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--main-dark);
 }

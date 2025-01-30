@@ -31,7 +31,7 @@
             filters: [
                 {
                     name: "Game exe or shortcut path",
-                    extensions: ["exe", "lnk"],
+                    extensions: ["exe", "lnk", "bat"],
                 },
             ],
         });
@@ -44,23 +44,17 @@
         search = "";
     };
 
-    const saveGame = (vn) => {
-        invoke("save_game", {
-            gameId: vn.id,
-            game: {
-                title: vn.title,
-                description: vn.description,
-                image_url: vn.image.url,
-                exe_file_path: exe_path,
-                playtime: 0,
-                is_pinned: false
-            },
-        })
-            .then(async () => {
-                appState.gamesList = await invoke("load_games");
-                closeModal();
-            })
-            .catch(console.log);
+    const saveGame = async (vn) => {
+        await appState.saveGame(vn.id, {
+            title: vn.title,
+            description: vn.description,
+            exe_file_path: exe_path,
+            icon_url: null,
+            image_url: vn.image.url,
+            is_pinned: false,
+            playtime: 0,
+        });
+        closeModal();
     };
 </script>
 

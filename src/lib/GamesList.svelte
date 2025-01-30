@@ -18,7 +18,7 @@
                     easing: elasticOut,
                 }}
             >
-                <Card {id} image={game.image_url} title={game.title} />
+                <Card {id} image={game.image_url} title={game.title} playtime={game.playtime} />
             </div>
         {/each}
     </div>
@@ -26,26 +26,22 @@
 
 <style>
     .container {
-        max-width: 1200px;
-        margin: 0 auto;
         padding: 2rem;
         display: flex;
-        flex-direction: column;
-        width: 100%;
+        flex-direction: column; 
     }
 
     h1 {
         color: var(--foreground);
         margin-bottom: 2rem;
         font-size: 2.5rem;
-        text-align: center;
         font-weight: 700;
     }
 
     .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
         width: 100%;
     }
 

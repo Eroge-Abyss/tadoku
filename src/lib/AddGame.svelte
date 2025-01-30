@@ -24,6 +24,14 @@
         selectedVn = "";
     };
 
+    const debounce = v => {
+        let timer;
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+           updateSearch(v); // TODO: make this function generic
+        }, 750);
+      }
+
     const pickFile = async () => {
         const file = await open({
             multiple: false,
@@ -78,7 +86,7 @@
                 <div class="form-group">
                     <input
                         value={search}
-                        oninput={updateSearch}
+                        onkeyup={(e) => debounce(e)}
                         placeholder="Name or ID"
                     />
                 </div>
@@ -148,6 +156,7 @@
         position: fixed;
         height: 100%;
         width: 100%;
+        z-index: 2;
         top: 0;
         left: 0;
         display: flex;

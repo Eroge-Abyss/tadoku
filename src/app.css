@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap");
-
 :root {
     --main-background: #212121;
     --main-mauve: #bb9af7;
@@ -21,7 +19,7 @@ html,
 body {
     width: 100%;
     height: 100%;
-    font-family: "Noto Sans JP", serif;
+    font-family: "Noto Sans JP Variable", sans-serif;
 }
 
 body {
@@ -31,11 +29,9 @@ body {
 .container {
     color: var(--main-text);
     height: 100%;
+    width: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 400px;
-}
+  }
 
 .titlebar {
     height: 30px;

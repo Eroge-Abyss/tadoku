@@ -16,6 +16,7 @@
     }
 
     // Should I use derived?
+    // yes
     let hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
     let minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
 
@@ -101,16 +102,16 @@
                 </div> -->
             </div>
 
-            <div class="progress-bars">
+            <!--div class="progress-bars">
                 <div
                     class="progress-item"
                     in:fly={{ x: -20, duration: 300, delay: 1200 }}
                 >
                     <div class="progress-label">
                         <span>Overall Progress</span>
-                        <!-- <span>{novel.progress.completion}%</span> -->
+                        <span>{novel.progress.completion}%</span>
                     </div>
-                    <!-- <ProgressBar progress={novel.progress.completion} /> -->
+                    <ProgressBar progress={novel.progress.completion} />
                 </div>
 
                 <div
@@ -119,24 +120,21 @@
                 >
                     <div class="progress-label">
                         <span>Characters</span>
-                        <!-- <span>{Math.round(characterProgress)}%</span> -->
+                        <span>{Math.round(characterProgress)}%</span>
                     </div>
-                    <!-- <ProgressBar
+                    <ProgressBar
                         progress={characterProgress}
                         color="var(--primary-dark)"
-                    /> -->
+                    />
                 </div>
-            </div>
+            </div-->
         </div>
     </div>
 </div>
 
 <style>
     /* TODO: FIX old CSS vars */
-    .container {
-        display: flex;
-        flex-direction: column;
-    }
+  
 
     /* .back-button {
         display: inline-flex;
@@ -155,12 +153,9 @@
     } */
 
     .content {
-        background-color: var(--secondary);
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         display: flex;
         flex-direction: column;
-        width: calc(100vw - 400px);
     }
 
     .header {
@@ -170,11 +165,11 @@
         flex-direction: column;
         padding: 2rem;
         gap: 1rem;
-        background: linear-gradient(
+        /*background: linear-gradient(
             to bottom,
             rgba(0, 0, 0, 0.7) 0%,
             rgba(0, 0, 0, 0) 100%
-        );
+        );*/
     }
 
     .novel-info {
@@ -266,7 +261,6 @@
     }
 
     .stat-label {
-        display: block;
         color: var(--foreground);
         font-size: 0.875rem;
         margin-bottom: 0.25rem;

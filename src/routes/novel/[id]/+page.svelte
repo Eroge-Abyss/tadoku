@@ -99,16 +99,16 @@
                 </div> -->
             </div>
 
-            <div class="progress-bars">
+            <!--div class="progress-bars">
                 <div
                     class="progress-item"
                     in:fly={{ x: -20, duration: 300, delay: 1200 }}
                 >
                     <div class="progress-label">
                         <span>Overall Progress</span>
-                        <!-- <span>{novel.progress.completion}%</span> -->
+                        <span>{novel.progress.completion}%</span>
                     </div>
-                    <!-- <ProgressBar progress={novel.progress.completion} /> -->
+                    <ProgressBar progress={novel.progress.completion} />
                 </div>
 
                 <div
@@ -117,14 +117,14 @@
                 >
                     <div class="progress-label">
                         <span>Characters</span>
-                        <!-- <span>{Math.round(characterProgress)}%</span> -->
+                        <span>{Math.round(characterProgress)}%</span>
                     </div>
-                    <!-- <ProgressBar
+                    <ProgressBar
                         progress={characterProgress}
                         color="var(--primary-dark)"
-                    /> -->
+                    />
                 </div>
-            </div>
+            </div-->
         </div>
     </div>
 </div>

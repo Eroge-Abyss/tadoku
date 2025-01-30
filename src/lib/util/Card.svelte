@@ -1,6 +1,6 @@
 <script>
     import { convertFileSrc } from "@tauri-apps/api/core";
-
+    import { goto } from "$app/navigation";
     const { id, title, image, playtime } = $props();
     console.log(playtime)
     let hoursPlayed = $derived(Math.floor(playtime / 3600));
@@ -11,7 +11,7 @@
     let image_url = $derived(convertFileSrc(image));
 </script>
 
-<section class="card">
+<section onclick="{() => goto(`/novel/${id}`)}" class="card">
     <div class="card-image">
         <img src={image_url} alt={title} />
         <!-- <span class="category">{category}</span> -->

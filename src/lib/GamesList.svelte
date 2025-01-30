@@ -26,11 +26,9 @@
 
 <style>
     .container {
-        margin: 0 auto;
         padding: 2rem;
         display: flex;
-        flex-direction: column;
-        width: calc(100vw - 400px);
+        flex-direction: column; 
     }
 
     h1 {
@@ -42,8 +40,8 @@
 
     .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
         width: 100%;
     }
 

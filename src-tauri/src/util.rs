@@ -1,20 +1,21 @@
-use std::path::PathBuf;
+use std::{error::Error, path::PathBuf};
 use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
 use url::Url;
 
 /// Extracts an image filename from an image URL
-pub fn extract_image(url: &str) -> String {
+pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
     // TODO: Add proper error handling
-    let url = Url::parse(url).expect("Failed to parse URL");
-    url.path_segments()
-        .expect("Failed to get segments")
+    let url = Url::parse(url).map_err(|_| "Failed to parse URL")?;
+    Ok(url
+        .path_segments()
+        .ok_or("Failed to get segments")?
         .last()
-        .expect("Failed to get filename")
-        .to_string()
+        .ok_or("Failed to get filename")?
+        .to_string())
 }
 
-pub fn construct_image_path(base_path: &PathBuf, url: &str) -> PathBuf {
-    base_path.join("images").join(extract_image(url))
+pub fn construct_image_path(base_path: &PathBuf, url: &str) -> Result<PathBuf, Box<dyn Error>> {
+    Ok(base_path.join("images").join(extract_image(url)?))
 }
 
 /// Gets the playtime of the current game in seconds

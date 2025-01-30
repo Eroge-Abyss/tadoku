@@ -49,9 +49,9 @@ impl GamesStore {
         let mut games: Games = serde_json::from_value(games_data)?;
 
         for game in games.values_mut() {
-            game.image_url = util::construct_image_path(&self.base_app_path, &game.image_url)
+            game.image_url = util::construct_image_path(&self.base_app_path, &game.image_url)?
                 .to_str()
-                .expect("msg")
+                .ok_or("Error happened while constructing image path")?
                 .to_string();
         }
         Ok(games)
@@ -70,7 +70,7 @@ impl GamesStore {
             fs::remove_file(util::construct_image_path(
                 &self.base_app_path,
                 &removed_game.image_url,
-            ))
+            )?)
             .map_err(|err| err.to_string())?;
             let games_data = serde_json::to_value(games)?;
             self.store.set("gamesData", games_data);
@@ -104,10 +104,8 @@ impl GamesStore {
             .unwrap_or_else(|| serde_json::json!({}));
 
         let game = games_data.get(game_id)?;
-        let game = serde_json::from_value::<Game>(game.clone())
-            .expect("Error happened while converting JSON");
 
-        Some(game)
+        serde_json::from_value::<Game>(game.clone()).ok()
     }
 
     /// Toggles a game's pinned state
@@ -117,13 +115,28 @@ impl GamesStore {
             .get("gamesData")
             .unwrap_or_else(|| serde_json::json!({}));
 
-        let game = games_data.get(game_id).expect("Couldn't find game");
+        let game = games_data.get(game_id).ok_or("Couldn't find game")?;
         let mut game = serde_json::from_value::<Game>(game.clone())?;
 
         game.is_pinned = !game.is_pinned;
         games_data[game_id] = serde_json::to_value(game)?;
 
         self.store.set("gamesData", games_data);
+        Ok(())
+    }
+
+    pub fn update_playtime(&self, game_id: &str, playtime: u64) -> Result<()> {
+        let mut games_data = self
+            .store
+            .get("gamesData")
+            .unwrap_or_else(|| serde_json::json!({}));
+
+        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let old_playtime = game["playtime"].as_u64().ok_or("Can't convert to u64")?;
+
+        game["playtime"] = serde_json::json!(old_playtime + playtime);
+        self.store.set("gamesData", games_data);
+
         Ok(())
     }
 }

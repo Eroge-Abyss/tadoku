@@ -19,13 +19,13 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .shell()
                 .command(exe_path)
                 .spawn()
-                .expect("Error happened while running the game");
+                .map_err(|_| "Error happened while running the game")?;
 
             {
                 let state = app_handle.state::<Mutex<AppState>>();
                 let mut state = state
                     .lock()
-                    .expect("Error happened while acquiring mutex lock");
+                    .map_err(|_| "Error happened while acquiring mutex lock")?;
 
                 state.game = Some({
                     GameState {
@@ -37,12 +37,13 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
 
                 if let Some(pres) = &mut state.presence {
                     pres.set(DiscordGameDetails::new(game_id, game.title, game.image_url))
-                        .expect("Error happened while setting presence");
+                        .map_err(|_| "Error happened while setting presence")?;
                 }
             }
 
             playtime::spawn_playtime_thread(app_handle);
-        });
+            Result::<(), String>::Ok(())
+        })?;
     }
 
     Ok(())

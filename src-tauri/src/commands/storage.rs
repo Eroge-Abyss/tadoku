@@ -21,7 +21,8 @@ pub async fn save_game(app_handle: AppHandle, game_id: String, game: Game) -> Re
         .app_local_data_dir()
         .map_err(|err| err.to_string())?;
 
-    let path = util::construct_image_path(&base_path, &game.image_url);
+    let path = util::construct_image_path(&base_path, &game.image_url)
+        .map_err(|_| "Failed to construct image path")?;
 
     let mut file = fs::File::create(&path).map_err(|err| err.to_string())?;
     let mut content = Cursor::new(response.bytes().await.map_err(|err| err.to_string())?);

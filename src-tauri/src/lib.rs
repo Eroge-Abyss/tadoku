@@ -50,7 +50,9 @@ pub fn run() {
                 }
 
                 let scope = app.fs_scope();
-                scope.allow_directory(path, true).unwrap();
+                scope
+                    .allow_directory(path, true)
+                    .expect("Should allow images directory to be accessed");
             } else {
                 return Err("Failed to get app local data directory".into());
             }

@@ -1,4 +1,3 @@
-cargo-features = ["codegen-backend"]
 [package]
 name = "seikou"
 version = "0.1.0"
@@ -37,4 +36,3 @@ windows-icons = "0.1.1"
 
 [profile.dev]
 opt-level = 0
-codegen-backend = "cranelift"

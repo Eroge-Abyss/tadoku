@@ -1,4 +1,5 @@
 <script>
+    import "@fontsource-variable/noto-sans-jp";
     import "../app.css";
     import Sidebar from "$lib/Sidebar.svelte";
     import { getCurrentWindow } from "@tauri-apps/api/window";

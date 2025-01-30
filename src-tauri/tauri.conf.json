@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Tadoku",
-        "width": 800,
-        "height": 200,
+        "width": 1280,
+        "height": 800,
         "decorations": false
       }
     ],

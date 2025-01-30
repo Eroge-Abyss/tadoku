@@ -11,7 +11,8 @@
             .filter(([k, v]) => v.is_pinned)
             .map(([k, v]) => ({
                 id: k,
-                image: convertFileSrc(v.image_url),
+                char: v.title[0],
+                image: v.icon_url ? convertFileSrc(v.icon_url) : null,
             })),
     );
 </script>
@@ -22,10 +23,11 @@
         <div id="sidebar__header__buttons">
             <Button onclick={() => goto("/")} icon="heroicons:squares-2x2" />
 
-            {#each pinnedGames as { id, image } (id)}
+            {#each pinnedGames as { id, image, char } (id)}
                 <Button
                     onclick={() => invoke("open_game", { gameId: id })}
                     {image}
+                    text={image ? undefined : char}
                 />
             {/each}
 

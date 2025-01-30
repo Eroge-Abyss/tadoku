@@ -42,14 +42,16 @@
 
 <style>
     nav {
-        height: 100%;
+        height: 100vh;
+        width: 85px;
         padding-bottom: 1rem;
         background: #1b1b1b;
         display: flex;
-        position: fixed;
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
+        position: sticky;
+        top: -1px;
         #sidebar__header {
             h1 {
                 color: #5d5d5d;

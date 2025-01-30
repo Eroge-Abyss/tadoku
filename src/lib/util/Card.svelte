@@ -1,12 +1,17 @@
 <script>
     import { convertFileSrc } from "@tauri-apps/api/core";
 
-    const { id, title, image } = $props();
+    const { id, title, image, playtime } = $props();
+    console.log(playtime)
+    let hoursPlayed = $derived(Math.floor(playtime / 3600));
+    let minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
+
+
 
     let image_url = $derived(convertFileSrc(image));
 </script>
 
-<a href={`/novel/${id}`} class="card">
+<section class="card">
     <div class="card-image">
         <img src={image_url} alt={title} />
         <!-- <span class="category">{category}</span> -->
@@ -14,16 +19,17 @@
     <div class="card-content">
         <h3>{title}</h3>
         <div class="progress-info">
-            <div class="progress-bar">
-                <!-- <div
+            <!--div class="progress-bar">
+                 <div
                     class="progress"
                     style="width: {progress.completion}%"
-                ></div> -->
-            </div>
-            <!-- <span class="progress-text">{progress.completion}% Complete</span> -->
+                ></div>
+            </div-->
+            <!-- <span class="progress-text">{progress.completion}% Complete</span> -->     
+        <p class="time">{hoursPlayed}時{minutesPlayed}分</p>
         </div>
     </div>
-</a>
+</section>
 
 <style>
     .card {
@@ -35,12 +41,17 @@
             box-shadow 0.3s ease;
         display: block;
         text-decoration: none;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        max-width: 250px;
+        cursor: pointer;
     }
 
     .card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+      & .card-content h3 {
+        color: var(--main-text);
+      } 
     }
 
     .card-image {
@@ -72,16 +83,21 @@
     }
 
     .card-content h3 {
-        color: var(--main-mauve);
+        color: #888;
         margin: 0 0 0.75rem 0;
-        font-size: 1.25rem;
-        font-weight: 600;
+        font-size: 16px;
+        font-weight: 400;
+        transition: color .2s ease-in-out;
     }
 
     .progress-info {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        & .time {
+          color: var(--main-mauve);
+          font-weight: bold;
+        }
     }
 
     .progress-bar {

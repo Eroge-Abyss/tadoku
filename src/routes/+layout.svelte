@@ -13,5 +13,14 @@
   document.getElementById('titlebar-close')
     ?.addEventListener('click', () => appWindow.close());
 </script>
-<Sidebar />
-<slot />
+<main>
+  <Sidebar />
+  <slot />
+</main>
+
+<style>
+  main {
+    display: grid;
+    grid-template-columns: 100px 1fr; 
+  }
+</style>

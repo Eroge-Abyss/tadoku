@@ -18,7 +18,7 @@
                     easing: elasticOut,
                 }}
             >
-                <Card {id} image={game.image_url} title={game.title} />
+                <Card {id} image={game.image_url} title={game.title} playtime={game.playtime} />
             </div>
         {/each}
     </div>
@@ -26,19 +26,17 @@
 
 <style>
     .container {
-        max-width: 1200px;
         margin: 0 auto;
         padding: 2rem;
         display: flex;
         flex-direction: column;
-        width: 100%;
+        width: calc(100vw - 400px);
     }
 
     h1 {
         color: var(--foreground);
         margin-bottom: 2rem;
         font-size: 2.5rem;
-        text-align: center;
         font-weight: 700;
     }
 

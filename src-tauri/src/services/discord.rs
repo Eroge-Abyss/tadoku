@@ -33,7 +33,11 @@ impl DiscordPresence {
         let mut client = DiscordIpcClient::new("1333425743572500490")?;
 
         client.connect()?;
-        client.set_activity(Activity::new().state("In Menus"))?;
+        client.set_activity(
+            Activity::new()
+                .state("In Menus")
+                .assets(Assets::new().large_image("app_icon").large_text("Tadoku")),
+        )?;
 
         Ok(DiscordPresence { client })
     }
@@ -61,7 +65,10 @@ impl DiscordPresence {
     }
 
     pub fn clear(&mut self) -> Result<()> {
-        self.client
-            .set_activity(Activity::new().details("In Menus"))
+        self.client.set_activity(
+            Activity::new()
+                .state("In Menus")
+                .assets(Assets::new().large_image("app_icon").large_text("Tadoku")),
+        )
     }
 }

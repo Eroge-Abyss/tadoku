@@ -1,7 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Tadoku",
-  "version": "1.0.0",
   "identifier": "tadoku",
   "build": {
     "beforeDevCommand": "bun run dev",
@@ -19,7 +18,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost https://t.vndb.org",
       "assetProtocol": {
         "enable": true,
         "scope": ["$APPLOCALDATA/images/**"]

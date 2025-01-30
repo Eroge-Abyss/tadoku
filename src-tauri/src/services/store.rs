@@ -16,6 +16,7 @@ pub struct Game {
     /// Play time in seconds
     pub playtime: u32,
     pub is_pinned: bool,
+    pub icon_url: Option<String>,
 }
 
 pub type Games = HashMap<String, Game>;

@@ -1,3 +1,4 @@
+cargo-features = ["codegen-backend"]
 [package]
 name = "seikou"
 version = "0.1.0"
@@ -31,5 +32,7 @@ tauri-plugin-shell = "2"
 sysinfo = "0.33.1"
 discord-rich-presence = "0.2.5"
 
+
 [profile.dev]
 opt-level = 0
+codegen-backend = "cranelift"

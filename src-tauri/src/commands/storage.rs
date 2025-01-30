@@ -1,3 +1,6 @@
+#[cfg(windows)]
+use windows_icons;
+
 use crate::{
     services::store::{Game, Games, GamesStore},
     util::{self},
@@ -11,7 +14,11 @@ use tauri_plugin_http::reqwest;
 /// **NOTE**: This function downloads the image from the provided URL, saves it locally,
 /// and updates the game data in the JSON store.
 #[tauri::command]
-pub async fn save_game(app_handle: AppHandle, game_id: String, game: Game) -> Result<(), String> {
+pub async fn save_game(
+    app_handle: AppHandle,
+    game_id: String,
+    mut game: Game,
+) -> Result<(), String> {
     let response = reqwest::get(&game.image_url)
         .await
         .map_err(|_| "Failed to fetch image")?;
@@ -28,6 +35,26 @@ pub async fn save_game(app_handle: AppHandle, game_id: String, game: Game) -> Re
     let mut content = Cursor::new(response.bytes().await.map_err(|err| err.to_string())?);
 
     std::io::copy(&mut content, &mut file).map_err(|_| "Failed to download image")?;
+
+    #[cfg(windows)]
+    {
+        let icon = windows_icons::get_icon_by_path(&game.exe_file_path)
+            .map_err(|_| "Failed to get icon")?;
+
+        icon.save(format!("{}.icon.png", path))
+            .map_err(|_| "Error happened while saving image")?;
+
+        game.icon_url = Some(
+            path.to_str()
+                .ok_or("Failed to convert path to string")?
+                .to_string(),
+        );
+    }
+
+    #[cfg(not(windows))]
+    {
+        game.icon_url = None;
+    }
 
     let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 

@@ -1,8 +1,8 @@
 [package]
 name = "tadoku"
-version = "1.0.2"
-description = "A Tauri App"
-authors = ["you"]
+version = "1.0.3"
+description = "A Visual Novel manager and stats tracker"
+authors = ["kofta999 <mostafaxxx555@gmail.com>", "rekka69"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -30,6 +30,7 @@ url = "2.5.4"
 tauri-plugin-shell = "2"
 sysinfo = "0.33.1"
 discord-rich-presence = "0.2.5"
+lnk = "0.5.1"
 
 [target.'cfg(windows)'.dependencies]
 windows-icons = "0.1.1"

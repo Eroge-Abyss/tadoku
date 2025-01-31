@@ -41,16 +41,19 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
         }
 
         tauri::async_runtime::block_on(async move {
-            let (_, process) = app_handle
+            let mut command = app_handle
                 .shell()
                 .command(&exe_path)
-                .arg(args)
-                .current_dir(exe_path.parent().ok_or("Failed to get parent directory")?)
-                .spawn()
-                .map_err(|e| {
-                    dbg!(e);
-                    "Error happened while running the game".to_string()
-                })?;
+                .current_dir(exe_path.parent().ok_or("Failed to get parent directory")?);
+
+            if !args.is_empty() {
+                command = command.arg(args);
+            }
+
+            let (_, process) = command.spawn().map_err(|e| {
+                dbg!(e);
+                "Error happened while running the game".to_string()
+            })?;
 
             {
                 let state = app_handle.state::<Mutex<AppState>>();

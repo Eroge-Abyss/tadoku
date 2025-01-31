@@ -18,6 +18,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
 
     if let Some(game) = store.get(&game_id) {
         let mut exe_path = PathBuf::from(&game.exe_file_path);
+        let mut args = String::new();
 
         if exe_path.extension().unwrap_or_default() == "lnk" {
             let lnk = lnk::ShellLink::open(&exe_path).map_err(|_| "Error opening .lnk file")?;
@@ -30,6 +31,11 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .relative_path()
                 .as_ref()
                 .ok_or("Missing relative path in .lnk file")?;
+            args = lnk
+                .arguments()
+                .as_ref()
+                .unwrap_or(&String::new())
+                .to_owned();
             exe_path = fs::canonicalize(PathBuf::from(working_dir).join(relative_path))
                 .map_err(|e| format!("Error resolving canonical path: {}", e))?;
         }
@@ -38,6 +44,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
             let (_, process) = app_handle
                 .shell()
                 .command(&exe_path)
+                .arg(args)
                 .current_dir(exe_path.parent().ok_or("Failed to get parent directory")?)
                 .spawn()
                 .map_err(|e| {

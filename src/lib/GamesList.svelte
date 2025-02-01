@@ -18,7 +18,13 @@
                     easing: elasticOut,
                 }}
             >
-                <Card {id} image={game.image_url} title={game.title} playtime={game.playtime} />
+                <Card
+                    {id}
+                    image={game.image_url}
+                    isNsfw={game.is_nsfw}
+                    title={game.title}
+                    playtime={game.playtime}
+                />
             </div>
         {/each}
     </div>
@@ -28,7 +34,7 @@
     .container {
         padding: 2rem;
         display: flex;
-        flex-direction: column; 
+        flex-direction: column;
     }
 
     h1 {

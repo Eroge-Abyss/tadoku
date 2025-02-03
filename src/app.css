@@ -25,6 +25,10 @@ body {
 
 body {
     background-color: var(--main-background);
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+    cursor: default;
 }
 
 .container {
@@ -81,21 +85,21 @@ html {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+    width: 10px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: var(--secondary);
+    background: var(--secondary);
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: var(--dark-handle);
-  border-radius: 4px; /* Less rounded */
+    background: var(--dark-handle);
+    border-radius: 4px; /* Less rounded */
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--main-dark);
+    background: var(--main-dark);
 }

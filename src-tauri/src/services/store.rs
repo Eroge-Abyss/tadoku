@@ -2,9 +2,11 @@ use std::{collections::HashMap, error::Error, fs, path::PathBuf, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, Wry};
-use tauri_plugin_store::{Store, StoreExt};
+use tauri_plugin_store::StoreExt;
 
 use crate::util;
+
+type Store = Arc<tauri_plugin_store::Store<Wry>>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Game {
@@ -38,7 +40,7 @@ impl Default for Game {
 pub type Games = HashMap<String, Game>;
 
 pub struct GamesStore {
-    store: Arc<Store<Wry>>,
+    store: Store,
     base_app_path: PathBuf,
 }
 
@@ -56,14 +58,15 @@ impl GamesStore {
         })
     }
 
+    fn get_store(&self) -> serde_json::Value {
+        self.store
+            .get("gamesData")
+            .unwrap_or_else(|| serde_json::json!({}))
+    }
+
     /// Gets all games in store (image_urls are Paths)
     pub fn get_all(&self) -> Result<Games> {
-        let games_data = self
-            .store
-            .get("gamesData")
-            .unwrap_or_else(|| serde_json::json!({}));
-
-        let mut games: Games = serde_json::from_value(games_data)?;
+        let mut games: Games = serde_json::from_value(self.get_store())?;
 
         for game in games.values_mut() {
             game.image_url = util::construct_image_path(&self.base_app_path, &game.image_url)?
@@ -76,12 +79,7 @@ impl GamesStore {
 
     /// Deletes a game from the store (also removes image from filesystem)
     pub fn delete(&self, game_id: &str) -> Result<()> {
-        let games_data = self
-            .store
-            .get("gamesData")
-            .unwrap_or_else(|| serde_json::json!({}));
-
-        let mut games: Games = serde_json::from_value(games_data)?;
+        let mut games: Games = serde_json::from_value(self.get_store())?;
 
         if let Some(removed_game) = games.remove(game_id) {
             fs::remove_file(util::construct_image_path(
@@ -98,12 +96,7 @@ impl GamesStore {
 
     /// Saves a game to the store
     pub fn save(&self, game_id: String, game_data: Game) -> Result<()> {
-        let games_data = self
-            .store
-            .get("gamesData")
-            .unwrap_or_else(|| serde_json::json!({}));
-
-        let mut games: Games = serde_json::from_value(games_data)?;
+        let mut games: Games = serde_json::from_value(self.get_store())?;
         games.insert(game_id, game_data);
 
         let games_data = serde_json::to_value(games)?;
@@ -115,11 +108,7 @@ impl GamesStore {
 
     /// Gets a game by id
     pub fn get(&self, game_id: &str) -> Option<Game> {
-        let games_data = self
-            .store
-            .get("gamesData")
-            .unwrap_or_else(|| serde_json::json!({}));
-
+        let games_data = self.get_store();
         let game = games_data.get(game_id)?;
 
         serde_json::from_value::<Game>(game.clone()).ok()
@@ -127,11 +116,7 @@ impl GamesStore {
 
     /// Toggles a game's pinned state
     pub fn toggle_pin(&self, game_id: &str) -> Result<()> {
-        let mut games_data = self
-            .store
-            .get("gamesData")
-            .unwrap_or_else(|| serde_json::json!({}));
-
+        let mut games_data = self.get_store();
         let game = games_data.get(game_id).ok_or("Couldn't find game")?;
         let mut game = serde_json::from_value::<Game>(game.clone())?;
 
@@ -143,15 +128,21 @@ impl GamesStore {
     }
 
     pub fn update_playtime(&self, game_id: &str, playtime: u64) -> Result<()> {
-        let mut games_data = self
-            .store
-            .get("gamesData")
-            .unwrap_or_else(|| serde_json::json!({}));
-
+        let mut games_data = self.get_store();
         let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
         let old_playtime = game["playtime"].as_u64().ok_or("Can't convert to u64")?;
 
         game["playtime"] = serde_json::json!(old_playtime + playtime);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
+
+    pub fn edit_exe(&self, game_id: &str, exe_path: &str) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+
+        game["exe_file_path"] = serde_json::json!(exe_path);
         self.store.set("gamesData", games_data);
 
         Ok(())

@@ -7,6 +7,7 @@ use std::{
     path::PathBuf,
     sync::Mutex,
 };
+use sysinfo::System;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::ShellExt;
 
@@ -78,6 +79,21 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
         })?;
     } else {
         return Err("Game not found in store".to_string());
+    }
+
+    Ok(())
+}
+
+/// Gets a list of open windows
+#[tauri::command]
+pub fn get_windows(app_handle: AppHandle) -> Result<(), String> {
+    match get_open_windows() {
+        Ok(open_windows) => {
+            println!("open windows: {:#?}", open_windows);
+        }
+        Err(XWinError) => {
+            println!("error occurred while getting open windows");
+        }
     }
 
     Ok(())

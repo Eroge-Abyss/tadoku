@@ -31,6 +31,7 @@ pub fn run() {
             commands::storage::load_games,
             commands::storage::delete_game,
             commands::storage::toggle_pin,
+            commands::storage::update_exe,
             commands::opener::open_game
         ])
         .run(tauri::generate_context!())

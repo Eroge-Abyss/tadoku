@@ -4,6 +4,7 @@
     import { goto } from "$app/navigation";
     import { appState } from "../../state.svelte";
     import { page } from "$app/state";
+    import { open } from "@tauri-apps/plugin-dialog";
 
     // let characterProgress = $derived(
     //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
@@ -22,6 +23,7 @@
 
     // Should I use derived?
     // yes
+    // oki uwu
     let hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
     let minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
 
@@ -33,6 +35,23 @@
         appState.togglePinned(novel.id);
 
         novel.is_pinned = !novel.is_pinned;
+    };
+
+    const editExe = async () => {
+        const newPath = await open({
+            multiple: false,
+            directory: false,
+            filters: [
+                {
+                    name: "Game exe or shortcut path",
+                    extensions: ["exe", "lnk", "bat"],
+                },
+            ],
+        });
+
+        if (newPath) {
+            await appState.updateExePath(novel.id, newPath);
+        }
     };
 
     const deleteGame = async () => {
@@ -70,6 +89,7 @@
                 <button onclick={togglePin}
                     >{novel.is_pinned ? "Unpin" : "Pin"}</button
                 >
+                <button onclick={editExe}>Edit exe path</button>
                 <button onclick={deleteGame}>Delete</button>
             </div>
         </div>

@@ -15,6 +15,7 @@ pub struct Game {
     /// Is a local file path when loading games only, otherwise it's VNDB image URL
     pub image_url: String,
     pub exe_file_path: String,
+    pub process_file_path: String,
     /// Play time in seconds
     pub playtime: u32,
     pub is_pinned: bool,
@@ -29,6 +30,7 @@ impl Default for Game {
             description: String::new(),
             image_url: String::new(),
             exe_file_path: String::new(),
+            process_file_path: String::new(),
             playtime: 0,
             is_pinned: false,
             is_nsfw: false,
@@ -143,6 +145,16 @@ impl GamesStore {
         let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
 
         game["exe_file_path"] = serde_json::json!(exe_path);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
+
+    pub fn edit_process(&self, game_id: &str, process_path: &str) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+
+        game["process_file_path"] = serde_json::json!(process_path);
         self.store.set("gamesData", games_data);
 
         Ok(())

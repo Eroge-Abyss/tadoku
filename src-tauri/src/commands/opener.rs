@@ -1,13 +1,14 @@
 use crate::{
     services::{discord::DiscordGameDetails, playtime, store::GamesStore},
-    AppState, GameState,
+    util, AppState, GameState,
 };
 use std::{
     fs::{self},
     path::PathBuf,
     sync::Mutex,
+    thread,
+    time::Duration,
 };
-use sysinfo::System;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::ShellExt;
 
@@ -51,7 +52,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 command = command.arg(args);
             }
 
-            let (_, process) = command.spawn().map_err(|e| {
+            let _ = command.spawn().map_err(|e| {
                 dbg!(e);
                 "Error happened while running the game".to_string()
             })?;
@@ -62,8 +63,21 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                     .lock()
                     .map_err(|_| "Error acquiring mutex lock".to_string())?;
 
+                // Fetch PID of actual game process
+                let pid;
+
+                loop {
+                    match util::get_pid_from_process_path(&game.process_file_path) {
+                        Some(found_pid) => {
+                            pid = found_pid;
+                            break;
+                        }
+                        None => thread::sleep(Duration::from_secs(1)),
+                    }
+                }
+
                 state.game = Some(GameState {
-                    pid: process.pid(),
+                    pid: pid.as_u32(),
                     id: game_id.clone(),
                     ..Default::default()
                 });
@@ -87,14 +101,5 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
 /// Gets a list of open windows
 #[tauri::command]
 pub fn get_windows(app_handle: AppHandle) -> Result<(), String> {
-    match get_open_windows() {
-        Ok(open_windows) => {
-            println!("open windows: {:#?}", open_windows);
-        }
-        Err(XWinError) => {
-            println!("error occurred while getting open windows");
-        }
-    }
-
     Ok(())
 }

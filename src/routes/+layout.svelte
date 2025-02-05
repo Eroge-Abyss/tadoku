@@ -7,6 +7,8 @@
     // when using `"withGlobalTauri": true`, you may use
     // const { getCurrentWindow } = window.__TAURI__.window;
 
+    let { children } = $props();
+
     const appWindow = getCurrentWindow();
 
     document
@@ -19,14 +21,20 @@
         .getElementById("titlebar-close")
         ?.addEventListener("click", () => appWindow.close());
 </script>
+
 <main>
-  <Sidebar />
-  <slot />
+    {@render children()}
+    <Sidebar />
 </main>
 
 <style>
-  main {
-    display: grid;
-    grid-template-columns: 100px 1fr; 
-  }
+    main {
+        display: grid;
+        grid-template-columns: 100px 1fr;
+        grid-template-areas: "sidebar content";
+    }
+
+    :global(nav) {
+        grid-area: sidebar;
+    }
 </style>

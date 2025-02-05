@@ -1,17 +1,23 @@
 <script>
     import { convertFileSrc } from "@tauri-apps/api/core";
     import { goto } from "$app/navigation";
-    const { id, title, image, playtime } = $props();
-    console.log(playtime);
+    const { id, title, image, playtime, isNsfw } = $props();
+
     let hoursPlayed = $derived(Math.floor(playtime / 3600));
     let minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
 
     let image_url = $derived(convertFileSrc(image));
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <section onclick={() => goto(`/novel/${id}`)} class="card">
     <div class="card-image">
-        <img src={image_url} alt={title} />
+        {#if isNsfw}
+            <img src={image_url} alt={title} class="blur" />
+        {:else}
+            <img src={image_url} alt={title} />
+        {/if}
         <!-- <span class="category">{category}</span> -->
     </div>
     <div class="card-content">
@@ -30,6 +36,13 @@
 </section>
 
 <style>
+    .blur {
+        filter: blur(5px);
+        transition: filter 0.2s ease-in-out;
+    }
+    .blur:hover {
+        filter: blur(0);
+    }
     .card {
         background-color: var(--secondary);
         border-radius: 12px;

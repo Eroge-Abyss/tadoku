@@ -29,6 +29,7 @@ pub struct VndbGame {
 #[derive(Deserialize, Serialize, Debug)]
 struct Image {
     url: String,
+    sexual: f32,
 }
 
 #[tauri::command]
@@ -38,7 +39,7 @@ pub async fn fetch_vn_info(key: String) -> Result<Vec<VndbGame>, String> {
 
     let request_data = VndbRequest {
         filters: vec!["search", "=", key.as_str()],
-        fields: "id, title, image.url, description",
+        fields: "id, title, image.url, image.sexual, description",
     };
 
     let client = reqwest::Client::new();

@@ -9,5 +9,6 @@ export interface Game {
   exe_file_path: string;
   playtime: number; // Play time in seconds.
   is_pinned: boolean;
+  is_nsfw: boolean;
   icon_url: string | null;
 }

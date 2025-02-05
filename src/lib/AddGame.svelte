@@ -3,12 +3,18 @@
     import { invoke } from "@tauri-apps/api/core";
     import { appState } from "../routes/state.svelte";
     import CloseIcon from "$lib/util/CloseIcon.svelte";
+    const NSFW_RATE = 0.5;
 
     let showModal = $state(false);
     let search = $state();
     let exe_path = $state();
     let results = $state.raw([]);
     let selectedVn = $state.raw();
+    let showImage = $state(false);
+
+    function toggleImage() {
+        showImage = !showImage;
+    }
 
     async function updateSearch(e) {
         search = e.target.value;
@@ -48,6 +54,7 @@
 
     const selectGame = (game) => {
         selectedVn = game;
+        showImage = false;
         results = [];
         search = "";
     };
@@ -60,6 +67,7 @@
             icon_url: null,
             image_url: vn.image.url,
             is_pinned: false,
+            is_nsfw: vn.image.sexual > NSFW_RATE,
             playtime: 0,
         });
         closeModal();
@@ -97,7 +105,15 @@
                             onclick={() => selectGame(vn)}
                         >
                             <div class="suggestion-image">
-                                <img src={vn?.image?.url} alt={vn?.title} />
+                                {#if vn?.image?.sexual < NSFW_RATE}
+                                    <img src={vn?.image?.url} alt={vn?.title} />
+                                {:else}
+                                    <img
+                                        src={vn?.image?.url}
+                                        alt={vn?.title}
+                                        class="blur"
+                                    />
+                                {/if}
                             </div>
                             <div class="suggestion-text">
                                 <p class="suggestion-title">{vn?.title}</p>
@@ -109,10 +125,18 @@
 
                 {#if selectedVn}
                     <div class="selected-suggestion">
-                        <img
-                            src={selectedVn.image.url}
-                            alt={selectedVn.title}
-                        />
+                        {#if selectedVn.image.sexual < NSFW_RATE || showImage}
+                            <img
+                                src={selectedVn.image.url}
+                                alt={selectedVn.title}
+                            />
+                        {:else}
+                            <img
+                                src={selectedVn.image.url}
+                                alt={selectedVn.title}
+                                class="blur"
+                            />
+                        {/if}
                         <div class="suggestion-text">
                             <p class="selected-suggestion-title">
                                 {selectedVn.title}
@@ -135,6 +159,13 @@
 </section>
 
 <style>
+    .blur {
+        filter: blur(5px);
+        transition: filter 0.2s ease-in-out;
+    }
+    .blur:hover {
+        filter: blur(0);
+    }
     #btn__add {
         border: 0;
         background: #313131;
@@ -305,5 +336,11 @@
     .selected-suggestion-id {
         color: #aaa;
         font-size: 14px;
+    }
+
+    .nsfw-warning {
+        cursor: pointer;
+        color: red;
+        text-decoration: underline;
     }
 </style>

@@ -9,6 +9,11 @@
     //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
     // );
 
+    let showImage = $state(false);
+    function toggleImage() {
+        showImage = !showImage;
+    }
+
     const novel = $state(appState.loadGame(page.params.id));
 
     if (!novel) {
@@ -40,12 +45,21 @@
     <div class="content" in:fade={{ duration: 100 }}>
         <div class="header">
             <div class="novel-info" in:fly={{ x: 10, duration: 500 }}>
-                <img
-                    src={convertFileSrc(novel.image_url)}
-                    alt={novel.title}
-                    class="novel-image"
-                    in:fly={{ y: 50, duration: 500, delay: 300 }}
-                />
+                {#if !novel.is_nsfw || showImage}
+                    <img
+                        src={convertFileSrc(novel.image_url)}
+                        alt={novel.title}
+                        class="novel-image"
+                        in:fly={{ y: 50, duration: 500, delay: 300 }}
+                    />
+                {:else}
+                    <img
+                        src={convertFileSrc(novel.image_url)}
+                        alt={novel.title}
+                        class="novel-image blur"
+                        in:fly={{ y: 50, duration: 500, delay: 300 }}
+                    />
+                {/if}
                 <div class="novel-text">
                     <h1>{novel.title}</h1>
                     <p class="description">{novel.description}</p>
@@ -147,6 +161,15 @@
     .back-button:hover {
         color: var(--primary-dark);
     } */
+
+    .blur {
+        filter: blur(5px);
+        transition: filter 0.2s ease-in-out;
+    }
+
+    .blur:hover {
+        filter: blur(0);
+    }
 
     .container {
         padding: 25px;

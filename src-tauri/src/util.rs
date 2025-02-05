@@ -28,3 +28,20 @@ pub fn get_playtime(pid: u32) -> Option<u64> {
     s.process(Pid::from(pid as usize))
         .map(|process| process.run_time())
 }
+
+/// Gets the PID of a saved game's process file path
+pub fn get_pid_from_process_path(process_file_path: &str) -> Option<Pid> {
+    let s = System::new_with_specifics(
+        RefreshKind::nothing().with_processes(ProcessRefreshKind::everything()),
+    );
+
+    for (_, process) in s.processes() {
+        let exe = process.exe().unwrap();
+
+        if exe.to_str().unwrap() == process_file_path {
+            return Some(process.pid());
+        }
+    }
+
+    None
+}

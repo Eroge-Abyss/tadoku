@@ -1,16 +1,18 @@
 use crate::{
     services::{discord::DiscordGameDetails, playtime, store::GamesStore},
-    AppState, GameState,
+    util, AppState, GameState,
 };
 use serde::Serialize;
 use std::{
     fs::{self},
     path::PathBuf,
     sync::Mutex,
+    thread,
+    time::Duration,
 };
 use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::ShellExt;
-use x_win::{IconInfo, XWinError};
+use x_win::{XWinError};
 
 #[derive(Serialize)]
 pub struct ActiveWindow {
@@ -59,7 +61,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 command = command.arg(args);
             }
 
-            let (_, process) = command.spawn().map_err(|e| {
+            let _ = command.spawn().map_err(|e| {
                 dbg!(e);
                 "Error happened while running the game".to_string()
             })?;
@@ -70,8 +72,21 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                     .lock()
                     .map_err(|_| "Error acquiring mutex lock".to_string())?;
 
+                // Fetch PID of actual game process
+                let pid;
+
+                loop {
+                    match util::get_pid_from_process_path(&game.process_file_path) {
+                        Some(found_pid) => {
+                            pid = found_pid;
+                            break;
+                        }
+                        None => thread::sleep(Duration::from_secs(1)),
+                    }
+                }
+
                 state.game = Some(GameState {
-                    pid: process.pid(),
+                    pid: pid.as_u32(),
                     id: game_id.clone(),
                     ..Default::default()
                 });

@@ -2,14 +2,22 @@ use crate::{
     services::{discord::DiscordGameDetails, playtime, store::GamesStore},
     AppState, GameState,
 };
+use serde::Serialize;
 use std::{
     fs::{self},
     path::PathBuf,
     sync::Mutex,
 };
-use sysinfo::System;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::ShellExt;
+use x_win::{IconInfo, XWinError};
+
+#[derive(Serialize)]
+pub struct ActiveWindow {
+    title: String,
+    exe_path: String,
+    icon: String,
+}
 
 /// Opens a game and sets its PID in local state
 #[tauri::command]
@@ -86,15 +94,24 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
 
 /// Gets a list of open windows
 #[tauri::command]
-pub fn get_windows(app_handle: AppHandle) -> Result<(), String> {
-    match get_open_windows() {
+pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
+    let open_windows = match x_win::get_open_windows() {
         Ok(open_windows) => {
             println!("open windows: {:#?}", open_windows);
+            open_windows
         }
         Err(XWinError) => {
             println!("error occurred while getting open windows");
+            return Err(String::from("error"));
         }
-    }
+    };
 
-    Ok(())
+    Ok(open_windows
+        .iter()
+        .map(|window| ActiveWindow {
+            icon: x_win::get_window_icon(window).unwrap().data,
+            title: window.title.clone(),
+            exe_path: window.info.path.clone(),
+        })
+        .collect())
 }

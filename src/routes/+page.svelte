@@ -9,12 +9,21 @@
     listen("playtime", (e) => {
         playtime = e.payload;
     });
-    
-    invoke("get_windows")
 
-    onMount(() => appState.loadGames());
+    let games = null;
+
+    onMount(async () => {
+        appState.loadGames();
+        games = await invoke("get_active_windows");
+    });
 </script>
 
 <main class="container">
+    {#each games as game}
+        <p>{game.title}</p>
+        <p>{game.exe_path}</p>
+        <img src={game.icon} width={32} height={32}/>
+    {/each}
+
     <GamesList gamesList={appState.gamesList} />
 </main>

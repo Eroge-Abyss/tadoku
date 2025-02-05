@@ -36,10 +36,10 @@ pub fn get_pid_from_process_path(process_file_path: &str) -> Option<Pid> {
     );
 
     for (_, process) in s.processes() {
-        let exe = process.exe().unwrap();
-
-        if exe.to_str().unwrap() == process_file_path {
-            return Some(process.pid());
+        if let Some(exe) = process.exe() {
+            if exe.to_str().unwrap() == process_file_path {
+                return Some(process.pid());
+            }
         }
     }
 

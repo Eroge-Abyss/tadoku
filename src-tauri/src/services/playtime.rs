@@ -6,7 +6,6 @@ use tauri::{AppHandle, Emitter, Manager};
 use super::store::GamesStore;
 
 pub fn spawn_playtime_thread(app_handle: AppHandle) {
-    // TODO: Add better error handling with -> Result
     tauri::async_runtime::spawn(async move {
         loop {
             let (pid, game_id, current_playtime) = {

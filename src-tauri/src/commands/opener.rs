@@ -12,7 +12,7 @@ use std::{
 };
 use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::ShellExt;
-use x_win::{XWinError};
+use x_win::XWinError;
 
 #[derive(Serialize)]
 pub struct ActiveWindow {
@@ -51,7 +51,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .map_err(|e| format!("Error resolving canonical path: {}", e))?;
         }
 
-        tauri::async_runtime::block_on(async move {
+        tauri::async_runtime::block_on(async {
             let mut command = app_handle
                 .shell()
                 .command(&exe_path)
@@ -66,40 +66,41 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 "Error happened while running the game".to_string()
             })?;
 
-            {
-                let state = app_handle.state::<Mutex<AppState>>();
-                let mut state = state
-                    .lock()
-                    .map_err(|_| "Error acquiring mutex lock".to_string())?;
+            Result::<(), String>::Ok(())
+        })?;
 
-                // Fetch PID of actual game process
-                let pid;
+        tauri::async_runtime::spawn(async move {
+            let binding = app_handle.state::<Mutex<AppState>>();
+            let mut state = binding
+                .lock()
+                .map_err(|_| "Error acquiring mutex lock".to_string())?;
 
-                loop {
-                    match util::get_pid_from_process_path(&game.process_file_path) {
-                        Some(found_pid) => {
-                            pid = found_pid;
-                            break;
-                        }
-                        None => thread::sleep(Duration::from_secs(1)),
+            let pid;
+
+            loop {
+                match util::get_pid_from_process_path(&game.process_file_path) {
+                    Some(found_pid) => {
+                        pid = found_pid;
+                        break;
                     }
-                }
-
-                state.game = Some(GameState {
-                    pid: pid.as_u32(),
-                    id: game_id.clone(),
-                    ..Default::default()
-                });
-
-                if let Some(pres) = &mut state.presence {
-                    pres.set(DiscordGameDetails::new(game_id, game.title, game.image_url))
-                        .map_err(|_| "Error setting presence".to_string())?;
+                    None => thread::sleep(Duration::from_secs(1)),
                 }
             }
 
-            playtime::spawn_playtime_thread(app_handle);
+            state.game = Some(GameState {
+                pid: pid.as_u32(),
+                id: game_id.clone(),
+                ..Default::default()
+            });
+
+            if let Some(pres) = &mut state.presence {
+                pres.set(DiscordGameDetails::new(game_id, game.title, game.image_url))
+                    .map_err(|_| "Error setting presence".to_string())?;
+            }
+
+            playtime::spawn_playtime_thread(app_handle.clone());
             Result::<(), String>::Ok(())
-        })?;
+        });
     } else {
         return Err("Game not found in store".to_string());
     }

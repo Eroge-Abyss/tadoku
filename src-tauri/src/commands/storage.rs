@@ -2,6 +2,7 @@
 use windows_icons;
 
 use crate::{
+    scripts,
     services::store::{Game, Games, GamesStore},
     util::{self},
 };
@@ -27,6 +28,8 @@ pub async fn save_game(
         .path()
         .app_local_data_dir()
         .map_err(|err| err.to_string())?;
+
+    scripts::create_images_folder(&app_handle).map_err(|err| err.to_string())?;
 
     let path = util::construct_image_path(&base_path, &game.image_url)
         .map_err(|_| "Failed to construct image path")?;

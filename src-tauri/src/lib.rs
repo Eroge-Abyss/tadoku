@@ -1,25 +1,12 @@
-use services::discord::DiscordPresence;
-use std::{fs, sync::Mutex};
 use tauri::Manager;
-use tauri_plugin_fs::FsExt;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod commands;
+mod scripts;
 mod services;
 mod util;
 
-#[derive(Default, Clone)]
-struct GameState {
-    id: String,
-    pid: u32,
-    current_playtime: u64,
-}
-
-#[derive(Default)]
-struct AppState {
-    game: Option<GameState>,
-    presence: Option<DiscordPresence>,
-}
+pub use scripts::{AppState, GameState};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -30,32 +17,11 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(prevent_default())
         .setup(|app| {
-            // Create state
-            let state = AppState {
-                presence: DiscordPresence::new().ok(),
-                ..Default::default()
-            };
-
-            app.manage(Mutex::new(state));
-
-            // Create images folder if it doesn't exist
-            if let Ok(app_local_data_dir) = app.path().app_local_data_dir() {
-                let path = app_local_data_dir.join("images");
-
-                if let Err(err) = fs::create_dir_all(&path) {
-                    if err.kind() != std::io::ErrorKind::AlreadyExists {
-                        return Err(Box::new(err));
-                    }
-                }
-
-                let scope = app.fs_scope();
-                scope
-                    .allow_directory(path, true)
-                    .expect("Should allow images directory to be accessed");
-            } else {
-                return Err("Failed to get app local data directory".into());
-            }
+            scripts::setup_store(&app.app_handle())?;
+            scripts::create_images_folder(&app.app_handle())?;
+            scripts::initialize_state(&app.app_handle());
 
             Ok(())
         })
@@ -69,4 +35,18 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(debug_assertions)]
+fn prevent_default() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    use tauri_plugin_prevent_default::Flags;
+
+    tauri_plugin_prevent_default::Builder::new()
+        .with_flags(Flags::all().difference(Flags::CONTEXT_MENU))
+        .build()
+}
+
+#[cfg(not(debug_assertions))]
+fn prevent_default() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    tauri_plugin_prevent_default::init()
 }

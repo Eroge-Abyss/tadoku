@@ -8,6 +8,7 @@ const VNDB_URL: &str = "https://api.vndb.org/kana/vn";
 struct VndbRequest<'a> {
     filters: Vec<&'a str>,
     fields: &'a str,
+    sort: &'a str,
 }
 
 #[derive(Deserialize, Debug)]
@@ -40,6 +41,7 @@ pub async fn fetch_vn_info(key: String) -> Result<Vec<VndbGame>, String> {
     let request_data = VndbRequest {
         filters: vec!["search", "=", key.as_str()],
         fields: "id, title, image.url, image.sexual, description",
+        sort: "searchrank",
     };
 
     let client = reqwest::Client::new();

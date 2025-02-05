@@ -7,6 +7,7 @@
     let minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
 
     let image_url = $derived(convertFileSrc(image));
+
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->

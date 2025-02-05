@@ -20,6 +20,21 @@ pub struct Game {
     pub icon_url: Option<String>,
 }
 
+impl Default for Game {
+    fn default() -> Self {
+        Self {
+            title: String::new(),
+            description: String::new(),
+            image_url: String::new(),
+            exe_file_path: String::new(),
+            playtime: 0,
+            is_pinned: false,
+            is_nsfw: false,
+            icon_url: None,
+        }
+    }
+}
+
 pub type Games = HashMap<String, Game>;
 
 pub struct GamesStore {

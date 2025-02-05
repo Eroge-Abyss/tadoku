@@ -108,7 +108,11 @@
                                 {#if vn?.image?.sexual < NSFW_RATE}
                                     <img src={vn?.image?.url} alt={vn?.title} />
                                 {:else}
-                                    NSFW
+                                    <img
+                                        src={vn?.image?.url}
+                                        alt={vn?.title}
+                                        class="blur"
+                                    />
                                 {/if}
                             </div>
                             <div class="suggestion-text">
@@ -127,9 +131,11 @@
                                 alt={selectedVn.title}
                             />
                         {:else}
-                            <div class="nsfw-warning" onclick={toggleImage}>
-                                NSFW, click to show
-                            </div>
+                            <img
+                                src={selectedVn.image.url}
+                                alt={selectedVn.title}
+                                class="blur"
+                            />
                         {/if}
                         <div class="suggestion-text">
                             <p class="selected-suggestion-title">
@@ -153,6 +159,13 @@
 </section>
 
 <style>
+    .blur {
+        filter: blur(5px);
+        transition: filter 0.2s ease-in-out;
+    }
+    .blur:hover {
+        filter: blur(0);
+    }
     #btn__add {
         border: 0;
         background: #313131;

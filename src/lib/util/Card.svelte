@@ -15,7 +15,7 @@
 <section onclick={() => goto(`/novel/${id}`)} class="card">
     <div class="card-image">
         {#if isNsfw}
-            <div>NSFW, click to show</div>
+            <img src={image_url} alt={title} class="blur" />
         {:else}
             <img src={image_url} alt={title} />
         {/if}
@@ -37,6 +37,13 @@
 </section>
 
 <style>
+    .blur {
+        filter: blur(5px);
+        transition: filter 0.2s ease-in-out;
+    }
+    .blur:hover {
+        filter: blur(0);
+    }
     .card {
         background-color: var(--secondary);
         border-radius: 12px;

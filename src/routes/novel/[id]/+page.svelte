@@ -72,7 +72,12 @@
                         in:fly={{ y: 50, duration: 500, delay: 300 }}
                     />
                 {:else}
-                    <div onclick={toggleImage}>NSFW, click to show</div>
+                    <img
+                        src={convertFileSrc(novel.image_url)}
+                        alt={novel.title}
+                        class="novel-image blur"
+                        in:fly={{ y: 50, duration: 500, delay: 300 }}
+                    />
                 {/if}
                 <div class="novel-text">
                     <h1>{novel.title}</h1>
@@ -176,6 +181,15 @@
     .back-button:hover {
         color: var(--primary-dark);
     } */
+
+    .blur {
+        filter: blur(5px);
+        transition: filter 0.2s ease-in-out;
+    }
+
+    .blur:hover {
+        filter: blur(0);
+    }
 
     .container {
         padding: 25px;

@@ -104,3 +104,19 @@ pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> Result<(), String> 
 
     Ok(())
 }
+
+/// Updates the exe path of a game
+#[tauri::command]
+pub fn update_exe(
+    app_handle: AppHandle,
+    game_id: String,
+    new_exe_path: String,
+) -> Result<(), String> {
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .edit_exe(&game_id, &new_exe_path)
+        .map_err(|_| "Error happened while updating exe")?;
+
+    Ok(())
+}

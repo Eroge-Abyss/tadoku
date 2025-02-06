@@ -12,7 +12,6 @@ use std::{
 };
 use tauri::{AppHandle, Manager};
 use tauri_plugin_shell::ShellExt;
-use x_win::XWinError;
 
 #[derive(Serialize)]
 pub struct ActiveWindow {
@@ -111,23 +110,29 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
 /// Gets a list of open windows
 #[tauri::command]
 pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
-    let open_windows = match x_win::get_open_windows() {
-        Ok(open_windows) => {
-            println!("open windows: {:#?}", open_windows);
-            open_windows
-        }
-        Err(XWinError) => {
-            println!("error occurred while getting open windows");
-            return Err(String::from("error"));
-        }
-    };
+    #[cfg(windows)]
+    {
+        let open_windows = match x_win::get_open_windows() {
+            Ok(open_windows) => {
+                println!("open windows: {:#?}", open_windows);
+                open_windows
+            }
+            Err(x_win::XWinError) => {
+                println!("error occurred while getting open windows");
+                return Err(String::from("error"));
+            }
+        };
 
-    Ok(open_windows
-        .iter()
-        .map(|window| ActiveWindow {
-            icon: x_win::get_window_icon(window).unwrap().data,
-            title: window.title.clone(),
-            exe_path: window.info.path.clone(),
-        })
-        .collect())
+        Ok(open_windows
+            .iter()
+            .map(|window| ActiveWindow {
+                icon: x_win::get_window_icon(window).unwrap().data,
+                title: window.title.clone(),
+                exe_path: window.info.path.clone(),
+            })
+            .collect())
+    }
+
+    #[cfg(not(windows))]
+    Ok(Vec::new())
 }

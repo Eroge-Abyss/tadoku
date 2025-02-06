@@ -1,9 +1,8 @@
+use super::store::GamesStore;
 use crate::util::get_playtime;
 use crate::AppState;
 use std::{sync::Mutex, thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager};
-
-use super::store::GamesStore;
 
 pub fn spawn_playtime_thread(app_handle: AppHandle) {
     tauri::async_runtime::spawn(async move {
@@ -24,6 +23,10 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
 
             match get_playtime(pid) {
                 Some(time) => {
+                    const FLUSH_DURATION: u8 = 60;
+
+                    thread::sleep(Duration::from_secs(FLUSH_DURATION.into()));
+
                     {
                         let state = app_handle.state::<Mutex<AppState>>();
                         let mut state = state
@@ -33,18 +36,23 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                         game_state.current_playtime = time;
                     }
 
+                    let store = GamesStore::new(&app_handle)
+                        .map_err(|_| "Error happened while accessing store")?;
+
+                    store
+                        .update_playtime(&game_id, FLUSH_DURATION.into())
+                        .map_err(|_| "Error happened while setting new playtime")?;
+
                     app_handle
                         .emit("playtime", time)
                         .map_err(|_| "Error happened while emitting playtime")?;
-
-                    thread::sleep(Duration::from_secs(1));
                 }
                 None => {
                     let store = GamesStore::new(&app_handle)
                         .map_err(|_| "Error happened while accessing store")?;
 
                     store
-                        .update_playtime(&game_id, current_playtime)
+                        .update_playtime(&game_id, current_playtime % 60)
                         .map_err(|_| "Error happened while setting new playtime")?;
 
                     let state = app_handle.state::<Mutex<AppState>>();

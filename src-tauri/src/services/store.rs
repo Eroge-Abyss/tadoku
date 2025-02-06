@@ -136,6 +136,11 @@ impl GamesStore {
 
         game["playtime"] = serde_json::json!(old_playtime + playtime);
         self.store.set("gamesData", games_data);
+        // Note
+        // store.set() saves into an internal AppState
+        // and the store is automatically saved to disk using auto_save (defined in default builder as 100ms)
+        // why do I have to use it here even if it's every 60s? maybe a scope thing
+        self.store.save()?;
 
         Ok(())
     }

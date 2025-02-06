@@ -76,7 +76,7 @@
         object-fit: cover;
     }
 
-    .category {
+    /* .category {
         position: absolute;
         top: 1rem;
         left: 1rem;
@@ -88,7 +88,7 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-    }
+    } */
 
     .card-content {
         padding: 1rem;
@@ -121,7 +121,7 @@
         }
     }
 
-    .progress-bar {
+    /* .progress-bar {
         width: 100%;
         height: 6px;
         background-color: var(--accent);
@@ -139,5 +139,5 @@
         color: var(--main-text);
         font-size: 0.875rem;
         font-weight: 500;
-    }
+    } */
 </style>

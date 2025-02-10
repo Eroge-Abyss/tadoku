@@ -33,6 +33,8 @@ pub fn run() {
             commands::storage::toggle_pin,
             commands::storage::update_exe,
             commands::storage::update_process,
+            commands::storage::get_categories,
+            commands::storage::set_categories,
             commands::opener::open_game,
             commands::opener::get_active_windows
         ])

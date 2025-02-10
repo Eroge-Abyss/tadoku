@@ -1,12 +1,12 @@
 use std::{collections::HashMap, error::Error, fs, path::PathBuf, sync::Arc};
 
+use crate::util;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, Wry};
 use tauri_plugin_store::StoreExt;
 
-use crate::util;
-
 type Store = Arc<tauri_plugin_store::Store<Wry>>;
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Game {
@@ -45,8 +45,6 @@ pub struct GamesStore {
     store: Store,
     base_app_path: PathBuf,
 }
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 impl GamesStore {
     /// Creates store or uses existing one
@@ -161,6 +159,39 @@ impl GamesStore {
 
         game["process_file_path"] = serde_json::json!(process_path);
         self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
+}
+
+pub struct CategoriesStore {
+    store: Store,
+}
+
+pub type Categories = Vec<String>;
+
+impl CategoriesStore {
+    /// Creates store or uses existing one
+    pub fn new(app_handle: &AppHandle) -> Result<Self> {
+        let store = app_handle.store("store.json")?;
+
+        Ok(Self { store })
+    }
+
+    fn get_store(&self) -> serde_json::Value {
+        self.store
+            .get("categories")
+            .unwrap_or_else(|| serde_json::json!([]))
+    }
+
+    /// Gets all categories
+    pub fn get_all(&self) -> Result<Categories> {
+        Ok(serde_json::from_value(self.get_store())?)
+    }
+
+    /// Sets categories array to the provided value
+    pub fn set(&self, categories: Categories) -> Result<()> {
+        self.store.set("categories", categories);
 
         Ok(())
     }

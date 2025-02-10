@@ -3,7 +3,7 @@ use windows_icons;
 
 use crate::{
     scripts,
-    services::store::{Game, Games, GamesStore},
+    services::store::{Categories, CategoriesStore, Game, Games, GamesStore},
     util::{self},
 };
 use std::{fs, io::Cursor};
@@ -133,6 +133,28 @@ pub fn update_process(
     store
         .edit_process(&game_id, &new_process_path)
         .map_err(|_| "Error happened while updating process path")?;
+
+    Ok(())
+}
+
+/// Gets all categories as an array
+#[tauri::command]
+pub fn get_categories(app_handle: AppHandle) -> Result<Categories, String> {
+    let store =
+        CategoriesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store.get_all().map_err(|_| "Couldn't get categories")?)
+}
+
+/// Sets categories from an array
+#[tauri::command]
+pub fn set_categories(app_handle: AppHandle, categories: Categories) -> Result<(), String> {
+    let store =
+        CategoriesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set(categories)
+        .map_err(|_| "Error happened while setting categories")?;
 
     Ok(())
 }

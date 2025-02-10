@@ -32,6 +32,7 @@ pub fn run() {
             commands::storage::delete_game,
             commands::storage::toggle_pin,
             commands::storage::update_exe,
+            commands::storage::set_game_categories,
             commands::storage::update_process,
             commands::storage::get_categories,
             commands::storage::set_categories,

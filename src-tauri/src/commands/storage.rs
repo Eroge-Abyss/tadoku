@@ -158,3 +158,19 @@ pub fn set_categories(app_handle: AppHandle, categories: Categories) -> Result<(
 
     Ok(())
 }
+
+/// Sets categories of a game from an array
+#[tauri::command]
+pub fn set_game_categories(
+    app_handle: AppHandle,
+    game_id: String,
+    categories: Categories,
+) -> Result<(), String> {
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_categories(&game_id, categories)
+        .map_err(|_| "Error happened while setting categories")?;
+
+    Ok(())
+}

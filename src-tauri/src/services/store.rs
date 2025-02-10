@@ -21,6 +21,7 @@ pub struct Game {
     pub is_pinned: bool,
     pub is_nsfw: bool,
     pub icon_url: Option<String>,
+    pub categories: Categories,
 }
 
 impl Default for Game {
@@ -35,6 +36,7 @@ impl Default for Game {
             is_pinned: false,
             is_nsfw: false,
             icon_url: None,
+            categories: Vec::new(),
         }
     }
 }
@@ -158,6 +160,16 @@ impl GamesStore {
         let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
 
         game["process_file_path"] = serde_json::json!(process_path);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
+
+    pub fn set_categories(&self, game_id: &str, categories: Categories) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+
+        game["categories"] = serde_json::json!(categories);
         self.store.set("gamesData", games_data);
 
         Ok(())

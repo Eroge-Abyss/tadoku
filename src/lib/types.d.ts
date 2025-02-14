@@ -7,8 +7,10 @@ export interface Game {
   description: string;
   image_url: string; // Is a local file path when loading games only, otherwise it's VNDB image URL.
   exe_file_path: string;
+  process_file_path: string;
   playtime: number; // Play time in seconds.
   is_pinned: boolean;
   is_nsfw: boolean;
   icon_url: string | null;
+  categories: string[];
 }

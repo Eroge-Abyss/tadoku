@@ -1,17 +1,20 @@
+use serde::{Deserialize, Serialize};
 #[cfg(windows)]
 use windows_icons;
 
 use crate::{
-    scripts,
     services::{
-        store::{Categories, CategoriesStore, Game, Games, GamesStore},
+        store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
         vndb::Vndb,
     },
     util::{self},
 };
-use std::{fs, io::Cursor};
-use tauri::{AppHandle, Manager};
-use tauri_plugin_http::reqwest;
+use tauri::AppHandle;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Options {
+    include_characters: bool,
+}
 
 /// Saves a game to the local storage.
 ///
@@ -22,25 +25,11 @@ pub async fn save_game(
     app_handle: AppHandle,
     game_id: String,
     mut game: Game,
+    options: Options,
 ) -> Result<(), String> {
-    let response = reqwest::get(&game.image_url)
+    let _ = util::save_image(&app_handle, &game.image_url)
         .await
-        .map_err(|_| "Failed to fetch image")?;
-
-    let base_path = app_handle
-        .path()
-        .app_local_data_dir()
-        .map_err(|err| err.to_string())?;
-
-    scripts::create_images_folder(&app_handle).map_err(|err| err.to_string())?;
-
-    let path = util::construct_image_path(&base_path, &game.image_url)
-        .map_err(|_| "Failed to construct image path")?;
-
-    let mut file = fs::File::create(&path).map_err(|err| err.to_string())?;
-    let mut content = Cursor::new(response.bytes().await.map_err(|err| err.to_string())?);
-
-    std::io::copy(&mut content, &mut file).map_err(|_| "Failed to download image")?;
+        .map_err(|_| "Error happened while saving image")?;
 
     #[cfg(windows)]
     {
@@ -63,8 +52,27 @@ pub async fn save_game(
         game.icon_url = None;
     }
 
-    let characters = Vndb::get_vn_characters(&game_id).await.map_err(|e| dbg!(e));
-    dbg!(characters);
+    game.characters = if options.include_characters {
+        let chars = Vndb::get_vn_characters(&game_id).await?;
+        let mut new_chars: Vec<Character> = Vec::new();
+
+        for char in chars {
+            let path = util::save_image(&app_handle, &char.image.url)
+                .await
+                .map_err(|_| "Error happened while saving image")?;
+
+            new_chars.push(Character {
+                id: char.id,
+                en_name: char.name,
+                og_name: char.original,
+                image_url: path,
+            });
+        }
+
+        Some(new_chars)
+    } else {
+        None
+    };
 
     let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 

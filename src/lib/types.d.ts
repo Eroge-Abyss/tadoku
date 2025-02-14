@@ -14,3 +14,7 @@ export interface Game {
   icon_url: string | null;
   categories: string[];
 }
+
+export interface Options {
+  include_characters: boolean;
+}

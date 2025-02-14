@@ -29,15 +29,15 @@ struct GameImage {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct VndbCharacter {
-    id: String,
-    name: String,
-    image: CharacterImage,
-    original: String,
+    pub id: String,
+    pub name: String,
+    pub image: CharacterImage,
+    pub original: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct CharacterImage {
-    url: String,
+pub struct CharacterImage {
+    pub url: String,
 }
 
 pub struct Vndb {}
@@ -78,7 +78,8 @@ impl Vndb {
 
         let request_data = json!({
             "filters": ["vn", "=", ["id", "=", vn_id]],
-            "fields": "name, image.url, original"
+            "fields": "name, image.url, original",
+            "results": "100"
         });
 
         let client = reqwest::Client::new();

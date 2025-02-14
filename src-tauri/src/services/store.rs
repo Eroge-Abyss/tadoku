@@ -7,6 +7,7 @@ use tauri_plugin_store::StoreExt;
 
 type Store = Arc<tauri_plugin_store::Store<Wry>>;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub type Categories = Vec<String>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Game {
@@ -22,6 +23,20 @@ pub struct Game {
     pub is_nsfw: bool,
     pub icon_url: Option<String>,
     pub categories: Categories,
+    // TODO: Make its own struct?
+    pub characters: Option<Vec<Character>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Character {
+    pub id: String,
+    pub en_name: String,
+    pub og_name: String,
+    pub image_url: String,
+}
+
+pub struct CategoriesStore {
+    store: Store,
 }
 
 impl Default for Game {
@@ -37,6 +52,7 @@ impl Default for Game {
             is_nsfw: false,
             icon_url: None,
             categories: Vec::new(),
+            characters: None,
         }
     }
 }
@@ -175,12 +191,6 @@ impl GamesStore {
         Ok(())
     }
 }
-
-pub struct CategoriesStore {
-    store: Store,
-}
-
-pub type Categories = Vec<String>;
 
 impl CategoriesStore {
     /// Creates store or uses existing one

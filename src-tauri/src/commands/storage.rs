@@ -3,7 +3,10 @@ use windows_icons;
 
 use crate::{
     scripts,
-    services::store::{Categories, CategoriesStore, Game, Games, GamesStore},
+    services::{
+        store::{Categories, CategoriesStore, Game, Games, GamesStore},
+        vndb::Vndb,
+    },
     util::{self},
 };
 use std::{fs, io::Cursor};
@@ -59,6 +62,9 @@ pub async fn save_game(
     {
         game.icon_url = None;
     }
+
+    let characters = Vndb::get_vn_characters(&game_id).await.map_err(|e| dbg!(e));
+    dbg!(characters);
 
     let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 

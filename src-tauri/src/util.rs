@@ -4,7 +4,6 @@ use url::Url;
 
 /// Extracts an image filename from an image URL
 pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
-    // TODO: Add proper error handling
     let url = Url::parse(url).map_err(|_| "Failed to parse URL")?;
     Ok(url
         .path_segments()

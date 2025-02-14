@@ -1,5 +1,11 @@
 export interface Novel extends Game {
   id: string;
+  characters: {
+    id: string;
+    en_name: string;
+    og_name: string;
+    image_url: string;
+  }[];
 }
 
 export interface Game {

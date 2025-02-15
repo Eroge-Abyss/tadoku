@@ -5,6 +5,7 @@
       "name": "seikou",
       "dependencies": {
         "@fontsource-variable/noto-sans-jp": "^5.1.1",
+        "@fortawesome/fontawesome-free": "^6.7.2",
         "@sveltejs/enhanced-img": "^0.4.4",
         "@tauri-apps/api": "^2",
         "@tauri-apps/plugin-dialog": "~2",
@@ -82,6 +83,8 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.24.2", "", { "os": "win32", "cpu": "x64" }, "sha512-7VTgWzgMGvup6aSqDPLiW5zHaxYJGTO4OokMjIlrCtf+VpEL+cXKtCvg723iguPYI5oaUNdS+/V7OU2gvXVWEg=="],
 
     "@fontsource-variable/noto-sans-jp": ["@fontsource-variable/noto-sans-jp@5.1.1", "", {}, "sha512-fOuEtA3b+3M1nJJycPx8JQyKUTz10nTUOQSusC6gBtq6ff22vl59c3NSg3ZM5/QsO3y5AHhn+KKvhpRcDvgyJg=="],
+
+    "@fortawesome/fontawesome-free": ["@fortawesome/fontawesome-free@6.7.2", "", {}, "sha512-JUOtgFW6k9u4Y+xeIaEiLr3+cjoUPiAuLXoyKOJSia6Duzb7pq+A76P9ZdPDoAoxHdHzq6gE9/jKBGXlZT8FbA=="],
 
     "@img/sharp-darwin-arm64": ["@img/sharp-darwin-arm64@0.33.5", "", { "optionalDependencies": { "@img/sharp-libvips-darwin-arm64": "1.0.4" }, "os": "darwin", "cpu": "arm64" }, "sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ=="],
 

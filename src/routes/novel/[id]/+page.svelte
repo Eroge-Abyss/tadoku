@@ -5,7 +5,7 @@
     import { appState } from "../../state.svelte";
     import { page } from "$app/state";
     import { open } from "@tauri-apps/plugin-dialog";
-
+    import ConfirmDialog from "$lib/util/confirmDialog.svelte";
     // let characterProgress = $derived(
     //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
     // );
@@ -17,6 +17,13 @@
 
     const novel = $state(appState.loadGame(page.params.id));
     let playing = $state(false);
+    let activeMenu = $state(false); 
+    let deleteDialog = $state(false);
+    const openDeleteDialog = () => { deleteDialog = true };
+    $effect(() => {
+      console.log("delete", deleteDialog);
+    })
+
     if (!novel) {
         throw new Error("FIXME");
     }
@@ -55,8 +62,10 @@
     };
 
     const deleteGame = async () => {
-        appState.deleteGame(novel.id);
-        goto("/");
+      appState.deleteGame(novel.id);
+      console.log("game deleted");
+      goto("/");
+
     };
 </script>
 
@@ -86,14 +95,19 @@
             </div>
             <div class="buttons">
                 <button onclick={startGame} class={playing ? "playing" : ""}>{playing ? "Playing" : "Start"}</button>
-                <button onclick={togglePin}
-                    >{novel.is_pinned ? "Unpin" : "Pin"}</button
-                >
-                <button onclick={editExe}>Edit exe path</button>
-                <button onclick={deleteGame}>Delete</button>
+                <i class="fa-solid fa-ellipsis fa-xl" onclick={() => activeMenu = !activeMenu} class:active={activeMenu}></i>
+                <div class="menu" class:active={activeMenu}>
+                  <i onclick={togglePin} class={["fa-solid", novel.is_pinned ?  "fa-thumbtack-slash" : "fa-thumbtack"]}></i>        
+                  <i conclick={editExe} class="fa-regular fa-pen-to-square"></i> 
+                  <i onclick={openDeleteDialog} class="fa-regular fa-trash-can" style="color:  #f7768e;"></i>
+                </div>
             </div>
         </div>
-
+        <ConfirmDialog
+          bind:isOpen={deleteDialog}
+          onConfirm={deleteGame}
+          message={`Are you sure you want to delete <b style="color: red">${novel.title}?</b>`}
+        />
         <div
             class="progress-overview"
             in:fly={{ y: 50, duration: 500, delay: 600 }}
@@ -249,10 +263,57 @@
         max-height: 200px;
     }
 
-    .buttons {
+    .buttons, .buttons .menu {
         display: flex;
         gap: 1rem;
-        margin-right: auto;
+        align-items: center;
+        margin-top: 1rem;
+        
+        & .menu {
+          margin-top: 0;
+          opacity: 0;
+          transform: translateX(-20px);
+          transition: opacity 0.3s ease, transform 0.3s ease;
+          pointer-events: none;
+          & i {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            &:hover {
+              color: var(--text-main);
+            }
+          }
+          &.active {
+            transform: translateX(0);
+            z-index: 0;
+            opacity: 1;
+            & i {
+              opacity: 1;
+              transform: translateY(0);
+              pointer-events: auto;
+              &:nth-child(1) {
+                transition-delay: 0.1s;
+              }
+              &:nth-child(2) {
+                transition-delay: 0.2s;
+              }
+              &:nth-child(3) {
+                transition-delay: 0.3s;
+              }
+            }
+
+          }
+        }
+        i {
+          color: #464545;
+          transition: all .2s ease-in-out;
+          cursor: pointer; 
+          &.active {
+            color: var(--main-text);
+            transform: rotate(90deg);
+          }
+        }
+        
         & button {
             border: 0;
             background-color: #313131;
@@ -260,7 +321,6 @@
             width: 200px;
             padding: 0.5rem;
             font-size: 18px;
-            margin-top: 1rem;
             cursor: pointer;
             &:first-child {
               background: #9ece6a;
@@ -269,12 +329,8 @@
                 background: var(--main-mauve);
               }
 
-            }
-            
+            }            
 
-            &:last-child {
-                background: #f7768e;
-            }
         }
     }
 

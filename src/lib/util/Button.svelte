@@ -28,7 +28,7 @@
     <div id="btn" {onclick}>
         <div id="btn__content">
             {#if image}
-                <img src={image} height="56px" width="56px" alt="game-icon" />
+                <img src={image} alt="game-icon" />
             {:else if text}
                 {text}
             {:else}
@@ -66,6 +66,12 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                & img {
+                  /* edit for icon quality */ 
+                  height: 50%;
+                  width: 50%;
+                  border-radius: 5px;
+                }
             }
         }
         & #border {

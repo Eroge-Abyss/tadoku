@@ -44,7 +44,7 @@ img {
 
 .titlebar {
   height: 30px;
-  background: transparent;
+  background: var(--main-background);
   user-select: none;
   display: flex;
   justify-content: flex-end;

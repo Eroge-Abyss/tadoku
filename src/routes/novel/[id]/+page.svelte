@@ -16,7 +16,7 @@
     }
 
     const novel = $state(appState.loadGame(page.params.id));
-
+    let playing = $state(false);
     if (!novel) {
         throw new Error("FIXME");
     }
@@ -85,7 +85,7 @@
                 </div>
             </div>
             <div class="buttons">
-                <button onclick={startGame}>Play</button>
+                <button onclick={startGame} class={playing ? "playing" : ""}>{playing ? "Playing" : "Start"}</button>
                 <button onclick={togglePin}
                     >{novel.is_pinned ? "Unpin" : "Pin"}</button
                 >
@@ -262,10 +262,15 @@
             font-size: 18px;
             margin-top: 1rem;
             cursor: pointer;
-
             &:first-child {
-                background: #9ece6a;
+              background: #9ece6a;
+  
+              &.playing {
+                background: var(--main-mauve);
+              }
+
             }
+            
 
             &:last-child {
                 background: #f7768e;

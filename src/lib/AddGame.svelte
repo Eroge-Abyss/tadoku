@@ -11,7 +11,10 @@
     let results = $state.raw([]);
     let selectedVn = $state.raw();
     let showImage = $state(false);
-
+    let charactersDownload = $state(false);
+    $effect(() => {
+      console.log(charactersDownload);
+    }) 
     function toggleImage() {
         showImage = !showImage;
     }
@@ -70,7 +73,10 @@
             image_url: vn.image.url,
             is_pinned: false,
             is_nsfw: vn.image.sexual > NSFW_RATE,
-            playtime: 0,
+            playtime: 0, 
+        },
+        {
+          include_characters: charactersDownload
         });
         closeModal();
     };
@@ -97,7 +103,10 @@
                         placeholder="Name or ID"
                     />
                 </div>
-
+                <div class="form-group characters"> 
+                  <input type="checkbox" id="characters" bind:checked={charactersDownload}/>
+                  <label for="characters">Include Characters</label>
+                </div>
                 <div id="suggestions">
                     {#each results as vn}
                         <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -148,8 +157,7 @@
                             </p>
                         </div>
                     </div>
-                {/if}
-
+                {/if} 
                 <button onclick={pickFile}>Pick exe</button>
                 <button
                     style="background: #9ece6a"
@@ -243,6 +251,13 @@
                         color: var(--main-text);
                         max-width: 400px;
                     }
+
+                  &.characters {
+                    display: flex;
+                    align-items: center;
+                    gap: .5rem;
+                    margin-top: 1rem;
+                  }
                 }
 
                 & button {

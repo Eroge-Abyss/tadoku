@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 /**
  * @typedef {import('$lib/types').Game} Game
  * @typedef {import('$lib/types').Novel} Novel
+ * @typedef {import('$lib/types').Options} Options
  */
 
 class AppState {
@@ -32,12 +33,14 @@ class AppState {
    * Saves a game to the backend.
    * @param {string} gameId - The unique identifier for the game.
    * @param {Game} game - The game object to save.
+   * @param {Options} options - The game object to save.
    * @returns {Promise<void>}
    */
-  async saveGame(gameId, game) {
+  async saveGame(gameId, game, options = { include_characters: true }) {
     await invoke("save_game", {
       gameId,
       game,
+      options,
     });
 
     await this.loadGames();

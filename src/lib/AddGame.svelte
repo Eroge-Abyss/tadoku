@@ -64,6 +64,8 @@
             title: vn.title,
             description: vn.description || "No Description",
             exe_file_path: exe_path,
+            process_file_path: exe_path,
+            categories: [],
             icon_url: null,
             image_url: vn.image.url,
             is_pinned: false,

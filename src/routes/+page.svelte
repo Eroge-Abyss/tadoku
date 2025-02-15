@@ -19,11 +19,11 @@
 </script>
 
 <main class="container">
-    {#each games as game}
+    <!-- {#each games as game}
         <p>{game.title}</p>
         <p>{game.exe_path}</p>
         <img src={game.icon} width={32} height={32}/>
-    {/each}
+    {/each} -->
 
     <GamesList gamesList={appState.gamesList} />
 </main>

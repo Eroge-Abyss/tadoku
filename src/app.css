@@ -31,6 +31,10 @@ body {
     cursor: default;
 }
 
+img {
+    -webkit-user-drag: none;
+}
+
 .container {
     color: var(--main-text);
     height: 100%;

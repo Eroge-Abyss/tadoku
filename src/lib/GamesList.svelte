@@ -51,7 +51,7 @@
         width: 100%;
     }
 
-    .loading {
+    /* .loading {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -64,7 +64,7 @@
         margin-top: 1rem;
         font-size: 1.125rem;
         font-weight: 500;
-    }
+    } */
 
     :global(.animate-spin) {
         animation: spin 1s linear infinite;

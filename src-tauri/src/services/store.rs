@@ -1,12 +1,12 @@
 use std::{collections::HashMap, error::Error, fs, path::PathBuf, sync::Arc};
 
+use crate::util;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, Wry};
 use tauri_plugin_store::StoreExt;
 
-use crate::util;
-
 type Store = Arc<tauri_plugin_store::Store<Wry>>;
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Game {
@@ -21,6 +21,7 @@ pub struct Game {
     pub is_pinned: bool,
     pub is_nsfw: bool,
     pub icon_url: Option<String>,
+    pub categories: Categories,
 }
 
 impl Default for Game {
@@ -35,6 +36,7 @@ impl Default for Game {
             is_pinned: false,
             is_nsfw: false,
             icon_url: None,
+            categories: Vec::new(),
         }
     }
 }
@@ -45,8 +47,6 @@ pub struct GamesStore {
     store: Store,
     base_app_path: PathBuf,
 }
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 impl GamesStore {
     /// Creates store or uses existing one
@@ -136,6 +136,11 @@ impl GamesStore {
 
         game["playtime"] = serde_json::json!(old_playtime + playtime);
         self.store.set("gamesData", games_data);
+        // Note
+        // store.set() saves into an internal AppState
+        // and the store is automatically saved to disk using auto_save (defined in default builder as 100ms)
+        // why do I have to use it here even if it's every 60s? maybe a scope thing
+        self.store.save()?;
 
         Ok(())
     }
@@ -156,6 +161,49 @@ impl GamesStore {
 
         game["process_file_path"] = serde_json::json!(process_path);
         self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
+
+    pub fn set_categories(&self, game_id: &str, categories: Categories) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+
+        game["categories"] = serde_json::json!(categories);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
+}
+
+pub struct CategoriesStore {
+    store: Store,
+}
+
+pub type Categories = Vec<String>;
+
+impl CategoriesStore {
+    /// Creates store or uses existing one
+    pub fn new(app_handle: &AppHandle) -> Result<Self> {
+        let store = app_handle.store("store.json")?;
+
+        Ok(Self { store })
+    }
+
+    fn get_store(&self) -> serde_json::Value {
+        self.store
+            .get("categories")
+            .unwrap_or_else(|| serde_json::json!([]))
+    }
+
+    /// Gets all categories
+    pub fn get_all(&self) -> Result<Categories> {
+        Ok(serde_json::from_value(self.get_store())?)
+    }
+
+    /// Sets categories array to the provided value
+    pub fn set(&self, categories: Categories) -> Result<()> {
+        self.store.set("categories", categories);
 
         Ok(())
     }

@@ -337,10 +337,4 @@
         color: #aaa;
         font-size: 14px;
     }
-
-    .nsfw-warning {
-        cursor: pointer;
-        color: red;
-        text-decoration: underline;
-    }
 </style>

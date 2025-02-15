@@ -32,7 +32,9 @@ pub fn run() {
             commands::storage::delete_game,
             commands::storage::toggle_pin,
             commands::storage::update_exe,
-            commands::opener::open_game
+            commands::storage::update_process,
+            commands::opener::open_game,
+            commands::opener::get_active_windows
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

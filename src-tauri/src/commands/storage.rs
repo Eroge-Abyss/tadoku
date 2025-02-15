@@ -120,3 +120,19 @@ pub fn update_exe(
 
     Ok(())
 }
+
+/// Updates the process path of a game
+#[tauri::command]
+pub fn update_process(
+    app_handle: AppHandle,
+    game_id: String,
+    new_process_path: String,
+) -> Result<(), String> {
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .edit_process(&game_id, &new_process_path)
+        .map_err(|_| "Error happened while updating process path")?;
+
+    Ok(())
+}

@@ -32,6 +32,7 @@ sysinfo = "0.33.1"
 discord-rich-presence = "0.2.5"
 lnk = "0.5.1"
 tauri-plugin-prevent-default = "1.0.2"
+x-win = "3.0.0"
 
 [target.'cfg(windows)'.dependencies]
 windows-icons = "0.1.1"

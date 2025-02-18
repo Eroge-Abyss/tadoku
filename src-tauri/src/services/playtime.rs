@@ -1,4 +1,3 @@
-use super::store::GamesStore;
 use crate::util::{self, get_playtime};
 use crate::AppState;
 use serde_json::json;
@@ -22,6 +21,8 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                 )
             };
 
+            // TODO: Do some DRY here
+
             match get_playtime(pid) {
                 Some(_) => {
                     #[cfg(windows)]
@@ -37,6 +38,11 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                                     let game_state =
                                         state.game.as_mut().ok_or("Couldn't find the game")?;
                                     game_state.current_playtime += 1;
+                                }
+
+                                if current_playtime % 60 == 0 {
+                                    util::flush_playtime(&app_handle, &game_id, 60)
+                                        .map_err(|_| "Error happened while updating playtime")?;
                                 }
 
                                 // let store = GamesStore::new(&app_handle)
@@ -55,6 +61,21 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                                     .map_err(|_| "Error happened while emitting playtime")?;
                             }
                         }
+                    }
+
+                    #[cfg(not(windows))]
+                    {
+                        {
+                            let state = app_handle.state::<Mutex<AppState>>();
+                            let mut state = state
+                                .lock()
+                                .map_err(|_| "Error happened while acquiring mutex lock")?;
+                            let game_state = state.game.as_mut().ok_or("Couldn't find the game")?;
+                            game_state.current_playtime += 1;
+                        }
+                        app_handle
+                            .emit("playtime", current_playtime + 1)
+                            .map_err(|_| "Error happened while emitting playtime")?;
                     }
 
                     thread::sleep(Duration::from_secs(1));

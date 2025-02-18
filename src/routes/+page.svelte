@@ -8,12 +8,15 @@
 
   listen('playtime', (e) => {
     playtime = e.payload
+    console.log({ playtime })
   })
 
   let games = null
 
   onMount(async () => {
     appState.loadGames()
+    console.log("here")
+    
     games = await invoke('get_active_windows')
   })
 </script>

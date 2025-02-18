@@ -6,6 +6,7 @@
   import { page } from '$app/state'
   import { open } from '@tauri-apps/plugin-dialog'
   import ConfirmDialog from '$lib/util/confirmDialog.svelte'
+  import { listen } from '@tauri-apps/api/event'
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );
@@ -30,6 +31,14 @@
     throw new Error('FIXME')
   }
 
+  $effect(() => {
+    if (appState.currentGame && appState.currentGame.id == novel.id) {
+      playing = true
+    } else {
+      playing = false
+    }
+  })
+
   // Should I use derived?
   // yes
   // oki uwu
@@ -38,6 +47,10 @@
 
   const startGame = async () => {
     appState.startGame(novel.id)
+  }
+
+  const stopGame = async () => {
+    appState.closeGame()
   }
 
   const togglePin = async () => {
@@ -95,9 +108,11 @@
         </div>
       </div>
       <div class="buttons">
-        <button onclick={startGame} class={playing ? 'playing' : ''}
-          >{playing ? 'Playing' : 'Start'}</button
-        >
+        {#if playing}
+          <button onclick={stopGame} class="playing">Close</button>
+        {:else}
+          <button onclick={startGame}>Start</button>
+        {/if}
         <i
           class="fa-solid fa-ellipsis fa-xl"
           onclick={() => (activeMenu = !activeMenu)}
@@ -111,7 +126,7 @@
               novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
             ]}
           ></i>
-          <i conclick={editExe} class="fa-regular fa-pen-to-square"></i>
+          <i onclick={editExe} class="fa-regular fa-pen-to-square"></i>
           <i
             onclick={openDeleteDialog}
             class="fa-regular fa-trash-can"

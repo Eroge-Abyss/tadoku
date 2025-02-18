@@ -4,6 +4,9 @@
   import '../app.css'
   import Sidebar from '$lib/Sidebar.svelte'
   import { getCurrentWindow } from '@tauri-apps/api/window'
+  import { onMount } from 'svelte'
+  import { listen } from '@tauri-apps/api/event'
+  import { appState } from './state.svelte'
 
   // when using `"withGlobalTauri": true`, you may use
   // const { getCurrentWindow } = window.__TAURI__.window;
@@ -21,6 +24,14 @@
   document
     .getElementById('titlebar-close')
     ?.addEventListener('click', () => appWindow.close())
+
+  onMount(() => {
+    listen('current_game', (e) => {
+      console.log(e.payload)
+
+      appState.currentGame = e.payload
+    })
+  })
 </script>
 
 <main>

@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core'
  * @typedef {import('$lib/types').Game} Game
  * @typedef {import('$lib/types').Novel} Novel
  * @typedef {import('$lib/types').Options} Options
+ * @typedef {import('$lib/types').CurrentGame} CurrentGame
  */
 
 class AppState {
@@ -11,6 +12,19 @@ class AppState {
    * @type {Record<string, Game>}
    */
   #gamesList = $state({})
+
+  /**
+   * @type {CurrentGame | null}
+   */
+  #currentGame = $state(null)
+
+  get currentGame() {
+    return this.#currentGame
+  }
+
+  set currentGame(game) {
+    this.#currentGame = game
+  }
 
   /**
    * Gets the list of games.
@@ -111,6 +125,14 @@ class AppState {
    */
   async startGame(gameId) {
     await invoke('open_game', { gameId })
+  }
+
+  /**
+   * Closes the currently opened game
+   * @returns {Promise<void>}
+   */
+  async closeGame() {
+    await invoke('close_game', {})
   }
 
   /**

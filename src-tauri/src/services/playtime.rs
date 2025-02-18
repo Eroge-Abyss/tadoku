@@ -2,6 +2,7 @@ use super::store::GamesStore;
 use crate::util::get_playtime;
 use crate::AppState;
 use std::{sync::Mutex, thread, time::Duration};
+use serde_json::json;
 use tauri::{AppHandle, Emitter, Manager};
 
 pub fn spawn_playtime_thread(app_handle: AppHandle) {
@@ -65,6 +66,8 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                         pres.clear()
                             .map_err(|_| "Error happened while clearing presence")?;
                     }
+
+                    app_handle.emit("current_game", json!(null)).expect("here");
 
                     break;
                 }

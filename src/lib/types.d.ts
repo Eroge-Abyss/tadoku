@@ -1,11 +1,5 @@
 export interface Novel extends Game {
   id: string
-  characters: {
-    id: string
-    en_name: string
-    og_name: string
-    image_url: string
-  }[]
 }
 
 export interface Game {
@@ -19,8 +13,18 @@ export interface Game {
   is_nsfw: boolean
   icon_url: string | null
   categories: string[]
+  characters: {
+    id: string
+    en_name: string
+    og_name: string
+    image_url: string
+  }[]
 }
 
 export interface Options {
   include_characters: boolean
+}
+
+export interface CurrentGame {
+  id: string
 }

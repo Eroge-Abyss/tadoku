@@ -7,6 +7,7 @@
   import { open } from '@tauri-apps/plugin-dialog'
   import ConfirmDialog from '$lib/util/confirmDialog.svelte'
   import { listen } from '@tauri-apps/api/event'
+  import ChangeProcess from '$lib/util/ChangeProcess.svelte'
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );
@@ -26,6 +27,11 @@
   $effect(() => {
     console.log('delete', deleteDialog)
   })
+
+  let processDialog = $state(false)
+  const openProcessDialog = () => {
+    processDialog = true
+  }
 
   if (!novel) {
     throw new Error('FIXME')
@@ -132,6 +138,11 @@
             class="fa-regular fa-trash-can"
             style="color:  #f7768e;"
           ></i>
+          <i
+            onclick={openProcessDialog}
+            class="fa-regular fa-thumbtack-slash"
+            style="color:  #f7768e;"
+          ></i>
         </div>
       </div>
     </div>
@@ -139,6 +150,10 @@
       bind:isOpen={deleteDialog}
       onConfirm={deleteGame}
       message={`Are you sure you want to delete <b style="color: red">${novel.title}?</b>`}
+    />
+    <ChangeProcess
+      bind:isOpen={processDialog}
+      processList={invoke('get_active_windows')}
     />
     <div
       class="progress-overview"

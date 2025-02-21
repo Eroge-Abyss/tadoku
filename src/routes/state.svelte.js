@@ -141,7 +141,10 @@ class AppState {
   sortGames() {
     const sortedEntries = Object.entries(this.#gamesList).sort(
       ([, a], [, b]) => {
-        return b.playtime - a.playtime
+        if (b.playtime !== a.playtime) {
+          return b.playtime - a.playtime
+        }
+        return a.title.localeCompare(b.title)
       },
     )
 

@@ -37,6 +37,7 @@ pub fn run() {
             commands::storage::get_categories,
             commands::storage::set_categories,
             commands::opener::open_game,
+            commands::opener::close_game,
             commands::opener::get_active_windows
         ])
         .run(tauri::generate_context!())

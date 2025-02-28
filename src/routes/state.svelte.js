@@ -1,23 +1,37 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from '@tauri-apps/api/core'
 
 /**
  * @typedef {import('$lib/types').Game} Game
  * @typedef {import('$lib/types').Novel} Novel
  * @typedef {import('$lib/types').Options} Options
+ * @typedef {import('$lib/types').CurrentGame} CurrentGame
  */
 
 class AppState {
   /**
    * @type {Record<string, Game>}
    */
-  #gamesList = $state({});
+  #gamesList = $state({})
+
+  /**
+   * @type {CurrentGame | null}
+   */
+  #currentGame = $state(null)
+
+  get currentGame() {
+    return this.#currentGame
+  }
+
+  set currentGame(game) {
+    this.#currentGame = game
+  }
 
   /**
    * Gets the list of games.
    * @returns {Record<string, Game>}
    */
   get gamesList() {
-    return this.#gamesList;
+    return this.#gamesList
   }
 
   /**
@@ -25,8 +39,8 @@ class AppState {
    * @returns {Promise<void>}
    */
   async loadGames() {
-    this.#gamesList = await invoke("load_games");
-    this.sortGames();
+    this.#gamesList = await invoke('load_games')
+    this.sortGames()
   }
 
   /**
@@ -37,13 +51,13 @@ class AppState {
    * @returns {Promise<void>}
    */
   async saveGame(gameId, game, options = { include_characters: true }) {
-    await invoke("save_game", {
+    await invoke('save_game', {
       gameId,
       game,
       options,
-    });
+    })
 
-    await this.loadGames();
+    await this.loadGames()
   }
 
   /**
@@ -55,7 +69,7 @@ class AppState {
     return {
       id: gameId,
       ...this.#gamesList[gameId],
-    };
+    }
   }
 
   /**
@@ -64,9 +78,9 @@ class AppState {
    * @returns {Promise<void>}
    */
   async deleteGame(gameId) {
-    await invoke("delete_game", { gameId });
+    await invoke('delete_game', { gameId })
 
-    await this.loadGames();
+    await this.loadGames()
   }
 
   /**
@@ -75,9 +89,9 @@ class AppState {
    * @returns {Promise<void>}
    */
   async togglePinned(gameId) {
-    await invoke("toggle_pin", { gameId });
+    await invoke('toggle_pin', { gameId })
 
-    await this.loadGames();
+    await this.loadGames()
   }
 
   /**
@@ -87,9 +101,9 @@ class AppState {
    * @returns {Promise<void>}
    */
   async updateExePath(gameId, newExePath) {
-    await invoke("update_exe", { gameId, newExePath });
+    await invoke('update_exe', { gameId, newExePath })
 
-    await this.loadGames();
+    await this.loadGames()
   }
 
   /**
@@ -99,9 +113,9 @@ class AppState {
    * @returns {Promise<void>}
    */
   async setGameCategories(gameId, categories) {
-    await invoke("set_game_categories", { gameId, categories });
+    await invoke('set_game_categories', { gameId, categories })
 
-    await this.loadGames();
+    await this.loadGames()
   }
 
   /**
@@ -110,7 +124,15 @@ class AppState {
    * @returns {Promise<void>}
    */
   async startGame(gameId) {
-    await invoke("open_game", { gameId });
+    await invoke('open_game', { gameId })
+  }
+
+  /**
+   * Closes the currently opened game
+   * @returns {Promise<void>}
+   */
+  async closeGame() {
+    await invoke('close_game', {})
   }
 
   /**
@@ -119,12 +141,12 @@ class AppState {
   sortGames() {
     const sortedEntries = Object.entries(this.#gamesList).sort(
       ([, a], [, b]) => {
-        return a.title.localeCompare(b.title);
+        return b.playtime - a.playtime
       },
-    );
+    )
 
-    this.#gamesList = Object.fromEntries(sortedEntries);
+    this.#gamesList = Object.fromEntries(sortedEntries)
   }
 }
 
-export const appState = new AppState();
+export const appState = new AppState()

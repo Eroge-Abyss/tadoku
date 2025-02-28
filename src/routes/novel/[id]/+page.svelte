@@ -125,12 +125,18 @@
               'fa-solid',
               novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
             ]}
+            title="Toggle pinned"
           ></i>
-          <i onclick={editExe} class="fa-regular fa-pen-to-square"></i>
+          <i
+            onclick={editExe}
+            class="fa-regular fa-pen-to-square"
+            title="Edit exe path"
+          ></i>
           <i
             onclick={openDeleteDialog}
             class="fa-regular fa-trash-can"
             style="color:  #f7768e;"
+            title="Delete game"
           ></i>
         </div>
       </div>

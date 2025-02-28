@@ -5,8 +5,15 @@
   import { appState } from '../../state.svelte'
   import { page } from '$app/state'
   import { open } from '@tauri-apps/plugin-dialog'
+<<<<<<< Updated upstream
   import ConfirmDialog from '$lib/util/confirmDialog.svelte'
   import { listen } from '@tauri-apps/api/event'
+=======
+  import ConfirmDialog from '$lib/util/confirmDialog.svelte';
+  import Card from '$lib/util/Card.svelte';
+  import { openUrl } from '@tauri-apps/plugin-opener';
+  
+>>>>>>> Stashed changes
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );
@@ -23,8 +30,20 @@
   const openDeleteDialog = () => {
     deleteDialog = true
   }
+  const tabs = $state.raw([{
+      label: "Progress Overview",
+      id: "progress",
+      visible: true
+    }, {
+      label: "Characters",
+      id: "chars",
+      visible: novel.characters
+  }]);
+
+  let selectedTab = $state(tabs[0].id);
+
   $effect(() => {
-    console.log('delete', deleteDialog)
+    console.log("game: ", novel.characters);
   })
 
   if (!novel) {
@@ -126,7 +145,12 @@
               novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
             ]}
           ></i>
+<<<<<<< Updated upstream
           <i onclick={editExe} class="fa-regular fa-pen-to-square"></i>
+=======
+          <i conclick={editExe} class="fa-regular fa-pen-to-square"></i>
+          <i onclick={() => openUrl(`https://vndb.org/${novel.id}`)} class="fa-solid fa-arrow-up-right-from-square"></i>
+>>>>>>> Stashed changes
           <i
             onclick={openDeleteDialog}
             class="fa-regular fa-trash-can"
@@ -140,18 +164,45 @@
       onConfirm={deleteGame}
       message={`Are you sure you want to delete <b style="color: red">${novel.title}?</b>`}
     />
+
     <div
-      class="progress-overview"
+      class="tabs"
       in:fly={{ y: 50, duration: 500, delay: 600 }}
     >
-      <h2>Progress Overview</h2>
-
-      <div class="stats-grid">
-        <div class="stat-item" in:fly={{ y: 20, duration: 300, delay: 900 }}>
-          <p class="stat-label">Time Played</p>
-          <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
-        </div>
-        <!-- <div
+    
+        <div class="tab">
+          {#each tabs as tab}
+            {#if tab.visible}
+              <button class="{selectedTab == tab.id ? 'active' : ''}" 
+              onclick={() => (selectedTab = tab.id)}>{tab.label}</button>
+            {/if}
+          {/each}
+        </div>  
+              <div class="tab-content">
+                {#if selectedTab == 'progress'}
+                <div class="stats-grid">
+                <div class="stat-item" 
+                  in:fly={{ y: 20, duration: 500 }}>
+                  <p class="stat-label">Time Played</p>
+                  <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
+                </div>
+              </div>
+              {:else}
+                <div class="characters" in:fly={{ y: 20, duration: 300 }}>
+                   {#each novel.characters as character}
+                    <div class="character-card" onclick={() => openUrl(`https://vndb.org/${character.id}`)}>
+                      <img src={convertFileSrc(character.image_url)} alt={character.id} />
+                      <div class="character-content">
+                        <p class="main">{character.og_name}</p>
+                        <p class="sub">{character.en_name}</p>
+                      </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </div>
+                   {/each}
+                </div>
+              {/if}
+            </div>
+                <!-- <div
                     class="stat-item"
                     in:fly={{ y: 20, duration: 300, delay: 1000 }}
                 >
@@ -172,7 +223,8 @@
                         ).toLocaleString()}</span
                     >
                 </div> -->
-      </div>
+      
+
 
       <!--div class="progress-bars">
                 <div
@@ -363,10 +415,100 @@
     }
   }
 
-  .progress-overview {
+  .tabs {
     padding: 2rem;
     display: flex;
     flex-direction: column;
+    gap: 1.5rem;
+
+    & .tab {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: flex-start;
+      align-items: center;
+      & button {
+        background: var(--main-background);
+        color: var(--main-text);
+        border: 0; 
+        padding: 1rem;
+        font-size: 1.5rem;
+        
+        text-align: center;
+        position: relative;
+        cursor: pointer; 
+          
+          &:hover::after, &.active::after {
+            transform: scaleX(1);
+            opacity: 1;
+          }
+
+          &:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            display: block;
+            height: 5px;
+            width: 100%;
+            background-color: var(--main-mauve);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .3s ease, opacity .3s ease;
+            opacity: 0;
+            border-radius: 2px;
+          }
+      }
+    }
+  }
+
+  .characters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 1rem; 
+    grid-auto-rows: 1fr;
+    padding: 1rem;
+    & .character-card {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      transition: box-shadow .3s ease, transform .3s ease;
+      background: var(--accent);      
+      border-radius: 8px;
+      & .character-content {
+        padding: 1rem;
+        text-align: justify;
+        & p.main {
+          color: var(--main-text);
+        }
+
+        & p.sub {
+          color: var(--secondary-text);
+          font-size: 14px;
+        }
+      }
+      & img {
+        height: 100px;
+        width: 100px;
+        object-fit: cover;
+        border-radius: 8px 0 0 8px;
+      }
+
+      & i {
+        margin-left: auto;
+        padding: 1.5rem;
+        color: var(--secondary-text);
+      }
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+        & i {
+            color: var(--main-text);
+          }
+        }
+    }
   }
 
   h2 {

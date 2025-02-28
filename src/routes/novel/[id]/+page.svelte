@@ -5,15 +5,11 @@
   import { appState } from '../../state.svelte'
   import { page } from '$app/state'
   import { open } from '@tauri-apps/plugin-dialog'
-<<<<<<< Updated upstream
-  import ConfirmDialog from '$lib/util/confirmDialog.svelte'
-  import { listen } from '@tauri-apps/api/event'
-=======
+  import { listen } from '@tauri-apps/api/event';
   import ConfirmDialog from '$lib/util/confirmDialog.svelte';
   import Card from '$lib/util/Card.svelte';
   import { openUrl } from '@tauri-apps/plugin-opener';
   
->>>>>>> Stashed changes
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );
@@ -41,10 +37,6 @@
   }]);
 
   let selectedTab = $state(tabs[0].id);
-
-  $effect(() => {
-    console.log("game: ", novel.characters);
-  })
 
   if (!novel) {
     throw new Error('FIXME')
@@ -144,13 +136,10 @@
               'fa-solid',
               novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
             ]}
-          ></i>
-<<<<<<< Updated upstream
-          <i onclick={editExe} class="fa-regular fa-pen-to-square"></i>
-=======
+          ></i> 
           <i conclick={editExe} class="fa-regular fa-pen-to-square"></i>
           <i onclick={() => openUrl(`https://vndb.org/${novel.id}`)} class="fa-solid fa-arrow-up-right-from-square"></i>
->>>>>>> Stashed changes
+
           <i
             onclick={openDeleteDialog}
             class="fa-regular fa-trash-can"

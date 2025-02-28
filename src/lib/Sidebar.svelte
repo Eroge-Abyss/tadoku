@@ -58,6 +58,8 @@
     align-items: center;
     position: sticky;
     top: -1px;
+    /*كل ما تعطل اديها */
+    z-index: 3;
     #sidebar__header {
       h1 {
         color: #5d5d5d;

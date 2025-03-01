@@ -12,9 +12,7 @@
   let selectedVn = $state.raw()
   let showImage = $state(false)
   let charactersDownload = $state(false)
-  $effect(() => {
-    console.log(charactersDownload)
-  })
+  let loading = $state(false); 
   function toggleImage() {
     showImage = !showImage
   }
@@ -63,6 +61,7 @@
   }
 
   const saveGame = async (vn) => {
+    loading = true;
     await appState.saveGame(
       vn.id,
       {
@@ -81,7 +80,8 @@
         include_characters: charactersDownload,
       },
     )
-    closeModal()
+    loading = false;
+    closeModal();
   }
 </script>
 
@@ -156,8 +156,14 @@
           </div>
         {/if}
         <button onclick={pickFile}>Pick exe</button>
-        <button style="background: #9ece6a" onclick={() => saveGame(selectedVn)}
-          >Save</button
+        <button disabled={loading} class="save-button" onclick={() => saveGame(selectedVn)}
+          >
+          {#if loading}
+            loading...
+          {:else}
+            Save 
+          {/if}
+        </button
         >
       </section>
     </section>
@@ -349,5 +355,12 @@
   .selected-suggestion-id {
     color: #aaa;
     font-size: 14px;
+  }
+
+  .save-button {
+    background: #9ece6a !important;
+    &[disabled] {
+      opacity: .5; 
+    }
   }
 </style>

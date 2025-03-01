@@ -15,5 +15,5 @@ Modern blazing fast Visual Novel tracker for Japanese learning or casual reading
 
 ### features
 [] process selector
-[] characters in details page
+[x] characters in details page
 [] categories

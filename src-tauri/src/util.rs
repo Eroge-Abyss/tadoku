@@ -4,7 +4,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest;
 use url::Url;
 
-use crate::scripts;
+use crate::{scripts, services::store::GamesStore};
 
 /// Extracts an image filename from an image URL
 pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
@@ -71,4 +71,19 @@ pub async fn save_image(app_handle: &AppHandle, image_url: &str) -> Result<Strin
     std::io::copy(&mut content, &mut file).map_err(|_| "Failed to download image")?;
 
     Ok(path.to_str().expect("Should not happen").to_owned())
+}
+
+/// Flushes playtime to disk
+pub fn flush_playtime(
+    app_handle: &AppHandle,
+    game_id: &str,
+    playtime: u64,
+) -> Result<(), Box<dyn Error>> {
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .update_playtime(game_id, playtime)
+        .map_err(|_| "Error happened while setting new playtime")?;
+
+    Ok(())
 }

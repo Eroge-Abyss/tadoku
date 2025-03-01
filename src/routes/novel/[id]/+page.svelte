@@ -5,15 +5,11 @@
   import { appState } from '../../state.svelte'
   import { page } from '$app/state'
   import { open } from '@tauri-apps/plugin-dialog'
-<<<<<<< Updated upstream
-  import ConfirmDialog from '$lib/util/confirmDialog.svelte'
   import { listen } from '@tauri-apps/api/event'
-=======
   import ConfirmDialog from '$lib/util/confirmDialog.svelte';
   import Card from '$lib/util/Card.svelte';
   import { openUrl } from '@tauri-apps/plugin-opener';
   
->>>>>>> Stashed changes
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );
@@ -144,17 +140,22 @@
               'fa-solid',
               novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
             ]}
+            title="Toggle pinned"
           ></i>
-<<<<<<< Updated upstream
-          <i onclick={editExe} class="fa-regular fa-pen-to-square"></i>
-=======
-          <i conclick={editExe} class="fa-regular fa-pen-to-square"></i>
-          <i onclick={() => openUrl(`https://vndb.org/${novel.id}`)} class="fa-solid fa-arrow-up-right-from-square"></i>
->>>>>>> Stashed changes
+          <i
+            onclick={editExe}
+            class="fa-regular fa-pen-to-square"
+            title="Edit exe path"
+          ></i>
+          <i
+            onclick={() => openUrl(`https://vndb.org/${novel.id}`)}
+            class="fa-solid fa-arrow-up-right-from-square"
+            title="Open in VNDB"></i>
           <i
             onclick={openDeleteDialog}
             class="fa-regular fa-trash-can"
             style="color:  #f7768e;"
+            title="Delete game"
           ></i>
         </div>
       </div>

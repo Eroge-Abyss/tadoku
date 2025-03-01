@@ -1,5 +1,5 @@
 <script>
-// I will make this modular later or maybe not who knows بعد العيد is it.
+// I will make this modular later or maybe not who knows بعد العيد it is.
 
   import { listen } from '@tauri-apps/api/event'
   import { onMount } from 'svelte'

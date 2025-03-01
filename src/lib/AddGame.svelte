@@ -1,59 +1,59 @@
 <script>
-  import { open } from '@tauri-apps/plugin-dialog'
-  import { invoke } from '@tauri-apps/api/core'
-  import { appState } from '../routes/state.svelte'
-  import CloseIcon from '$lib/util/CloseIcon.svelte'
-  import ProcessDropdown from '$lib/util/ProcessDropdown.svelte'
+  import { open } from '@tauri-apps/plugin-dialog';
+  import { invoke } from '@tauri-apps/api/core';
+  import { appState } from '../routes/state.svelte';
+  import CloseIcon from '$lib/util/CloseIcon.svelte';
+  import ProcessDropdown from '$lib/util/ProcessDropdown.svelte';
 
-  const NSFW_RATE = 0.5
+  const NSFW_RATE = 0.5;
 
-  let showModal = $state(false)
-  let showProcessSelector = $state(false)
-  let search = $state()
-  let processSearch = $state()
-  let exe_path = $state()
-  let results = $state.raw([])
-  let selectedVn = $state.raw()
-  let showImage = $state(false)
-  let charactersDownload = $state(false)
-  let loading = $state(false); 
+  let showModal = $state(false);
+  let showProcessSelector = $state(false);
+  let search = $state();
+  let processSearch = $state();
+  let exe_path = $state();
+  let results = $state.raw([]);
+  let selectedVn = $state.raw();
+  let showImage = $state(false);
+  let charactersDownload = $state(false);
+  let loading = $state(false);
   function toggleImage() {
-    showImage = !showImage
+    showImage = !showImage;
   }
 
   // State for tracking if the switch is active
   let isActive = $state(false);
-  
+
   // Function to toggle the switch state
   function toggleSwitch() {
     isActive = !isActive;
   }
 
   async function updateSearch(e) {
-    search = e.target.value
-    const data = await invoke('fetch_vn_info', { key: search })
-    results = search ? data : []
+    search = e.target.value;
+    const data = await invoke('fetch_vn_info', { key: search });
+    results = search ? data : [];
   }
 
-  const openModal = () => (showModal = true)
+  const openModal = () => (showModal = true);
   const closeModal = () => {
-    showModal = false
-    results = []
-    search = ''
-    selectedVn = ''
-  }
+    showModal = false;
+    results = [];
+    search = '';
+    selectedVn = '';
+  };
 
   const closeProcessSelector = () => {
     showProcessSelector = false;
-  }
+  };
 
   const debounce = (v) => {
-    let timer
-    clearTimeout(timer)
+    let timer;
+    clearTimeout(timer);
     timer = setTimeout(() => {
-      updateSearch(v) // TODO: make this function generic
-    }, 750)
-  }
+      updateSearch(v); // TODO: make this function generic
+    }, 750);
+  };
 
   const pickFile = async () => {
     const file = await open({
@@ -65,37 +65,37 @@
           extensions: ['exe', 'lnk', 'bat'],
         },
       ],
-    })
-    exe_path = file
-  }
+    });
+    exe_path = file;
+  };
 
   const pickProcess = async () => {
-    showProcessSelector = true; 
-  }
+    showProcessSelector = true;
+  };
 
   const selectGame = (game) => {
-    selectedVn = game
-    showImage = false
-    results = []
-    search = ''
-  }
+    selectedVn = game;
+    showImage = false;
+    results = [];
+    search = '';
+  };
 
   const saveGame = async (vn) => {
     loading = true;
     const testData = {
-        title: vn.title,
-        description: vn.description || 'No Description',
-        exe_file_path: exe_path,
-        process_file_path: exe_path,
-        categories: [],
-        icon_url: null,
-        image_url: vn.image.url,
-        is_pinned: false,
-        is_nsfw: vn.image.sexual > NSFW_RATE,
-        playtime: 0,
-      };
-    
-    console.log("gameTest", testData);
+      title: vn.title,
+      description: vn.description || 'No Description',
+      exe_file_path: exe_path,
+      process_file_path: exe_path,
+      categories: [],
+      icon_url: null,
+      image_url: vn.image.url,
+      is_pinned: false,
+      is_nsfw: vn.image.sexual > NSFW_RATE,
+      playtime: 0,
+    };
+
+    console.log('gameTest', testData);
 
     await appState.saveGame(
       vn.id,
@@ -110,6 +110,7 @@
         is_pinned: false,
         is_nsfw: vn.image.sexual > NSFW_RATE,
         playtime: 0,
+        characters: [],
       },
       {
         include_characters: charactersDownload,
@@ -117,7 +118,7 @@
     );
     loading = false;
     closeModal();
-  }
+  };
 </script>
 
 <section>
@@ -128,7 +129,7 @@
           <CloseIcon style="font-size: 24px;" />
         </span>
       // we will probably use this later
-    </div> 
+    </div>
   </section-->
   <section class="modal" class:open={showModal}>
     <section class="modal__content">
@@ -197,35 +198,35 @@
             </div>
           </div>
         {/if}
-        
+
         <div class="switch-container">
           <span class="switch-label">EXE</span>
-          <span 
-            class="switch {isActive ? 'active' : ''}" 
+          <span
+            class="switch {isActive ? 'active' : ''}"
             onclick={toggleSwitch}
             aria-checked={isActive}
             role="switch"
           >
             <span class="switch-thumb"></span>
           </span>
-          <span class="switch-label">
-            Process
-          </span>
+          <span class="switch-label"> Process </span>
         </div>
         {#if isActive}
-          <ProcessDropdown bind:selected={exe_path}/> 
+          <ProcessDropdown bind:selected={exe_path} />
         {:else}
           <button onclick={pickFile}>Pick exe</button>
         {/if}
-        <button disabled={loading} class="save-button" onclick={() => saveGame(selectedVn)}
-          >
+        <button
+          disabled={loading}
+          class="save-button"
+          onclick={() => saveGame(selectedVn)}
+        >
           {#if loading}
             loading...
           {:else}
-            Save 
+            Save
           {/if}
-        </button
-        >
+        </button>
       </section>
     </section>
   </section>
@@ -325,7 +326,7 @@
             margin-top: 1rem;
             & > * {
               cursor: pointer;
-            } 
+            }
           }
         }
 
@@ -427,41 +428,39 @@
   .save-button {
     background: #9ece6a !important;
     &[disabled] {
-      opacity: .5; 
+      opacity: 0.5;
     }
   }
 
   .process-selector {
-     & .process-selector-content {
-        position: relative;
-        height: 100%;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        & span {
-          position: absolute;
-          top: 0;
-          right: 0;
-          margin: 2rem;
-          color: var(--secondary-text);
-          cursor: pointer;
-          transition: color 0.2s ease-in-out;
-          &:hover {
-            color: var(--main-text);
-          }
-
+    & .process-selector-content {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      & span {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 2rem;
+        color: var(--secondary-text);
+        cursor: pointer;
+        transition: color 0.2s ease-in-out;
+        &:hover {
+          color: var(--main-text);
         }
+      }
     }
   }
 
-
- .switch-container {
+  .switch-container {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  
+
   .switch {
     position: relative;
     width: 40px;
@@ -473,11 +472,11 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-  
+
   .switch.active {
     background-color: var(--main-mauve);
   }
-  
+
   .switch-thumb {
     position: absolute;
     top: 2px;
@@ -488,11 +487,11 @@
     border-radius: 50%;
     transition: transform 0.3s ease;
   }
-  
+
   .switch.active .switch-thumb {
     transform: translateX(18px);
   }
-  
+
   .switch-label {
     font-size: 12px;
   }

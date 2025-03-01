@@ -1,34 +1,33 @@
 <script>
-// I will make this modular later or maybe not who knows بعد العيد it is.
+  // I will make this modular later or maybe not who knows بعد العيد it is.
 
-  import { listen } from '@tauri-apps/api/event'
-  import { onMount } from 'svelte'
-  import { appState } from '../../routes/state.svelte'
-  import { invoke } from '@tauri-apps/api/core'
-  
-  let { selected = $bindable() } = $props(); 
+  import { listen } from '@tauri-apps/api/event';
+  import { onMount } from 'svelte';
+  import { appState } from '../../routes/state.svelte';
+  import { invoke } from '@tauri-apps/api/core';
+
+  let { selected = $bindable() } = $props();
   let searchTerm = $state(''); // Reactive search term
   let isOpen = $state(false); // Reactive dropdown state
 
-  let items = $state() 
+  let items = $state();
 
   onMount(async () => {
-    appState.loadGames() 
-    items = await invoke('get_active_windows') 
-  })
+    appState.loadGames();
+    items = await invoke('get_active_windows');
+  });
   // Filtered items based on search term
-  let filterdItems = $derived(
+  let filteredItems = $derived(
     items.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  )
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
+  );
 
-  const selectItem = item => {
-  selected = item;
-  searchTerm = item;
-  isOpen = false;
-}
-  
+  const selectItem = (item) => {
+    selected = item;
+    searchTerm = item;
+    isOpen = false;
+  };
 </script>
 
 <div class="dropdown">
@@ -41,8 +40,8 @@
 
   {#if isOpen}
     <div class="dropdown-menu show">
-      {#each filterdItems as item}
-        <div onclick={() => selectItem(item.process_path)} class="dropdown-item">
+      {#each filteredItems as item}
+        <div onclick={() => selectItem(item.exe_path)} class="dropdown-item">
           <img src={item.icon} alt={item.title} width={32} height={32} />
           <span>{item.title}</span>
         </div>
@@ -54,14 +53,13 @@
 <!-- Hide dropdown when clicking outside -->
 <svelte:window
   on:click={(e) => {
-    if (!e.target.closest('.dropdown')) {
+    if (!e.target?.closest('.dropdown')) {
       isOpen = false;
     }
   }}
 />
 
-<style> 
-
+<style>
   .dropdown {
     position: relative;
     width: 300px;
@@ -76,7 +74,7 @@
     background: #313131;
     border: 0;
     margin-top: 1rem;
-    margin-bottom: .5rem; 
+    margin-bottom: 0.5rem;
     color: var(--main-text);
   }
 

@@ -14,6 +14,8 @@ Modern blazing fast Visual Novel tracker for Japanese learning or casual reading
 [POST /vn](https://api.vndb.org/kana#post-vn)
 
 ### features
-[] process selector
-[x] characters in details page
-[] categories
+[]process selector
+
+[x]characters in details page
+
+[]categories

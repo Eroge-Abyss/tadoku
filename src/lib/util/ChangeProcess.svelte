@@ -1,127 +1,65 @@
 <script>
-  import { open } from '@tauri-apps/plugin-dialog';
-  import { invoke } from '@tauri-apps/api/core';
-  import { appState } from '../routes/state.svelte';
   import CloseIcon from '$lib/util/CloseIcon.svelte';
+  import { invoke } from '@tauri-apps/api/core';
 
-  const NSFW_RATE = 0.5;
+  let {
+    isOpen = $bindable(),
+    gameId,
+    processList,
+    selected,
+    // onConfirm,
+    title = 'Change game process path',
+    message = 'Are you sure you want to proceed?',
+  } = $props();
+  
+  $inspect(processList)
 
-  let showModal = $state(false);
-  let showProcessSelector = $state(false);
-  let search = $state();
-  let processSearch = $state();
   let exe_path = $state();
-  let results = $state.raw([]);
-  let selectedVn = $state.raw();
-  let showImage = $state(false);
-  let charactersDownload = $state(false);
   let loading = $state(false);
-  function toggleImage() {
-    showImage = !showImage;
-  }
 
-  // State for tracking if the switch is active
-  let isActive = $state(false);
-
-  // Function to toggle the switch state
-  function toggleSwitch() {
-    isActive = !isActive;
-  }
-
-  async function updateSearch(e) {
-    search = e.target.value;
-    const data = await invoke('fetch_vn_info', { key: search });
-    results = search ? data : [];
-  }
-
-  const openModal = () => (showModal = true);
-  const closeModal = () => {
-    showModal = false;
-    results = [];
-    search = '';
-    selectedVn = '';
-  };
-
-  const closeProcessSelector = () => {
-    showProcessSelector = false;
-  };
-
-  const debounce = (v) => {
-    let timer;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      updateSearch(v); // TODO: make this function generic
-    }, 750);
-  };
-
-  const pickFile = async () => {
-    const file = await open({
-      multiple: false,
-      directory: false,
-      filters: [
-        {
-          name: 'Game exe or shortcut path',
-          extensions: ['exe', 'lnk', 'bat'],
-        },
-      ],
+  async function onConfirm(selectedProcessPath) {
+    await invoke('update_process', {
+      gameId,
+      newProcessPath: selectedProcessPath,
     });
-    exe_path = file;
-  };
+  }
 
-  const pickProcess = async () => {
-    showProcessSelector = true;
-  };
+  // Close the modal
+  function closeModal() {
+    isOpen = false;
+  }
 
-  const selectGame = (game) => {
-    selectedVn = game;
-    showImage = false;
-    results = [];
-    search = '';
-  };
+  // Handle the "OK" button click
+  function handleConfirm() {
+    if (onConfirm) {
+      onConfirm(exe_path); // Run the provided function
+    }
+    closeModal(); // Close the modal
+  }
 
-  const saveGame = async (vn) => {
-    loading = true;
-    const testData = {
-      title: vn.title,
-      description: vn.description || 'No Description',
-      exe_file_path: exe_path,
-      process_file_path: exe_path,
-      categories: [],
-      icon_url: null,
-      image_url: vn.image.url,
-      is_pinned: false,
-      is_nsfw: vn.image.sexual > NSFW_RATE,
-      playtime: 0,
-    };
+  import { appState } from '../../routes/state.svelte';
 
-    console.log('gameTest', testData);
+  let searchTerm = $state(''); // Reactive search term
 
-    await appState.saveGame(
-      vn.id,
-      {
-        title: vn.title,
-        description: vn.description || 'No Description',
-        exe_file_path: exe_path,
-        process_file_path: exe_path,
-        categories: [],
-        icon_url: null,
-        image_url: vn.image.url,
-        is_pinned: false,
-        is_nsfw: vn.image.sexual > NSFW_RATE,
-        playtime: 0,
-        characters: [],
-      },
-      {
-        include_characters: charactersDownload,
-      },
-    );
-    loading = false;
-    closeModal();
+  // onMount(async () => {
+  //   appState.loadGames();
+  // });
+  // Filtered items based on search term
+  $inspect(processList);
+  let filteredItems = $derived(
+    processList.filter((item) =>
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
+  );
+
+  const selectItem = (item) => {
+    selected = item;
+    searchTerm = item;
+    isOpen = false;
   };
 </script>
 
 <section>
-  <button id="btn__add" onclick={openModal}> + </button>
   <!--section class="modal process-selector" class:open={showProcessSelector}>
       <div class="process-selector-content">
          <span onclick={closeProcessSelector}>
@@ -130,7 +68,7 @@
       // we will probably use this later
     </div>
   </section-->
-  <section class="modal" class:open={showModal}>
+  <section class="modal" class:open={isOpen}>
     <section class="modal__content">
       <header>
         <h3>Add a game</h3>
@@ -141,95 +79,54 @@
         </span>
       </header>
       <section class="game-form">
-        <div class="form-group">
+        <div class="dropdown">
           <input
-            value={search}
-            onkeyup={(e) => debounce(e)}
-            placeholder="Name or ID"
+            type="text"
+            placeholder="Search..."
+            bind:value={searchTerm}
+            onfocus={() => (isOpen = true)}
           />
-        </div>
-        <div class="form-group characters">
-          <input
-            type="checkbox"
-            id="characters"
-            bind:checked={charactersDownload}
-          />
-          <label for="characters">Include Characters</label>
-        </div>
-        <div id="suggestions">
-          {#each results as vn}
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div class="suggestion-item" onclick={() => selectGame(vn)}>
-              <div class="suggestion-image">
-                {#if vn?.image?.sexual < NSFW_RATE}
-                  <img src={vn?.image?.url} alt={vn?.title} />
-                {:else}
-                  <img src={vn?.image?.url} alt={vn?.title} class="blur" />
-                {/if}
-              </div>
-              <div class="suggestion-text">
-                <p class="suggestion-title">{vn?.title}</p>
-                <p class="suggestion-id">{vn?.id}</p>
-              </div>
-            </div>
-          {/each}
-        </div>
 
-        {#if selectedVn}
-          <div class="selected-suggestion">
-            {#if selectedVn.image.sexual < NSFW_RATE || showImage}
-              <img src={selectedVn.image.url} alt={selectedVn.title} />
-            {:else}
-              <img
-                src={selectedVn.image.url}
-                alt={selectedVn.title}
-                class="blur"
-              />
-            {/if}
-            <div class="suggestion-text">
-              <p class="selected-suggestion-title">
-                {selectedVn.title}
-              </p>
-              <p class="selected-suggestion-id">
-                {selectedVn.id}
-              </p>
+          {#if isOpen}
+            <div class="dropdown-menu show">
+              {#each filteredItems as item}
+                <div
+                  onclick={() => selectItem(item.exe_path)}
+                  class="dropdown-item"
+                >
+                  <img
+                    src={item.icon}
+                    alt={item.title}
+                    width={32}
+                    height={32}
+                  />
+                  <span>{item.title}</span>
+                </div>
+              {/each}
             </div>
-          </div>
-        {/if}
-
-        <div class="switch-container">
-          <span class="switch-label">EXE</span>
-          <span
-            class="switch {isActive ? 'active' : ''}"
-            onclick={toggleSwitch}
-            aria-checked={isActive}
-            role="switch"
-          >
-            <span class="switch-thumb"></span>
-          </span>
-          <span class="switch-label"> Process </span>
+          {/if}
         </div>
-        {#if isActive}
-          <ProcessDropdown bind:selected={exe_path} />
-        {:else}
-          <button onclick={pickFile}>Pick exe</button>
-        {/if}
-        <button
-          disabled={loading}
-          class="save-button"
-          onclick={() => saveGame(selectedVn)}
-        >
+        <button disabled={loading} class="save-button" onclick={handleConfirm}>
           {#if loading}
             loading...
           {:else}
             Save
           {/if}
         </button>
+        <button onclick={closeModal} style="background: #f7768e">Cancel</button>
       </section>
     </section>
   </section>
 </section>
+
+<!-- Hide dropdown when clicking outside -->
+<svelte:window
+  on:click={(e) => {
+    if (!e.target?.closest('.dropdown')) {
+      isOpen = false;
+    }
+  }}
+/>
 
 <style>
   .blur {
@@ -493,5 +390,59 @@
 
   .switch-label {
     font-size: 12px;
+  }
+
+  .dropdown {
+    position: relative;
+    width: 300px;
+    font-family: Arial, sans-serif;
+  }
+
+  input[type='text'] {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    background: #313131;
+    border: 0;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--main-text);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 4px;
+    background: var(--main-background);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+  }
+
+  .dropdown-menu.show {
+    display: block;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    color: var(--main-text);
+  }
+
+  .dropdown-item:hover {
+    background: var(--main-mauve);
+    color: white;
+  }
+
+  .dropdown-item img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
   }
 </style>

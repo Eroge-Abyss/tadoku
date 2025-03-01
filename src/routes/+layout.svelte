@@ -31,6 +31,8 @@
 
       appState.currentGame = e.payload
     })
+
+    listen('playtime', (e) => console.log(e.payload))
   })
 </script>
 

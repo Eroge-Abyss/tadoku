@@ -28,6 +28,7 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                     #[cfg(windows)]
                     {
                         if let Ok(active_window) = x_win::get_active_window() {
+                            dbg!(&active_window);
                             if active_window.id == pid {
                                 // Should exec only if current window is active window
                                 {

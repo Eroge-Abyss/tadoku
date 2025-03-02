@@ -35,7 +35,7 @@
       <section class="main__content">
         <p>{@html message}</p>
         <div class="buttons">
-          <button onclick={onConfirm}>Ok</button>
+          <button onclick={onConfirm}>OK</button>
           <button onclick={closeModal} style="background: #f7768e"
             >Cancel</button
           >

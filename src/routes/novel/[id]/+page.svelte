@@ -182,7 +182,7 @@
     <ConfirmDialog
       bind:isOpen={deleteDialog}
       onConfirm={deleteGame}
-      message={`Are you sure you want to delete <b style="color: red">${novel.title}?</b>`}
+      message={`Are you sure you want to delete <b style="color: red">${novel.title}</b>?`}
     />
     <ChangeProcess
       bind:isOpen={processDialog}
@@ -409,6 +409,12 @@
           }
           &:nth-child(3) {
             transition-delay: 0.3s;
+          }
+          &:nth-child(4) {
+            transition-delay: 0.4s;
+          }
+          &:nth-child(5) {
+            transition-delay: 0.5s;
           }
         }
       }

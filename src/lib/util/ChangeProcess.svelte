@@ -2,6 +2,7 @@
   import type { Process } from '$lib/types';
   import CloseIcon from '$lib/util/CloseIcon.svelte';
   import { invoke } from '@tauri-apps/api/core';
+  import { appState } from '../../routes/state.svelte';
 
   let {
     isOpen = $bindable(),
@@ -18,10 +19,7 @@
   let searchTerm = $state(''); // Reactive search term
 
   async function onConfirm(selectedProcessPath: string) {
-    await invoke('update_process', {
-      gameId,
-      newProcessPath: selectedProcessPath,
-    });
+    appState.updateGameProcessPath(gameId, selectedProcessPath);
 
     process = null;
     searchTerm = '';
@@ -89,14 +87,25 @@
             </div>
           {/if}
         </div>
+
+        <div class="info-container">
+          <span class="icon-info">
+            <i class="fa-solid fa-info-circle"></i>
+          </span>
+          <p class="note">
+            If you can't find your game, try setting it to windowed then return
+            to full screen when done.
+          </p>
+        </div>
+
         <button disabled={loading} class="save-button" onclick={handleConfirm}>
           {#if loading}
-            loading...
+            Saving...
           {:else}
             Save
           {/if}
         </button>
-        <button onclick={closeModal} style="background: #f7768e">Cancel</button>
+        <button onclick={closeModal}>Cancel</button>
       </section>
     </section>
   </section>
@@ -112,27 +121,6 @@
 />
 
 <style>
-  .blur {
-    filter: blur(5px);
-    transition: filter 0.2s ease-in-out;
-  }
-  .blur:hover {
-    filter: blur(0);
-  }
-  #btn__add {
-    border: 0;
-    background: #313131;
-    color: #5d5d5d;
-    border: 2px solid #5d5d5d;
-    height: 56px;
-    width: 56px;
-    font-size: 2.5rem;
-    text-align: center;
-    margin: auto;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
   .modal {
     position: fixed;
     height: 100%;
@@ -148,9 +136,6 @@
     opacity: 0;
     pointer-events: none;
     transition: all 0.2s ease-in-out;
-    &.process-selector {
-      z-index: 3;
-    }
     /* Start scaled down */
     &.open {
       opacity: 1;
@@ -186,28 +171,6 @@
 
       & .game-form {
         margin: 1rem;
-        & .form-group {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1rem;
-          & input {
-            background-color: #313131;
-            border: 0;
-            padding: 0.5rem;
-            color: var(--main-text);
-            max-width: 400px;
-          }
-
-          &.characters {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            & > * {
-              cursor: pointer;
-            }
-          }
-        }
 
         & button {
           border: 0;
@@ -223,87 +186,6 @@
     }
   }
 
-  #suggestions {
-    margin-top: 10px;
-    max-width: 400px;
-    max-height: 200px;
-    overflow-y: scroll;
-    overflow-x: hidden;
-  }
-
-  /* Suggestion Item Styling */
-  .suggestion-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: #1b1b1b;
-    border-radius: 4px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    color: var(--main-text);
-  }
-
-  .suggestion-item:hover {
-    background-color: #bb9af7;
-
-    & .suggestion-id {
-      color: #cfc9c2;
-    }
-  }
-
-  /* Suggestion Text Styling */
-  .suggestion-text {
-    flex: 1;
-    padding: 1rem;
-  }
-
-  .suggestion-title {
-    font-size: 16px;
-  }
-
-  .suggestion-id {
-    font-size: 14px;
-    color: #aaa;
-  }
-
-  /* Suggestion Image Styling */
-  .suggestion-image img,
-  .selected-suggestion img {
-    width: 60px;
-    height: 60px;
-    border-radius: 4px;
-    object-fit: cover;
-  }
-
-  .selected-suggestion {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #1b1b1b;
-    border-radius: 4px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-  }
-
-  .selected-suggestion img {
-    width: 100px;
-    height: 100px;
-    border-radius: 4px;
-    margin-top: 10px;
-  }
-
-  .selected-suggestion-title {
-    font-size: 16px;
-    color: var(--main-text);
-  }
-
-  .selected-suggestion-id {
-    color: #aaa;
-    font-size: 14px;
-  }
-
   .save-button {
     background: #9ece6a !important;
     &[disabled] {
@@ -311,73 +193,8 @@
     }
   }
 
-  .process-selector {
-    & .process-selector-content {
-      position: relative;
-      height: 100%;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      & span {
-        position: absolute;
-        top: 0;
-        right: 0;
-        margin: 2rem;
-        color: var(--secondary-text);
-        cursor: pointer;
-        transition: color 0.2s ease-in-out;
-        &:hover {
-          color: var(--main-text);
-        }
-      }
-    }
-  }
-
-  .switch-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .switch {
-    position: relative;
-    width: 40px;
-    height: 22px;
-    background-color: #ccc;
-    border-radius: 11px;
-    padding: 0;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .switch.active {
-    background-color: var(--main-mauve);
-  }
-
-  .switch-thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 18px;
-    height: 18px;
-    background-color: white;
-    border-radius: 50%;
-    transition: transform 0.3s ease;
-  }
-
-  .switch.active .switch-thumb {
-    transform: translateX(18px);
-  }
-
-  .switch-label {
-    font-size: 12px;
-  }
-
   .dropdown {
     position: relative;
-    width: 300px;
     font-family: Arial, sans-serif;
   }
 
@@ -391,6 +208,7 @@
     margin-top: 1rem;
     margin-bottom: 0.5rem;
     color: var(--main-text);
+    grid-column: 1 / -1;
   }
 
   .dropdown-menu {
@@ -427,5 +245,21 @@
     width: 24px;
     height: 24px;
     margin-right: 10px;
+  }
+
+  .note {
+    font-size: 12px;
+    color: var(--secondary-text);
+    margin: 0;
+  }
+  .info-container {
+    display: flex;
+    padding: 10px;
+    align-items: flex-start;
+  }
+  .icon-info {
+    font-size: 14px;
+    margin-right: 5px;
+    color: var(--secondary-text);
   }
 </style>

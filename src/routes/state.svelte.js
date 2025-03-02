@@ -109,11 +109,26 @@ class AppState {
   /**
    * Updates the exe path of a game.
    * @param {string} gameId - The unique identifier for the game.
-   * @param {string[]} categories - The new exe path of the game
+   * @param {string[]} categories - The new categories of the game
    * @returns {Promise<void>}
    */
   async setGameCategories(gameId, categories) {
     await invoke('set_game_categories', { gameId, categories });
+
+    await this.loadGames();
+  }
+
+  /**
+   * Updates the exe path of a game.
+   * @param {string} gameId - The unique identifier for the game.
+   * @param {string} newProcessPath - The new process path of the game
+   * @returns {Promise<void>}
+   */
+  async updateGameProcessPath(gameId, newProcessPath) {
+    await invoke('update_process', {
+      gameId,
+      newProcessPath: newProcessPath,
+    });
 
     await this.loadGames();
   }

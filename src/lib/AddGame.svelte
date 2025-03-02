@@ -143,18 +143,24 @@
       </header>
       <section class="game-form">
         <div class="form-group">
+            <!-- No questions asked (about autocomplete). it just works -->
           <input
+            type="text"
             value={search}
+            autocomplete="one-time-code"
             onkeyup={(e) => debounce(e)}
             placeholder="Name or ID"
           />
         </div>
         <div class="form-group characters">
-          <input
-            type="checkbox"
-            id="characters"
-            bind:checked={charactersDownload}
-          />
+          <label for="characters" class="custom-checkbox">
+            <input
+              type="checkbox"
+              id="characters"
+              bind:checked={charactersDownload}
+            />
+            <span class="checkmark"></span>
+          </label>
           <label for="characters">Include Characters</label>
         </div>
         <div id="suggestions">
@@ -199,7 +205,6 @@
           </div>
         {/if}
 
-        <button onclick={pickFile}>Pick exe</button>
         <div class="info-container">
           <span class="icon-info">
             <i class="fa-solid fa-info-circle"></i>
@@ -210,13 +215,14 @@
           </p>
         </div>
 
+        <button onclick={pickFile}>Select Game Executable</button>
         <button
           disabled={loading}
           class="save-button"
           onclick={() => saveGame(selectedVn)}
         >
           {#if loading}
-            loading...
+            Saving...
           {:else}
             Save
           {/if}
@@ -230,6 +236,7 @@
   .note {
     font-size: 12px;
     color: var(--secondary-text);
+    text-align: left;
     margin: 0;
   }
   .info-container {
@@ -239,6 +246,7 @@
   }
   .icon-info {
     font-size: 14px;
+    margin-right: 5px;
     color: var(--secondary-text);
   }
   .blur {
@@ -319,12 +327,15 @@
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 1rem;
-          & input {
+          & input[type='text'] {
+            height: 40px;
+            width: 100%;
             background-color: #313131;
             border: 0;
             padding: 0.5rem;
             color: var(--main-text);
-            max-width: 400px;
+            box-sizing: border-box;
+            grid-column: 1 / -1;
           }
 
           &.characters {
@@ -354,7 +365,7 @@
 
   #suggestions {
     margin-top: 10px;
-    max-width: 400px;
+    /* max-width: 400px; */
     max-height: 200px;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -461,5 +472,56 @@
         }
       }
     }
+  }
+
+  /* Style for the custom checkbox */
+  .custom-checkbox {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+  }
+
+  .custom-checkbox input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    background-color: #313131;
+    border: 2px solid #5d5d5d;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .custom-checkbox input:checked ~ .checkmark {
+    background-color: #9ece6a;
+    border-color: #9ece6a;
+  }
+
+  .checkmark:after {
+    content: '';
+    position: absolute;
+    display: none;
+  }
+
+  .custom-checkbox input:checked ~ .checkmark:after {
+    display: block;
+  }
+
+  .custom-checkbox .checkmark:after {
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
 </style>

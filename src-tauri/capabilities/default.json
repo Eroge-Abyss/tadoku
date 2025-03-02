@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "opener:default",
@@ -15,6 +17,7 @@
     "dialog:default",
     "store:default",
     "fs:default",
-    "shell:default"
+    "shell:default",
+    "opener:allow-open-url"
   ]
 }

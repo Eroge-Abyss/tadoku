@@ -1,14 +1,26 @@
 use crate::{
     services::{discord::DiscordGameDetails, playtime, store::GamesStore},
-    AppState, GameState,
+    util, AppState, GameState,
 };
+use serde::Serialize;
+use serde_json::json;
 use std::{
     fs::{self},
     path::PathBuf,
     sync::Mutex,
+    thread,
+    time::Duration,
 };
-use tauri::{AppHandle, Manager};
+use sysinfo::{Pid, System};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_shell::ShellExt;
+
+#[derive(Serialize)]
+pub struct ActiveWindow {
+    title: String,
+    exe_path: String,
+    icon: String,
+}
 
 /// Opens a game and sets its PID in local state
 #[tauri::command]
@@ -40,7 +52,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .map_err(|e| format!("Error resolving canonical path: {}", e))?;
         }
 
-        tauri::async_runtime::block_on(async move {
+        tauri::async_runtime::block_on(async {
             let mut command = app_handle
                 .shell()
                 .command(&exe_path)
@@ -50,35 +62,118 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 command = command.arg(args);
             }
 
-            let (_, process) = command.spawn().map_err(|e| {
+            let _ = command.spawn().map_err(|e| {
                 dbg!(e);
                 "Error happened while running the game".to_string()
             })?;
 
-            {
-                let state = app_handle.state::<Mutex<AppState>>();
-                let mut state = state
-                    .lock()
-                    .map_err(|_| "Error acquiring mutex lock".to_string())?;
+            Result::<(), String>::Ok(())
+        })?;
 
-                state.game = Some(GameState {
-                    pid: process.pid(),
-                    id: game_id.clone(),
-                    ..Default::default()
-                });
+        tauri::async_runtime::spawn(async move {
+            let binding = app_handle.state::<Mutex<AppState>>();
+            let mut state = binding
+                .lock()
+                .map_err(|_| "Error acquiring mutex lock".to_string())?;
 
-                if let Some(pres) = &mut state.presence {
-                    pres.set(DiscordGameDetails::new(game_id, game.title, game.image_url))
-                        .map_err(|_| "Error setting presence".to_string())?;
+            let pid;
+            let mut counter: u8 = 0;
+
+            loop {
+                counter += 1;
+                match util::get_pid_from_process_path(&game.process_file_path) {
+                    Some(found_pid) => {
+                        pid = found_pid;
+                        break;
+                    }
+                    None => {
+                        if counter > 60 {
+                            return Err(String::from("Couldn't find game process"));
+                        }
+                        thread::sleep(Duration::from_secs(1))
+                    }
                 }
             }
 
-            playtime::spawn_playtime_thread(app_handle);
+            state.game = Some(GameState {
+                pid: pid.as_u32(),
+                id: game_id.clone(),
+                ..Default::default()
+            });
+
+            if let Some(pres) = &mut state.presence {
+                pres.set(DiscordGameDetails::new(
+                    game_id.clone(),
+                    game.title,
+                    game.image_url,
+                ))
+                .map_err(|_| "Error setting presence".to_string())?;
+            }
+
+            playtime::spawn_playtime_thread(app_handle.clone());
+
+            app_handle
+                .emit("current_game", json!({"id": game_id, "status": "playing"}))
+                .expect("here");
+
             Result::<(), String>::Ok(())
-        })?;
+        });
     } else {
         return Err("Game not found in store".to_string());
     }
+
+    Ok(())
+}
+
+/// Gets a list of open windows
+#[tauri::command]
+pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
+    #[cfg(windows)]
+    {
+        let open_windows = match x_win::get_open_windows() {
+            Ok(open_windows) => open_windows,
+            Err(x_win::XWinError) => {
+                println!("error occurred while getting open windows");
+                return Err(String::from("error"));
+            }
+        };
+
+        Ok(open_windows
+            .iter()
+            .map(|window| ActiveWindow {
+                icon: x_win::get_window_icon(window).unwrap().data,
+                title: window.title.clone(),
+                exe_path: window.info.path.clone(),
+            })
+            .collect())
+    }
+
+    #[cfg(not(windows))]
+    Ok(Vec::new())
+}
+
+/// Closes a game and clears local state
+#[tauri::command]
+pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
+    let binding = app_handle.state::<Mutex<AppState>>();
+    let state = binding
+        .lock()
+        .map_err(|_| "Error acquiring mutex lock".to_string())?;
+
+    let mut system = System::new_all();
+    system.refresh_all();
+
+    if let Some(game) = &state.game {
+        let pid = Pid::from_u32(game.pid);
+        if let Some(process) = system.process(pid) {
+            // Means the kill signal is successfully sent, doesn't mean the app has closed
+            if process.kill() {
+                process.wait();
+            }
+        }
+    }
+
+    app_handle.emit("current_game", json!(null)).expect("here");
 
     Ok(())
 }

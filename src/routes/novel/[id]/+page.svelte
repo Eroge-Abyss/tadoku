@@ -160,7 +160,11 @@
             title="Edit exe path"
           ></i>
 
-          <i onclick={openProcessDialog} <i class="fa-solid fa-folder-tree"></i>
+          <i
+            onclick={openProcessDialog}
+            class="fa-solid fa-folder-tree"
+            title="Change game process path"
+          ></i>
           <i
             onclick={() => openUrl(`https://vndb.org/${novel.id}`)}
             class="fa-solid fa-arrow-up-right-from-square"
@@ -180,14 +184,11 @@
       onConfirm={deleteGame}
       message={`Are you sure you want to delete <b style="color: red">${novel.title}?</b>`}
     />
-    {#if processDialog}
-      <ChangeProcess
-        bind:isOpen={processDialog}
-        gameId={novel.id}
-        {processList}
-        selected={false}
-      />
-    {/if}
+    <ChangeProcess
+      bind:isOpen={processDialog}
+      gameId={novel.id}
+      {processList}
+    />
 
     <div class="tabs" in:fly={{ y: 50, duration: 500, delay: 600 }}>
       <div class="tab">

@@ -28,3 +28,9 @@ export interface Options {
 export interface CurrentGame {
   id: string;
 }
+
+export interface Process {
+  title: string;
+  exe_path: string;
+  icon: string;
+}

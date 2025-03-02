@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+  import type { Process } from '$lib/types';
   import CloseIcon from '$lib/util/CloseIcon.svelte';
   import { invoke } from '@tauri-apps/api/core';
 
@@ -6,22 +7,24 @@
     isOpen = $bindable(),
     gameId,
     processList,
-    selected,
-    // onConfirm,
-    title = 'Change game process path',
-    message = 'Are you sure you want to proceed?',
+    title = 'Select game process',
   } = $props();
 
   $inspect(processList);
 
-  let exe_path = $state();
+  let isDropdownOpen = $state(false);
   let loading = $state(false);
+  let process = $state<Process | null>(null);
+  let searchTerm = $state(''); // Reactive search term
 
-  async function onConfirm(selectedProcessPath) {
+  async function onConfirm(selectedProcessPath: string) {
     await invoke('update_process', {
       gameId,
       newProcessPath: selectedProcessPath,
     });
+
+    process = null;
+    searchTerm = '';
   }
 
   // Close the modal
@@ -31,49 +34,32 @@
 
   // Handle the "OK" button click
   function handleConfirm() {
-    if (onConfirm) {
-      onConfirm(exe_path); // Run the provided function
+    if (process) {
+      onConfirm(process.exe_path); // Run the provided function
     }
     closeModal(); // Close the modal
   }
 
-  import { appState } from '../../routes/state.svelte';
-
-  let searchTerm = $state(''); // Reactive search term
-
-  // onMount(async () => {
-  //   appState.loadGames();
-  // });
   // Filtered items based on search term
   $inspect(processList);
   let filteredItems = $derived(
-    processList.filter((item) =>
+    processList.filter((item: Process) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()),
     ),
   );
 
-  const selectItem = (item) => {
-    selected = item;
-    searchTerm = item;
-    isOpen = false;
+  const selectItem = (item: Process) => {
+    process = item;
+    searchTerm = item.title;
+    isDropdownOpen = false;
   };
 </script>
 
 <section>
-  <!--section class="modal process-selector" class:open={showProcessSelector}>
-      <div class="process-selector-content">
-         <span onclick={closeProcessSelector}>
-          <CloseIcon style="font-size: 24px;" />
-        </span>
-      // we will probably use this later
-    </div>
-  </section-->
   <section class="modal" class:open={isOpen}>
     <section class="modal__content">
       <header>
-        <h3>Add a game</h3>
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <h3>{title}</h3>
         <span onclick={closeModal}>
           <CloseIcon style="font-size: 24px;" />
         </span>
@@ -84,16 +70,13 @@
             type="text"
             placeholder="Search..."
             bind:value={searchTerm}
-            onfocus={() => (isOpen = true)}
+            onfocus={() => (isDropdownOpen = true)}
           />
 
-          {#if isOpen}
+          {#if isDropdownOpen}
             <div class="dropdown-menu show">
               {#each filteredItems as item}
-                <div
-                  onclick={() => selectItem(item.exe_path)}
-                  class="dropdown-item"
-                >
+                <div onclick={() => selectItem(item)} class="dropdown-item">
                   <img
                     src={item.icon}
                     alt={item.title}
@@ -123,7 +106,7 @@
 <svelte:window
   on:click={(e) => {
     if (!e.target?.closest('.dropdown')) {
-      isOpen = false;
+      isDropdownOpen = false;
     }
   }}
 />

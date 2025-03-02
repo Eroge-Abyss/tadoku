@@ -159,6 +159,8 @@
             class="fa-regular fa-pen-to-square"
             title="Edit exe path"
           ></i>
+
+          <i onclick={openProcessDialog} <i class="fa-solid fa-folder-tree"></i>
           <i
             onclick={() => openUrl(`https://vndb.org/${novel.id}`)}
             class="fa-solid fa-arrow-up-right-from-square"
@@ -169,12 +171,6 @@
             class="fa-regular fa-trash-can"
             style="color:  #f7768e;"
             title="Delete game"
-          ></i>
-
-          <i
-            onclick={openProcessDialog}
-            class="fa-regular fa-thumbtack-slash"
-            style="color:  #f7768e;"
           ></i>
         </div>
       </div>

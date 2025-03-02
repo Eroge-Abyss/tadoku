@@ -1,12 +1,12 @@
 <script>
-  import { convertFileSrc } from '@tauri-apps/api/core'
-  import { goto } from '$app/navigation'
-  const { id, title, image, playtime, isNsfw } = $props()
+  import { convertFileSrc } from '@tauri-apps/api/core';
+  import { goto } from '$app/navigation';
+  const { id, title, image, playtime, isNsfw } = $props();
 
-  let hoursPlayed = $derived(Math.floor(playtime / 3600))
-  let minutesPlayed = $derived(Math.floor((playtime % 3600) / 60))
+  let hoursPlayed = $derived(Math.floor(playtime / 3600));
+  let minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
 
-  let image_url = $derived(convertFileSrc(image))
+  let image_url = $derived(convertFileSrc(image));
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->

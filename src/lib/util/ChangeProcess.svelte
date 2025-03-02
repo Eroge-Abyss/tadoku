@@ -11,8 +11,8 @@
     title = 'Change game process path',
     message = 'Are you sure you want to proceed?',
   } = $props();
-  
-  $inspect(processList)
+
+  $inspect(processList);
 
   let exe_path = $state();
   let loading = $state(false);

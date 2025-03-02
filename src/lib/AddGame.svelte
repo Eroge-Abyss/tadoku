@@ -3,6 +3,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { appState } from '../routes/state.svelte';
   import CloseIcon from '$lib/util/CloseIcon.svelte';
+  import Page from '../routes/+page.svelte';
 
   const NSFW_RATE = 0.5;
 
@@ -198,23 +199,17 @@
           </div>
         {/if}
 
-        <div class="switch-container">
-          <span class="switch-label">EXE</span>
-          <span
-            class="switch {isActive ? 'active' : ''}"
-            onclick={toggleSwitch}
-            aria-checked={isActive}
-            role="switch"
-          >
-            <span class="switch-thumb"></span>
+        <button onclick={pickFile}>Pick exe</button>
+        <div class="info-container">
+          <span class="icon-info">
+            <i class="fa-solid fa-info-circle"></i>
           </span>
-          <span class="switch-label"> Process </span>
+          <p class="note">
+            If you're using a launcher for this novel, please add its process
+            from the game details page.
+          </p>
         </div>
-        {#if isActive}
-          <ProcessDropdown bind:selected={exe_path} />
-        {:else}
-          <button onclick={pickFile}>Pick exe</button>
-        {/if}
+
         <button
           disabled={loading}
           class="save-button"
@@ -232,6 +227,20 @@
 </section>
 
 <style>
+  .note {
+    font-size: 12px;
+    color: var(--secondary-text);
+    margin: 0;
+  }
+  .info-container {
+    display: flex;
+    padding: 10px 10px;
+    align-items: flex-start;
+  }
+  .icon-info {
+    font-size: 14px;
+    color: var(--secondary-text);
+  }
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
@@ -452,46 +461,5 @@
         }
       }
     }
-  }
-
-  .switch-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .switch {
-    position: relative;
-    width: 40px;
-    height: 22px;
-    background-color: #ccc;
-    border-radius: 11px;
-    padding: 0;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .switch.active {
-    background-color: var(--main-mauve);
-  }
-
-  .switch-thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 18px;
-    height: 18px;
-    background-color: white;
-    border-radius: 50%;
-    transition: transform 0.3s ease;
-  }
-
-  .switch.active .switch-thumb {
-    transform: translateX(18px);
-  }
-
-  .switch-label {
-    font-size: 12px;
   }
 </style>

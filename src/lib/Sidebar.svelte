@@ -1,11 +1,11 @@
 <script>
-  import Button from '$lib/util/Button.svelte'
-  import AddGame from '$lib/AddGame.svelte'
+  import Button from '$lib/util/Button.svelte';
+  import AddGame from '$lib/AddGame.svelte';
   // import Icon from "@iconify/svelte";
-  import { goto } from '$app/navigation'
-  import { appState } from '../routes/state.svelte'
-  import { convertFileSrc, invoke } from '@tauri-apps/api/core'
-  import SquaresIcon from '$lib/util/SquaresIcon.svelte'
+  import { goto } from '$app/navigation';
+  import { appState } from '../routes/state.svelte';
+  import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+  import SquaresIcon from '$lib/util/SquaresIcon.svelte';
 
   let pinnedGames = $derived.by(() =>
     Object.entries(appState.gamesList)
@@ -15,7 +15,7 @@
         char: v.title[0],
         image: v.icon_url ? convertFileSrc(v.icon_url) : null,
       })),
-  )
+  );
 </script>
 
 <nav>
@@ -58,6 +58,8 @@
     align-items: center;
     position: sticky;
     top: -1px;
+    /*كل ما تعطل اديها */
+    z-index: 3;
     #sidebar__header {
       h1 {
         color: #5d5d5d;

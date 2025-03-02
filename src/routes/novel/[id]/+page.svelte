@@ -1,82 +1,90 @@
 <script>
-  import { convertFileSrc, invoke } from '@tauri-apps/api/core'
-  import { fly, fade } from 'svelte/transition'
-  import { goto } from '$app/navigation'
-  import { appState } from '../../state.svelte'
-  import { page } from '$app/state'
-  import { open } from '@tauri-apps/plugin-dialog'
-<<<<<<< Updated upstream
-  import ConfirmDialog from '$lib/util/confirmDialog.svelte'
-  import { listen } from '@tauri-apps/api/event'
-=======
+  import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+  import { fly, fade } from 'svelte/transition';
+  import { goto } from '$app/navigation';
+  import { appState } from '../../state.svelte';
+  import { page } from '$app/state';
+  import { open } from '@tauri-apps/plugin-dialog';
+  import { listen } from '@tauri-apps/api/event';
   import ConfirmDialog from '$lib/util/confirmDialog.svelte';
   import Card from '$lib/util/Card.svelte';
   import { openUrl } from '@tauri-apps/plugin-opener';
-  
->>>>>>> Stashed changes
+  import ChangeProcess from '$lib/util/ChangeProcess.svelte';
+
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );
 
-  let showImage = $state(false)
+  let processList = $state();
+
+  let showImage = $state(false);
   function toggleImage() {
-    showImage = !showImage
+    showImage = !showImage;
   }
 
-  const novel = $state(appState.loadGame(page.params.id))
-  let playing = $state(false)
-  let activeMenu = $state(false)
-  let deleteDialog = $state(false)
+  let processDialog = $state(false);
+  const openProcessDialog = async () => {
+    processList = await invoke('get_active_windows');
+    processDialog = true;
+  };
+
+  const novel = $state(appState.loadGame(page.params.id));
+  let playing = $state(false);
+  let activeMenu = $state(false);
+  let deleteDialog = $state(false);
   const openDeleteDialog = () => {
-    deleteDialog = true
-  }
-  const tabs = $state.raw([{
-      label: "Progress Overview",
-      id: "progress",
-      visible: true
-    }, {
-      label: "Characters",
-      id: "chars",
-      visible: novel.characters
-  }]);
+    deleteDialog = true;
+  };
+  const tabs = $state.raw([
+    {
+      label: 'Progress Overview',
+      id: 'progress',
+      visible: true,
+    },
+    {
+      label: 'Characters',
+      id: 'chars',
+      visible: novel.characters,
+    },
+  ]);
 
   let selectedTab = $state(tabs[0].id);
 
   $effect(() => {
-    console.log("game: ", novel.characters);
-  })
+    console.log('game: ', novel.characters);
+  });
 
   if (!novel) {
-    throw new Error('FIXME')
+    throw new Error('FIXME');
   }
 
   $effect(() => {
     if (appState.currentGame && appState.currentGame.id == novel.id) {
-      playing = true
+      playing = true;
     } else {
-      playing = false
+      playing = false;
     }
-  })
+  });
 
   // Should I use derived?
   // yes
   // oki uwu
-  let hoursPlayed = $derived(Math.floor(novel.playtime / 3600))
-  let minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60))
+  let hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
+  let minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
 
   const startGame = async () => {
-    appState.startGame(novel.id)
-  }
+    appState.startGame(novel.id);
+  };
 
   const stopGame = async () => {
-    appState.closeGame()
-  }
+    appState.closeGame();
+  };
 
   const togglePin = async () => {
-    appState.togglePinned(novel.id)
+    appState.togglePinned(novel.id);
 
-    novel.is_pinned = !novel.is_pinned
-  }
+    novel.is_pinned = !novel.is_pinned;
+  };
 
   const editExe = async () => {
     const newPath = await open({
@@ -88,18 +96,18 @@
           extensions: ['exe', 'lnk', 'bat'],
         },
       ],
-    })
+    });
 
     if (newPath) {
-      await appState.updateExePath(novel.id, newPath)
+      await appState.updateExePath(novel.id, newPath);
     }
-  }
+  };
 
   const deleteGame = async () => {
-    appState.deleteGame(novel.id)
-    console.log('game deleted')
-    goto('/')
-  }
+    appState.deleteGame(novel.id);
+    console.log('game deleted');
+    goto('/');
+  };
 </script>
 
 <div class="container">
@@ -144,17 +152,29 @@
               'fa-solid',
               novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
             ]}
+            title="Toggle pinned"
           ></i>
-<<<<<<< Updated upstream
-          <i onclick={editExe} class="fa-regular fa-pen-to-square"></i>
-=======
-          <i conclick={editExe} class="fa-regular fa-pen-to-square"></i>
-          <i onclick={() => openUrl(`https://vndb.org/${novel.id}`)} class="fa-solid fa-arrow-up-right-from-square"></i>
->>>>>>> Stashed changes
+          <i
+            onclick={editExe}
+            class="fa-regular fa-pen-to-square"
+            title="Edit exe path"
+          ></i>
+
+          <i
+            onclick={openProcessDialog}
+            class="fa-solid fa-folder-tree"
+            title="Change game process path"
+          ></i>
+          <i
+            onclick={() => openUrl(`https://vndb.org/${novel.id}`)}
+            class="fa-solid fa-arrow-up-right-from-square"
+            title="Open in VNDB"
+          ></i>
           <i
             onclick={openDeleteDialog}
             class="fa-regular fa-trash-can"
             style="color:  #f7768e;"
+            title="Delete game"
           ></i>
         </div>
       </div>
@@ -162,47 +182,55 @@
     <ConfirmDialog
       bind:isOpen={deleteDialog}
       onConfirm={deleteGame}
-      message={`Are you sure you want to delete <b style="color: red">${novel.title}?</b>`}
+      message={`Are you sure you want to delete <b style="color: red">${novel.title}</b>?`}
+    />
+    <ChangeProcess
+      bind:isOpen={processDialog}
+      gameId={novel.id}
+      {processList}
     />
 
-    <div
-      class="tabs"
-      in:fly={{ y: 50, duration: 500, delay: 600 }}
-    >
-    
-        <div class="tab">
-          {#each tabs as tab}
-            {#if tab.visible}
-              <button class="{selectedTab == tab.id ? 'active' : ''}" 
-              onclick={() => (selectedTab = tab.id)}>{tab.label}</button>
-            {/if}
-          {/each}
-        </div>  
-              <div class="tab-content">
-                {#if selectedTab == 'progress'}
-                <div class="stats-grid">
-                <div class="stat-item" 
-                  in:fly={{ y: 20, duration: 500 }}>
-                  <p class="stat-label">Time Played</p>
-                  <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
-                </div>
-              </div>
-              {:else}
-                <div class="characters" in:fly={{ y: 20, duration: 300 }}>
-                   {#each novel.characters as character}
-                    <div class="character-card" onclick={() => openUrl(`https://vndb.org/${character.id}`)}>
-                      <img src={convertFileSrc(character.image_url)} alt={character.id} />
-                      <div class="character-content">
-                        <p class="main">{character.og_name}</p>
-                        <p class="sub">{character.en_name}</p>
-                      </div>
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </div>
-                   {/each}
-                </div>
-              {/if}
+    <div class="tabs" in:fly={{ y: 50, duration: 500, delay: 600 }}>
+      <div class="tab">
+        {#each tabs as tab}
+          {#if tab.visible}
+            <button
+              class={selectedTab == tab.id ? 'active' : ''}
+              onclick={() => (selectedTab = tab.id)}>{tab.label}</button
+            >
+          {/if}
+        {/each}
+      </div>
+      <div class="tab-content">
+        {#if selectedTab == 'progress'}
+          <div class="stats-grid">
+            <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
+              <p class="stat-label">Time Played</p>
+              <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
             </div>
-                <!-- <div
+          </div>
+        {:else}
+          <div class="characters" in:fly={{ y: 20, duration: 300 }}>
+            {#each novel.characters as character}
+              <div
+                class="character-card"
+                onclick={() => openUrl(`https://vndb.org/${character.id}`)}
+              >
+                <img
+                  src={convertFileSrc(character.image_url)}
+                  alt={character.id}
+                />
+                <div class="character-content">
+                  <p class="main">{character.og_name}</p>
+                  <p class="sub">{character.en_name}</p>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+      <!-- <div
                     class="stat-item"
                     in:fly={{ y: 20, duration: 300, delay: 1000 }}
                 >
@@ -223,8 +251,6 @@
                         ).toLocaleString()}</span
                     >
                 </div> -->
-      
-
 
       <!--div class="progress-bars">
                 <div
@@ -384,6 +410,12 @@
           &:nth-child(3) {
             transition-delay: 0.3s;
           }
+          &:nth-child(4) {
+            transition-delay: 0.4s;
+          }
+          &:nth-child(5) {
+            transition-delay: 0.5s;
+          }
         }
       }
     }
@@ -429,34 +461,37 @@
       & button {
         background: var(--main-background);
         color: var(--main-text);
-        border: 0; 
+        border: 0;
         padding: 1rem;
         font-size: 1.5rem;
-        
+
         text-align: center;
         position: relative;
-        cursor: pointer; 
-          
-          &:hover::after, &.active::after {
-            transform: scaleX(1);
-            opacity: 1;
-          }
+        cursor: pointer;
 
-          &:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            display: block;
-            height: 5px;
-            width: 100%;
-            background-color: var(--main-mauve);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform .3s ease, opacity .3s ease;
-            opacity: 0;
-            border-radius: 2px;
-          }
+        &:hover::after,
+        &.active::after {
+          transform: scaleX(1);
+          opacity: 1;
+        }
+
+        &:after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          display: block;
+          height: 5px;
+          width: 100%;
+          background-color: var(--main-mauve);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition:
+            transform 0.3s ease,
+            opacity 0.3s ease;
+          opacity: 0;
+          border-radius: 2px;
+        }
       }
     }
   }
@@ -464,7 +499,7 @@
   .characters {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-    gap: 1rem; 
+    gap: 1rem;
     grid-auto-rows: 1fr;
     padding: 1rem;
     & .character-card {
@@ -473,8 +508,10 @@
       gap: 1.5rem;
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-      transition: box-shadow .3s ease, transform .3s ease;
-      background: var(--accent);      
+      transition:
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+      background: var(--accent);
       border-radius: 8px;
       & .character-content {
         padding: 1rem;
@@ -505,9 +542,9 @@
         transform: translateY(-5px);
         box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
         & i {
-            color: var(--main-text);
-          }
+          color: var(--main-text);
         }
+      }
     }
   }
 

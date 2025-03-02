@@ -35,9 +35,6 @@ pub async fn save_game(
     {
         let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
         let icon_path = format!("{}.icon.png", path);
-
-        dbg!(&icon_path);
-
         icon.save(&icon_path)
             .map_err(|_| "Error happened while saving image")?;
 

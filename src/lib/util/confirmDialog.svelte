@@ -1,23 +1,23 @@
 <script>
-  import CloseIcon from '$lib/util/CloseIcon.svelte'
+  import CloseIcon from '$lib/util/CloseIcon.svelte';
   let {
     isOpen = $bindable(),
     onConfirm,
     title = 'Confirm',
     message = 'Are you sure you want to proceed?',
-  } = $props()
+  } = $props();
 
   // Close the modal
   function closeModal() {
-    isOpen = false
+    isOpen = false;
   }
 
   // Handle the "OK" button click
   function handleConfirm() {
     if (onConfirm) {
-      onConfirm() // Run the provided function
+      onConfirm(); // Run the provided function
     }
-    closeModal() // Close the modal
+    closeModal(); // Close the modal
   }
 </script>
 
@@ -35,7 +35,7 @@
       <section class="main__content">
         <p>{@html message}</p>
         <div class="buttons">
-          <button onclick={onConfirm}>Ok</button>
+          <button onclick={onConfirm}>OK</button>
           <button onclick={closeModal} style="background: #f7768e"
             >Cancel</button
           >

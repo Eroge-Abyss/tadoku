@@ -1,45 +1,59 @@
 <script>
-  import { open } from '@tauri-apps/plugin-dialog'
-  import { invoke } from '@tauri-apps/api/core'
-  import { appState } from '../routes/state.svelte'
-  import CloseIcon from '$lib/util/CloseIcon.svelte'
-  const NSFW_RATE = 0.5
+  import { open } from '@tauri-apps/plugin-dialog';
+  import { invoke } from '@tauri-apps/api/core';
+  import { appState } from '../routes/state.svelte';
+  import CloseIcon from '$lib/util/CloseIcon.svelte';
+  import Page from '../routes/+page.svelte';
 
-  let showModal = $state(false)
-  let search = $state()
-  let exe_path = $state()
-  let results = $state.raw([])
-  let selectedVn = $state.raw()
-  let showImage = $state(false)
-  let charactersDownload = $state(false)
-  $effect(() => {
-    console.log(charactersDownload)
-  })
+  const NSFW_RATE = 0.5;
+
+  let showModal = $state(false);
+  let showProcessSelector = $state(false);
+  let search = $state();
+  let processSearch = $state();
+  let exe_path = $state();
+  let results = $state.raw([]);
+  let selectedVn = $state.raw();
+  let showImage = $state(false);
+  let charactersDownload = $state(false);
+  let loading = $state(false);
   function toggleImage() {
-    showImage = !showImage
+    showImage = !showImage;
+  }
+
+  // State for tracking if the switch is active
+  let isActive = $state(false);
+
+  // Function to toggle the switch state
+  function toggleSwitch() {
+    isActive = !isActive;
   }
 
   async function updateSearch(e) {
-    search = e.target.value
-    const data = await invoke('fetch_vn_info', { key: search })
-    results = search ? data : []
+    search = e.target.value;
+    const data = await invoke('fetch_vn_info', { key: search });
+    results = search ? data : [];
   }
 
-  const openModal = () => (showModal = true)
+  const openModal = () => (showModal = true);
   const closeModal = () => {
-    showModal = false
-    results = []
-    search = ''
-    selectedVn = ''
-  }
+    showModal = false;
+    results = [];
+    search = '';
+    selectedVn = '';
+  };
+
+  const closeProcessSelector = () => {
+    showProcessSelector = false;
+  };
 
   const debounce = (v) => {
-    let timer
-    clearTimeout(timer)
+    let timer;
+    clearTimeout(timer);
     timer = setTimeout(() => {
-      updateSearch(v) // TODO: make this function generic
-    }, 750)
-  }
+      updateSearch(v); // TODO: make this function generic
+    }, 750);
+  };
 
   const pickFile = async () => {
     const file = await open({
@@ -51,18 +65,38 @@
           extensions: ['exe', 'lnk', 'bat'],
         },
       ],
-    })
-    exe_path = file
-  }
+    });
+    exe_path = file;
+  };
+
+  const pickProcess = async () => {
+    showProcessSelector = true;
+  };
 
   const selectGame = (game) => {
-    selectedVn = game
-    showImage = false
-    results = []
-    search = ''
-  }
+    selectedVn = game;
+    showImage = false;
+    results = [];
+    search = '';
+  };
 
   const saveGame = async (vn) => {
+    loading = true;
+    const testData = {
+      title: vn.title,
+      description: vn.description || 'No Description',
+      exe_file_path: exe_path,
+      process_file_path: exe_path,
+      categories: [],
+      icon_url: null,
+      image_url: vn.image.url,
+      is_pinned: false,
+      is_nsfw: vn.image.sexual > NSFW_RATE,
+      playtime: 0,
+    };
+
+    console.log('gameTest', testData);
+
     await appState.saveGame(
       vn.id,
       {
@@ -76,19 +110,28 @@
         is_pinned: false,
         is_nsfw: vn.image.sexual > NSFW_RATE,
         playtime: 0,
+        characters: [],
       },
       {
         include_characters: charactersDownload,
       },
-    )
-    closeModal()
-  }
+    );
+    loading = false;
+    closeModal();
+  };
 </script>
 
 <section>
   <button id="btn__add" onclick={openModal}> + </button>
-
-  <section id="modal" class:open={showModal}>
+  <!--section class="modal process-selector" class:open={showProcessSelector}>
+      <div class="process-selector-content">
+         <span onclick={closeProcessSelector}>
+          <CloseIcon style="font-size: 24px;" />
+        </span>
+      // we will probably use this later
+    </div>
+  </section-->
+  <section class="modal" class:open={showModal}>
     <section class="modal__content">
       <header>
         <h3>Add a game</h3>
@@ -100,18 +143,24 @@
       </header>
       <section class="game-form">
         <div class="form-group">
+            <!-- No questions asked (about autocomplete). it just works -->
           <input
+            type="text"
             value={search}
+            autocomplete="one-time-code"
             onkeyup={(e) => debounce(e)}
             placeholder="Name or ID"
           />
         </div>
         <div class="form-group characters">
-          <input
-            type="checkbox"
-            id="characters"
-            bind:checked={charactersDownload}
-          />
+          <label for="characters" class="custom-checkbox">
+            <input
+              type="checkbox"
+              id="characters"
+              bind:checked={charactersDownload}
+            />
+            <span class="checkmark"></span>
+          </label>
           <label for="characters">Include Characters</label>
         </div>
         <div id="suggestions">
@@ -155,16 +204,51 @@
             </div>
           </div>
         {/if}
-        <button onclick={pickFile}>Pick exe</button>
-        <button style="background: #9ece6a" onclick={() => saveGame(selectedVn)}
-          >Save</button
+
+        <div class="info-container">
+          <span class="icon-info">
+            <i class="fa-solid fa-info-circle"></i>
+          </span>
+          <p class="note">
+            If you're using a launcher for this novel, please add its process
+            from the game details page.
+          </p>
+        </div>
+
+        <button onclick={pickFile}>Select Game Executable</button>
+        <button
+          disabled={loading}
+          class="save-button"
+          onclick={() => saveGame(selectedVn)}
         >
+          {#if loading}
+            Saving...
+          {:else}
+            Save
+          {/if}
+        </button>
       </section>
     </section>
   </section>
 </section>
 
 <style>
+  .note {
+    font-size: 12px;
+    color: var(--secondary-text);
+    text-align: left;
+    margin: 0;
+  }
+  .info-container {
+    display: flex;
+    padding: 10px 10px;
+    align-items: flex-start;
+  }
+  .icon-info {
+    font-size: 14px;
+    margin-right: 5px;
+    color: var(--secondary-text);
+  }
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
@@ -186,7 +270,7 @@
     cursor: pointer;
   }
 
-  #modal {
+  .modal {
     position: fixed;
     height: 100%;
     width: 100%;
@@ -201,6 +285,9 @@
     opacity: 0;
     pointer-events: none;
     transition: all 0.2s ease-in-out;
+    &.process-selector {
+      z-index: 3;
+    }
     /* Start scaled down */
     &.open {
       opacity: 1;
@@ -214,7 +301,7 @@
     & .modal__content {
       background-color: var(--main-background);
       padding: 1rem;
-      width: 50%;
+      width: 500px;
       display: flex;
       flex-direction: column;
       transform: translate(0, 100%) scale(0.8);
@@ -240,12 +327,15 @@
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 1rem;
-          & input {
+          & input[type='text'] {
+            height: 40px;
+            width: 100%;
             background-color: #313131;
             border: 0;
             padding: 0.5rem;
             color: var(--main-text);
-            max-width: 400px;
+            box-sizing: border-box;
+            grid-column: 1 / -1;
           }
 
           &.characters {
@@ -253,6 +343,9 @@
             align-items: center;
             gap: 0.5rem;
             margin-top: 1rem;
+            & > * {
+              cursor: pointer;
+            }
           }
         }
 
@@ -272,7 +365,7 @@
 
   #suggestions {
     margin-top: 10px;
-    max-width: 400px;
+    /* max-width: 400px; */
     max-height: 200px;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -349,5 +442,86 @@
   .selected-suggestion-id {
     color: #aaa;
     font-size: 14px;
+  }
+
+  .save-button {
+    background: #9ece6a !important;
+    &[disabled] {
+      opacity: 0.5;
+    }
+  }
+
+  .process-selector {
+    & .process-selector-content {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      & span {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 2rem;
+        color: var(--secondary-text);
+        cursor: pointer;
+        transition: color 0.2s ease-in-out;
+        &:hover {
+          color: var(--main-text);
+        }
+      }
+    }
+  }
+
+  /* Style for the custom checkbox */
+  .custom-checkbox {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+  }
+
+  .custom-checkbox input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    background-color: #313131;
+    border: 2px solid #5d5d5d;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .custom-checkbox input:checked ~ .checkmark {
+    background-color: #9ece6a;
+    border-color: #9ece6a;
+  }
+
+  .checkmark:after {
+    content: '';
+    position: absolute;
+    display: none;
+  }
+
+  .custom-checkbox input:checked ~ .checkmark:after {
+    display: block;
+  }
+
+  .custom-checkbox .checkmark:after {
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
 </style>

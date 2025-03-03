@@ -1,9 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from '@tauri-apps/api/core';
 
 /**
  * @typedef {import('$lib/types').Game} Game
  * @typedef {import('$lib/types').Novel} Novel
  * @typedef {import('$lib/types').Options} Options
+ * @typedef {import('$lib/types').CurrentGame} CurrentGame
  */
 
 class AppState {
@@ -11,6 +12,19 @@ class AppState {
    * @type {Record<string, Game>}
    */
   #gamesList = $state({});
+
+  /**
+   * @type {CurrentGame | null}
+   */
+  #currentGame = $state(null);
+
+  get currentGame() {
+    return this.#currentGame;
+  }
+
+  set currentGame(game) {
+    this.#currentGame = game;
+  }
 
   /**
    * Gets the list of games.
@@ -25,7 +39,7 @@ class AppState {
    * @returns {Promise<void>}
    */
   async loadGames() {
-    this.#gamesList = await invoke("load_games");
+    this.#gamesList = await invoke('load_games');
     this.sortGames();
   }
 
@@ -37,7 +51,7 @@ class AppState {
    * @returns {Promise<void>}
    */
   async saveGame(gameId, game, options = { include_characters: true }) {
-    await invoke("save_game", {
+    await invoke('save_game', {
       gameId,
       game,
       options,
@@ -64,7 +78,7 @@ class AppState {
    * @returns {Promise<void>}
    */
   async deleteGame(gameId) {
-    await invoke("delete_game", { gameId });
+    await invoke('delete_game', { gameId });
 
     await this.loadGames();
   }
@@ -75,7 +89,7 @@ class AppState {
    * @returns {Promise<void>}
    */
   async togglePinned(gameId) {
-    await invoke("toggle_pin", { gameId });
+    await invoke('toggle_pin', { gameId });
 
     await this.loadGames();
   }
@@ -87,7 +101,7 @@ class AppState {
    * @returns {Promise<void>}
    */
   async updateExePath(gameId, newExePath) {
-    await invoke("update_exe", { gameId, newExePath });
+    await invoke('update_exe', { gameId, newExePath });
 
     await this.loadGames();
   }
@@ -95,11 +109,26 @@ class AppState {
   /**
    * Updates the exe path of a game.
    * @param {string} gameId - The unique identifier for the game.
-   * @param {string[]} categories - The new exe path of the game
+   * @param {string[]} categories - The new categories of the game
    * @returns {Promise<void>}
    */
   async setGameCategories(gameId, categories) {
-    await invoke("set_game_categories", { gameId, categories });
+    await invoke('set_game_categories', { gameId, categories });
+
+    await this.loadGames();
+  }
+
+  /**
+   * Updates the exe path of a game.
+   * @param {string} gameId - The unique identifier for the game.
+   * @param {string} newProcessPath - The new process path of the game
+   * @returns {Promise<void>}
+   */
+  async updateGameProcessPath(gameId, newProcessPath) {
+    await invoke('update_process', {
+      gameId,
+      newProcessPath: newProcessPath,
+    });
 
     await this.loadGames();
   }
@@ -110,7 +139,15 @@ class AppState {
    * @returns {Promise<void>}
    */
   async startGame(gameId) {
-    await invoke("open_game", { gameId });
+    await invoke('open_game', { gameId });
+  }
+
+  /**
+   * Closes the currently opened game
+   * @returns {Promise<void>}
+   */
+  async closeGame() {
+    await invoke('close_game', {});
   }
 
   /**
@@ -119,6 +156,9 @@ class AppState {
   sortGames() {
     const sortedEntries = Object.entries(this.#gamesList).sort(
       ([, a], [, b]) => {
+        if (b.playtime !== a.playtime) {
+          return b.playtime - a.playtime;
+        }
         return a.title.localeCompare(b.title);
       },
     );

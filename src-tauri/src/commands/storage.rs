@@ -27,20 +27,14 @@ pub async fn save_game(
     mut game: Game,
     options: Options,
 ) -> Result<(), String> {
-    let _ = util::save_image(&app_handle, &game.image_url)
+    let path = util::save_image(&app_handle, &game.image_url)
         .await
         .map_err(|_| "Error happened while saving image")?;
 
     #[cfg(windows)]
     {
         let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
-        let icon_path = format!(
-            "{}.icon.png",
-            path.to_str().ok_or("Couldn't convert path to string")?
-        );
-
-        dbg!(&icon_path);
-
+        let icon_path = format!("{}.icon.png", path);
         icon.save(&icon_path)
             .map_err(|_| "Error happened while saving image")?;
 

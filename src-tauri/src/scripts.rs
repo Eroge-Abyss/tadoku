@@ -56,6 +56,16 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
                 game.insert(k.clone(), v.clone());
             }
         }
+
+        // Handle empty process path case
+        if game.get("process_file_path").expect("Should have this key") == "" {
+            game.insert(
+                "process_file_path".into(),
+                game.get("exe_file_path")
+                    .expect("Should have this key")
+                    .clone(),
+            );
+        }
     }
 
     let games = serde_json::to_value(games)?;

@@ -1,57 +1,57 @@
 <script>
-    import { fly, fade } from "svelte/transition";
-    import { elasticOut } from "svelte/easing";
-    import Card from "./util/Card.svelte";
+  import { fly, fade } from 'svelte/transition';
+  import { elasticOut } from 'svelte/easing';
+  import Card from './util/Card.svelte';
 
-    let { gamesList } = $props();
+  let { gamesList } = $props();
 </script>
 
 <div class="container">
-    <h1 in:fade={{ duration: 500, easing: elasticOut }}>Visual Novels</h1>
-    <div class="grid">
-        {#each Object.entries(gamesList) as [id, game]}
-            <div
-                in:fly={{
-                    y: 50,
-                    duration: 500,
-                    delay: 100,
-                    easing: elasticOut,
-                }}
-            >
-                <Card
-                    {id}
-                    image={game.image_url}
-                    isNsfw={game.is_nsfw}
-                    title={game.title}
-                    playtime={game.playtime}
-                />
-            </div>
-        {/each}
-    </div>
+  <h1 in:fade={{ duration: 500, easing: elasticOut }}>Visual Novels</h1>
+  <div class="grid">
+    {#each Object.entries(gamesList) as [id, game]}
+      <div
+        in:fly={{
+          y: 50,
+          duration: 500,
+          delay: 100,
+          easing: elasticOut,
+        }}
+      >
+        <Card
+          {id}
+          image={game.image_url}
+          isNsfw={game.is_nsfw}
+          title={game.title}
+          playtime={game.playtime}
+        />
+      </div>
+    {/each}
+  </div>
 </div>
 
 <style>
-    .container {
-        padding: 2rem;
-        display: flex;
-        flex-direction: column;
-    }
+  .container {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+  }
 
-    h1 {
-        color: var(--foreground);
-        margin-bottom: 2rem;
-        font-size: 2.5rem;
-        font-weight: 700;
-    }
+  h1 {
+    color: var(--foreground);
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+  }
 
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
-        width: 100%;
-    }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+  }
 
-    /* .loading {
+  /* .loading {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -66,16 +66,16 @@
         font-weight: 500;
     } */
 
-    :global(.animate-spin) {
-        animation: spin 1s linear infinite;
-    }
+  :global(.animate-spin) {
+    animation: spin 1s linear infinite;
+  }
 
-    @keyframes spin {
-        from {
-            transform: rotate(0deg);
-        }
-        to {
-            transform: rotate(360deg);
-        }
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
     }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 </style>

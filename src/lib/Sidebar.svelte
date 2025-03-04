@@ -27,7 +27,6 @@
       </Button>
 
       {#each pinnedGames as { id, image, char } (id)}
-        {console.log(pinnedGames)}
         <Button
           onclick={() => invoke('open_game', { gameId: id })}
           image={image ? image : undefined}

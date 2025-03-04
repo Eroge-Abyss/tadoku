@@ -11,8 +11,6 @@
     title = 'Select game process',
   } = $props();
 
-  $inspect(processList);
-
   let isDropdownOpen = $state(false);
   let loading = $state(false);
   let process = $state<Process | null>(null);
@@ -39,7 +37,6 @@
   }
 
   // Filtered items based on search term
-  $inspect(processList);
   let filteredItems = $derived(
     processList.filter((item: Process) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()),

@@ -31,8 +31,8 @@ struct GameImage {
 pub struct VndbCharacter {
     pub id: String,
     pub name: String,
-    pub image: CharacterImage,
-    pub original: String,
+    pub image: Option<CharacterImage>,
+    pub original: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]

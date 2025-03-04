@@ -44,15 +44,11 @@
     {
       label: 'Characters',
       id: 'chars',
-      visible: novel.characters,
+      visible: novel?.characters,
     },
   ]);
 
   let selectedTab = $state(tabs[0].id);
-
-  $effect(() => {
-    console.log('game: ', novel.characters);
-  });
 
   if (!novel) {
     throw new Error('FIXME');
@@ -105,7 +101,6 @@
 
   const deleteGame = async () => {
     appState.deleteGame(novel.id);
-    console.log('game deleted');
     goto('/');
   };
 </script>
@@ -216,10 +211,14 @@
                 class="character-card"
                 onclick={() => openUrl(`https://vndb.org/${character.id}`)}
               >
-                <img
-                  src={convertFileSrc(character.image_url)}
-                  alt={character.id}
-                />
+                {#if character.image_url}
+                  <img
+                    src={convertFileSrc(character.image_url)}
+                    alt={character.id}
+                  />
+                {:else}
+                  <p>No Image</p>
+                {/if}
                 <div class="character-content">
                   <p class="main">{character.og_name}</p>
                   <p class="sub">{character.en_name}</p>
@@ -530,6 +529,11 @@
         width: 100px;
         object-fit: cover;
         border-radius: 8px 0 0 8px;
+      }
+
+      & > p {
+        width: 100px;
+        text-align: center;
       }
 
       & i {

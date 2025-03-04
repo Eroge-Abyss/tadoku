@@ -51,9 +51,14 @@ pub async fn save_game(
         let mut new_chars: Vec<Character> = Vec::new();
 
         for char in chars {
-            let path = util::save_image(&app_handle, &char.image.url)
-                .await
-                .map_err(|_| "Error happened while saving image")?;
+            let path = match char.image {
+                Some(p) => Some(
+                    util::save_image(&app_handle, &p.url)
+                        .await
+                        .map_err(|_| "Error happened while saving image")?,
+                ),
+                None => None,
+            };
 
             new_chars.push(Character {
                 id: char.id,

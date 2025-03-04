@@ -31,8 +31,8 @@ pub struct Game {
 pub struct Character {
     pub id: String,
     pub en_name: String,
-    pub og_name: String,
-    pub image_url: String,
+    pub og_name: Option<String>,
+    pub image_url: Option<String>,
 }
 
 pub struct CategoriesStore {

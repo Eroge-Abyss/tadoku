@@ -16,8 +16,8 @@ export interface Game {
   characters: {
     id: string;
     en_name: string;
-    og_name: string;
-    image_url: string;
+    og_name: string | null;
+    image_url: string | null;
   }[];
 }
 

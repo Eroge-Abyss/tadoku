@@ -18,7 +18,6 @@
     children,
     onclick = () => {},
   } = $props();
-  console.log(children);
 </script>
 
 <div {style}>

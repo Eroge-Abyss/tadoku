@@ -95,8 +95,6 @@
       playtime: 0,
     };
 
-    console.log('gameTest', testData);
-
     await appState.saveGame(
       vn.id,
       {
@@ -143,7 +141,7 @@
       </header>
       <section class="game-form">
         <div class="form-group">
-            <!-- No questions asked (about autocomplete). it just works -->
+          <!-- No questions asked (about autocomplete). it just works -->
           <input
             type="text"
             value={search}

@@ -15,8 +15,6 @@
 
   onMount(async () => {
     appState.loadGames();
-    console.log('here');
-
     games = await invoke('get_active_windows');
   });
 </script>

@@ -1,4 +1,5 @@
 <script>
+  import CloseIcon from '$lib/util/CloseIcon.svelte';
   import { convertFileSrc, invoke } from '@tauri-apps/api/core'
   import { fly, fade } from 'svelte/transition'
   import { goto } from '$app/navigation'
@@ -9,10 +10,19 @@
   import ConfirmDialog from '$lib/util/confirmDialog.svelte';
   import Card from '$lib/util/Card.svelte';
   import { openUrl } from '@tauri-apps/plugin-opener';
+  import ProcessDropdown from '$lib/util/ProcessDropdown.svelte';
+
   
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );
+  let exe_path = $state();
+  let showModal = $state(false);
+  let showProcessSelector = $state(false);
+
+  const closeProcessSelector = () => {
+    showProcessSelector = false;
+  };
 
   let showImage = $state(false)
   function toggleImage() {
@@ -142,6 +152,14 @@
             ]}
             title="Toggle pinned"
           ></i>
+          <section class="modal process-selector" class:open={showProcessSelector}>
+            <div class="process-selector-content">
+              <span onclick={closeProcessSelector}>
+                <CloseIcon style="font-size: 24px;" />
+              </span>
+              <ProcessDropdown bind:selected={exe_path} />
+            </div>
+          </section>
           <i
             onclick={editExe}
             class="fa-regular fa-pen-to-square"
@@ -572,5 +590,117 @@
     font-size: 0.875rem;
     margin-bottom: 0.5rem;
     opacity: 0.7;
+  }
+  .process-selector {
+    & .process-selector-content {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      & span {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 2rem;
+        color: var(--secondary-text);
+        cursor: pointer;
+        transition: color 0.2s ease-in-out;
+        &:hover {
+          color: var(--main-text);
+        }
+      }
+    }
+  }
+
+  .modal {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease-in-out;
+    &.process-selector {
+      z-index: 3;
+    }
+    /* Start scaled down */
+    &.open {
+      opacity: 1;
+      pointer-events: all;
+
+      & .modal__content {
+        transform: translate(0, 0) scale(1); /* Scale up */
+      }
+    }
+
+    & .modal__content {
+      background-color: var(--main-background);
+      padding: 1rem;
+      width: 500px;
+      display: flex;
+      flex-direction: column;
+      transform: translate(0, 100%) scale(0.8);
+      transition: all 0.2s ease-in-out;
+      & header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--main-text);
+        span {
+          color: #444;
+          cursor: pointer;
+          transition: color 0.2s ease-in-out;
+          &:hover {
+            color: var(--main-text);
+          }
+        }
+      }
+
+      & .game-form {
+        margin: 1rem;
+        & .form-group {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+          & input {
+            background-color: #313131;
+            border: 0;
+            padding: 0.5rem;
+            color: var(--main-text);
+            max-width: 400px;
+          }
+
+          &.characters {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            & > * {
+              cursor: pointer;
+            }
+          }
+        }
+
+        & button {
+          border: 0;
+          background-color: #313131;
+          color: #fff;
+          width: 100%;
+          padding: 0.5rem;
+          font-size: 18px;
+          margin-top: 1rem;
+          cursor: pointer;
+        }
+      }
+    }
   }
 </style>

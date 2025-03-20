@@ -1,12 +1,12 @@
 <script>
-  import { convertFileSrc } from '@tauri-apps/api/core'
-  import { goto } from '$app/navigation'
-  const { id, title, image, playtime, isNsfw } = $props()
+  import { convertFileSrc } from '@tauri-apps/api/core';
+  import { goto } from '$app/navigation';
+  const { id, title, image, playtime, isNsfw } = $props();
 
-  let hoursPlayed = $derived(Math.floor(playtime / 3600))
-  let minutesPlayed = $derived(Math.floor((playtime % 3600) / 60))
+  let hoursPlayed = $derived(Math.floor(playtime / 3600));
+  let minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
 
-  let image_url = $derived(convertFileSrc(image))
+  let image_url = $derived(convertFileSrc(image));
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -44,12 +44,13 @@
     filter: blur(0);
   }
   .card {
-    background-color: var(--secondary);
+    background-color: var(--accent);
     border-radius: 12px;
     overflow: hidden;
     transition:
       transform 0.3s ease,
-      box-shadow 0.3s ease;
+      box-shadow 0.3s ease,
+      background-color 0.3s ease;
     display: block;
     text-decoration: none;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
@@ -66,50 +67,67 @@
   }
 
   .card-image {
-    aspect-ratio: 3/4;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-image::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+      90deg, 
+      transparent 0%, 
+      rgba(255, 255, 255, 0) 20%, 
+      rgba(255, 255, 255, 0.3) 50%, 
+      rgba(255, 255, 255, 0) 80%, 
+      transparent 100%
+    );
+    transform: skewX(-25deg);
+    opacity: 0;
+    transition: left 0.6s ease-out;
+  }
+
+  .card-image:hover::after {
+    left: 100%;
+    opacity: 0.8;
   }
 
   .card-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease-out;
   }
 
-  /* .category {
-        position: absolute;
-        top: 1rem;
-        left: 1rem;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: var(--main-text);
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    } */
+  .card:hover .card-image img {
+    transform: scale(1.05);
+  }
 
   .card-content {
     padding: 1rem;
+    transition: background-color 0.3s ease;
   }
 
   .card-content h3 {
-    color: #888;
+    color: var(--secondary-text);
     margin: 0 0 0.75rem 0;
     font-size: 16px;
     font-weight: 400;
     transition: color 0.2s ease-in-out;
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* Number of lines before ellipsis */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.5; /* Adjust this value if needed */
+    line-height: 1.5; 
     min-height: calc(
       1.5em * 2
-    ); /* 1.5em is the line height, 2 is the number of lines */
+    ); 
   }
-
+/*
   .progress-info {
     display: flex;
     flex-direction: column;
@@ -117,6 +135,7 @@
     & .time {
       color: var(--main-mauve);
       font-weight: bold;
+      transition: color 0.3s ease;
     }
   }
 

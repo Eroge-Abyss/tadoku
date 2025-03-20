@@ -40,7 +40,7 @@
 
   {#if isOpen}
     <div class="dropdown-menu show">
-      {#each filterdItems as item}
+      {#each filteredItems as item}
 
         <div onclick={() => selectItem(item.exe_path)} class="dropdown-item">
           <img src={item.icon} alt={item.title} width={32} height={32} />

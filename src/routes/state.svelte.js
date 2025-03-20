@@ -14,6 +14,21 @@ import { invoke } from '@tauri-apps/api/core';
  * @property {boolean} useCustomColor - Whether to use custom color
  */
 
+/**
+ * @property {string} title - The game's title
+ * @property {string} exe_path - Path to the game's executable
+ * @property {string|null} icon_url - Path to the game's icon
+ * @property {boolean} is_pinned - Whether the game is pinned
+ * @property {string[]} categories - Game categories/tags
+ * @property {number} playtime - Total playtime in seconds
+ * @property {string|null} process_name - Process name to track
+ */
+
+/**
+ * @typedef {Object} GamesList
+ * @property {Object.<string, Game>} games - Map of game IDs to game objects
+ */
+
 class AppState {
   /**
    * Theme options
@@ -52,7 +67,7 @@ class AppState {
       id: 'forest-green',
       name: 'Forest Green',
       primary: '#9ece6a',
-      background: '#1e2030',
+      background: '#1e2030',ه
       accent: '#282e44',
     },
   ];
@@ -92,7 +107,6 @@ class AppState {
   });
 
   constructor() {
-    // Load theme settings from localStorage on initialization
     this.loadThemeSettings();
   }
 
@@ -217,8 +231,6 @@ class AppState {
     localStorage.removeItem('tadoku-custom-color');
     localStorage.removeItem('tadoku-use-custom-color');
   }
-
-  // Game-related methods (unchanged)
   async loadGames() {
     this.#gamesList = await invoke('load_games');
     this.sortGames();
@@ -251,6 +263,11 @@ class AppState {
     await this.loadGames();
   }
 
+  /**
+   * Updates the exe path of a game.
+  * @param {string[]} categories - The new categories of the gameii
+   * @returns {Promise<void>}
+   */
   async setGameCategories(gameId, categories) {
     await invoke('set_game_categories', { gameId, categories });
     await this.loadGames();
@@ -260,6 +277,13 @@ class AppState {
     await invoke('update_process', { gameId, newProcessPath });
     await this.loadGames();
   }
+
+  /**
+   * Updates the exe path of a game.
+   * @param {string} gameId - The unique identifier for the game.
+   * @param {string} newProcessPath - The new process path of the game
+   * @returns {Promise<void>}
+   */
 
   async startGame(gameId) {
     await invoke('open_game', { gameId });

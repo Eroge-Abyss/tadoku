@@ -1,9 +1,9 @@
 <script>
-  import { fly, fade } from 'svelte/transition'
-  import { elasticOut } from 'svelte/easing'
-  import Card from './util/Card.svelte'
+  import { fly, fade } from 'svelte/transition';
+  import { elasticOut } from 'svelte/easing';
+  import Card from './util/Card.svelte';
 
-  let { gamesList } = $props()
+  let { gamesList } = $props();
 </script>
 
 <div class="container">

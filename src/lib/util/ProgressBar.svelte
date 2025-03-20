@@ -1,6 +1,6 @@
 <script>
-  export let progress
-  export let color = 'var(--primary)'
+  export let progress;
+  export let color = 'var(--primary)';
 </script>
 
 <div class="progress-container">

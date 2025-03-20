@@ -77,14 +77,21 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .map_err(|_| "Error acquiring mutex lock".to_string())?;
 
             let pid;
+            let mut counter: u8 = 0;
 
             loop {
+                counter += 1;
                 match util::get_pid_from_process_path(&game.process_file_path) {
                     Some(found_pid) => {
                         pid = found_pid;
                         break;
                     }
-                    None => thread::sleep(Duration::from_secs(1)),
+                    None => {
+                        if counter > 60 {
+                            return Err(String::from("Couldn't find game process"));
+                        }
+                        thread::sleep(Duration::from_secs(1))
+                    }
                 }
             }
 
@@ -124,10 +131,7 @@ pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
     #[cfg(windows)]
     {
         let open_windows = match x_win::get_open_windows() {
-            Ok(open_windows) => {
-                println!("open windows: {:#?}", open_windows);
-                open_windows
-            }
+            Ok(open_windows) => open_windows,
             Err(x_win::XWinError) => {
                 println!("error occurred while getting open windows");
                 return Err(String::from("error"));

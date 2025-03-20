@@ -14,7 +14,7 @@
         char: v.title[0],
         image: v.icon_url ? convertFileSrc(v.icon_url) : null,
       })),
-  )
+  );
 </script>
 
 <nav>

@@ -3,7 +3,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { appState } from '../routes/state.svelte';
   import CloseIcon from '$lib/util/CloseIcon.svelte';
-  import ProcessDropdown from '$lib/util/ProcessDropdown.svelte';
+  import Page from '../routes/+page.svelte';
 
   const NSFW_RATE = 0.5;
 
@@ -95,8 +95,6 @@
       playtime: 0,
     };
 
-    console.log('gameTest', testData);
-
     await appState.saveGame(
       vn.id,
       {
@@ -143,18 +141,24 @@
       </header>
       <section class="game-form">
         <div class="form-group">
+          <!-- No questions asked (about autocomplete). it just works -->
           <input
+            type="text"
             value={search}
+            autocomplete="one-time-code"
             onkeyup={(e) => debounce(e)}
             placeholder="Name or ID"
           />
         </div>
         <div class="form-group characters">
-          <input
-            type="checkbox"
-            id="characters"
-            bind:checked={charactersDownload}
-          />
+          <label for="characters" class="custom-checkbox">
+            <input
+              type="checkbox"
+              id="characters"
+              bind:checked={charactersDownload}
+            />
+            <span class="checkmark"></span>
+          </label>
           <label for="characters">Include Characters</label>
         </div>
         <div id="suggestions">
@@ -199,30 +203,24 @@
           </div>
         {/if}
 
-        <div class="switch-container">
-          <span class="switch-label">EXE</span>
-          <span
-            class="switch {isActive ? 'active' : ''}"
-            onclick={toggleSwitch}
-            aria-checked={isActive}
-            role="switch"
-          >
-            <span class="switch-thumb"></span>
+        <div class="info-container">
+          <span class="icon-info">
+            <i class="fa-solid fa-info-circle"></i>
           </span>
-          <span class="switch-label"> Process </span>
+          <p class="note">
+            If you're using a launcher for this novel, please add its process
+            from the game details page.
+          </p>
         </div>
-        {#if isActive}
-          <ProcessDropdown bind:selected={exe_path} />
-        {:else}
-          <button onclick={pickFile}>Pick exe</button>
-        {/if}
+
+        <button onclick={pickFile}>Select Game Executable</button>
         <button
           disabled={loading}
           class="save-button"
           onclick={() => saveGame(selectedVn)}
         >
           {#if loading}
-            loading...
+            Saving...
           {:else}
             Save
           {/if}
@@ -233,6 +231,22 @@
 </section>
 
 <style>
+  .note {
+    font-size: 12px;
+    color: var(--secondary-text);
+    text-align: left;
+    margin: 0;
+  }
+  .info-container {
+    display: flex;
+    padding: 10px 10px;
+    align-items: flex-start;
+  }
+  .icon-info {
+    font-size: 14px;
+    margin-right: 5px;
+    color: var(--secondary-text);
+  }
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
@@ -311,12 +325,15 @@
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 1rem;
-          & input {
+          & input[type='text'] {
+            height: 40px;
+            width: 100%;
             background-color: #313131;
             border: 0;
             padding: 0.5rem;
             color: var(--main-text);
-            max-width: 400px;
+            box-sizing: border-box;
+            grid-column: 1 / -1;
           }
 
           &.characters {
@@ -346,7 +363,7 @@
 
   #suggestions {
     margin-top: 10px;
-    max-width: 400px;
+    /* max-width: 400px; */
     max-height: 200px;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -455,44 +472,54 @@
     }
   }
 
-  .switch-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .switch {
+  /* Style for the custom checkbox */
+  .custom-checkbox {
     position: relative;
-    width: 40px;
-    height: 22px;
-    background-color: #ccc;
-    border-radius: 11px;
-    padding: 0;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
   }
 
-  .switch.active {
-    background-color: var(--main-mauve);
+  .custom-checkbox input {
+    opacity: 0;
+    width: 0;
+    height: 0;
   }
 
-  .switch-thumb {
+  .checkmark {
     position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 18px;
-    height: 18px;
-    background-color: white;
-    border-radius: 50%;
-    transition: transform 0.3s ease;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    background-color: #313131;
+    border: 2px solid #5d5d5d;
+    border-radius: 4px;
+    cursor: pointer;
   }
 
-  .switch.active .switch-thumb {
-    transform: translateX(18px);
+  .custom-checkbox input:checked ~ .checkmark {
+    background-color: #9ece6a;
+    border-color: #9ece6a;
   }
 
-  .switch-label {
-    font-size: 12px;
+  .checkmark:after {
+    content: '';
+    position: absolute;
+    display: none;
+  }
+
+  .custom-checkbox input:checked ~ .checkmark:after {
+    display: block;
+  }
+
+  .custom-checkbox .checkmark:after {
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
 </style>

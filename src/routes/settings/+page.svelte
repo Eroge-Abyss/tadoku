@@ -3,7 +3,9 @@
   import { appState } from '../state.svelte.js';
 
   // use themes constants from the appState
+  // @ts-ignore
   const themes = appState.constructor.themes;
+  // @ts-ignore
   const colorSwatches = appState.constructor.colorSwatches;
 
  
@@ -12,7 +14,6 @@
   let useCustomColor = $state(appState.themeSettings.useCustomColor);
 
   onMount(() => {
-  // Watch for changes in appState.themeSettings
     $effect(() => {
       selectedTheme = appState.themeSettings.theme;
       customColor = appState.themeSettings.accentColor;
@@ -20,6 +21,7 @@
     });
   });
 
+  // @ts-ignore
   function selectTheme(themeId) {
     selectedTheme = themeId;
     appState.updateThemeSettings({ theme: themeId });
@@ -30,6 +32,7 @@
     appState.updateThemeSettings({ useCustomColor });
   }
 
+  // @ts-ignore
   function selectColor(color) {
     customColor = color;
     useCustomColor = true;
@@ -39,6 +42,7 @@
     });
   }
 
+  // @ts-ignore
   function handleColorInput(event) {
     customColor = event.target.value;
     useCustomColor = true;
@@ -275,8 +279,6 @@
     color: var(--main-text);
     text-align: center;
   }
-
-  /* Custom color styles */
   .custom-color-section {
     display: flex;
     flex-direction: column;

@@ -6,14 +6,10 @@
   import { appState } from '../../state.svelte'
   import { page } from '$app/state'
   import { open } from '@tauri-apps/plugin-dialog'
-  import { listen } from '@tauri-apps/api/event'
   import ConfirmDialog from '$lib/util/confirmDialog.svelte';
-  import Card from '$lib/util/Card.svelte';
   import { openUrl } from '@tauri-apps/plugin-opener';
   import ProcessDropdown from '$lib/util/ProcessDropdown.svelte';
-
   import ChangeProcess from '$lib/util/ChangeProcess.svelte';
-
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );

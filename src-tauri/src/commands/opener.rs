@@ -105,7 +105,11 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 pres.set(DiscordGameDetails::new(
                     game_id.clone(),
                     game.title,
-                    game.image_url,
+                    if game.is_nsfw {
+                        "app_icon".into()
+                    } else {
+                        game.image_url
+                    },
                 ))
                 .map_err(|_| "Error setting presence".to_string())?;
             }

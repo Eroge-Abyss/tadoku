@@ -166,6 +166,11 @@
             title="Open in VNDB"
           ></i>
           <i
+            onclick={() => invoke('set_characters', { gameId: novel.id })}
+            class="fa-regular fa-user-plus"
+            title="Save game characters"
+          ></i>
+          <i
             onclick={openDeleteDialog}
             class="fa-regular fa-trash-can"
             style="color:  #f7768e;"
@@ -414,6 +419,9 @@
           }
           &:nth-child(5) {
             transition-delay: 0.5s;
+          }
+          &:nth-child(6) {
+            transition-delay: 0.6s;
           }
         }
       }

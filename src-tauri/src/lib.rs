@@ -36,6 +36,7 @@ pub fn run() {
             commands::storage::update_process,
             commands::storage::get_categories,
             commands::storage::set_categories,
+            commands::storage::set_characters,
             commands::opener::open_game,
             commands::opener::close_game,
             commands::opener::get_active_windows

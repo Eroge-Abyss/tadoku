@@ -95,7 +95,7 @@ impl GamesStore {
         Ok(games)
     }
 
-    /// Deletes a game from the store (also removes image from filesystem)
+    /// Deletes a game from the store (also removes images from filesystem)
     pub fn delete(&self, game_id: &str) -> Result<()> {
         let mut games: Games = serde_json::from_value(self.get_store())?;
 
@@ -105,6 +105,15 @@ impl GamesStore {
                 &removed_game.image_url,
             )?)
             .map_err(|err| err.to_string())?;
+
+            if let Some(characters) = removed_game.characters {
+                for character in characters {
+                    if let Some(image_url) = character.image_url {
+                        fs::remove_file(&image_url).map_err(|err| err.to_string())?;
+                    }
+                }
+            }
+
             let games_data = serde_json::to_value(games)?;
             self.store.set("gamesData", games_data);
         }
@@ -186,6 +195,16 @@ impl GamesStore {
         let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
 
         game["categories"] = serde_json::json!(categories);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
+
+    pub fn set_characters(&self, game_id: &str, characters: Vec<Character>) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+
+        game["characters"] = serde_json::json!(characters);
         self.store.set("gamesData", games_data);
 
         Ok(())

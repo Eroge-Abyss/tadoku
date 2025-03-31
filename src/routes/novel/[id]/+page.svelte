@@ -171,6 +171,12 @@
             style="color:  #f7768e;"
             title="Delete game"
           ></i>
+          <i
+            onclick={() => invoke('set_characters', { gameId: novel.id })}
+            class="fa-regular fa-trash-can"
+            style="color:  #f7768e;"
+            title="Delete game"
+          ></i>
         </div>
       </div>
     </div>

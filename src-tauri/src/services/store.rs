@@ -190,6 +190,16 @@ impl GamesStore {
 
         Ok(())
     }
+
+    pub fn set_characters(&self, game_id: &str, characters: Vec<Character>) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+
+        game["characters"] = serde_json::json!(characters);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
 }
 
 impl CategoriesStore {

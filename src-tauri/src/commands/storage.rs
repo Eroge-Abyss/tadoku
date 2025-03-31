@@ -113,7 +113,7 @@ pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> Result<(), String> 
 
     store
         .toggle_pin(&game_id)
-        .map_err(|_| "Error happened while deleting game")?;
+        .map_err(|_| "Error happened while toggling pin")?;
 
     Ok(())
 }

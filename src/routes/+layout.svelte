@@ -28,7 +28,7 @@
       let downloaded = 0;
       let contentLength = 0;
       // alternatively we could also call update.download() and update.install() separately
-      await update.downloadAndInstall((event) => {
+      await update.download((event) => {
         switch (event.event) {
           case 'Started':
             contentLength = event.data.contentLength;
@@ -45,6 +45,8 @@
             break;
         }
       });
+
+      await update.install();
 
       console.log('update installed');
     })

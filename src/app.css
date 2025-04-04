@@ -102,7 +102,7 @@ html {
 /* Handle */
 ::-webkit-scrollbar-thumb {
   background: var(--dark-handle);
-  border-radius: 4px; /* Less rounded */
+  border-radius: 4px;
 }
 
 /* Handle on hover */

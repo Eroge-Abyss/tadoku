@@ -8,49 +8,35 @@
   import { listen } from '@tauri-apps/api/event';
   import { appState } from './state.svelte';
   import { check } from '@tauri-apps/plugin-updater';
+  import UpdateDialog from '$lib/util/UpdateDialog.svelte';
 
   // when using `"withGlobalTauri": true`, you may use
   // const { getCurrentWindow } = window.__TAURI__.window;
 
   let { children } = $props();
+  let showUpdateDialog = $state(false);
+  let updateInfo = $state({ version: '', notes: '' });
 
   const appWindow = getCurrentWindow();
 
-  check()
-    .then(async (update) => {
-      if (!update) {
-        return;
-      }
-
-      console.log(
-        `found update ${update.version} from ${update.date} with notes ${update.body}`,
-      );
-      let downloaded = 0;
-      let contentLength = 0;
-      // alternatively we could also call update.download() and update.install() separately
-      await update.download((event) => {
-        switch (event.event) {
-          case 'Started':
-            contentLength = event.data.contentLength;
-            console.log(
-              `started downloading ${event.data.contentLength} bytes`,
-            );
-            break;
-          case 'Progress':
-            downloaded += event.data.chunkLength;
-            console.log(`downloaded ${downloaded} from ${contentLength}`);
-            break;
-          case 'Finished':
-            console.log('download finished');
-            break;
+  onMount(() => {
+    // Check for updates
+    check()
+      .then(async (update) => {
+        if (!update) {
+          return;
         }
-      });
 
-      await update.install();
-
-      console.log('update installed');
-    })
-    .catch(console.log);
+        // Update the info and show dialog
+        updateInfo = {
+          version: update.version,
+          // @ts-ignore
+          notes: update.body,
+        };
+        showUpdateDialog = true;
+      })
+      .catch(console.error);
+  });
 
   document
     .getElementById('titlebar-minimize')
@@ -76,6 +62,8 @@
 <main>
   {@render children()}
   <Sidebar />
+
+  <UpdateDialog bind:isOpen={showUpdateDialog} {updateInfo} />
 </main>
 
 <style>

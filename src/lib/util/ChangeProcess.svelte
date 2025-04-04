@@ -122,7 +122,7 @@
     position: fixed;
     height: 100%;
     width: 100%;
-    z-index: 2;
+    z-index: 3;
     top: 0;
     left: 0;
     display: flex;

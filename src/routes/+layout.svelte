@@ -7,13 +7,36 @@
   import { onMount } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
   import { appState } from './state.svelte';
+  import { check } from '@tauri-apps/plugin-updater';
+  import UpdateDialog from '$lib/util/UpdateDialog.svelte';
 
   // when using `"withGlobalTauri": true`, you may use
   // const { getCurrentWindow } = window.__TAURI__.window;
 
   let { children } = $props();
+  let showUpdateDialog = $state(false);
+  let updateInfo = $state({ version: '', notes: '' });
 
   const appWindow = getCurrentWindow();
+
+  onMount(() => {
+    // Check for updates
+    check()
+      .then(async (update) => {
+        if (!update) {
+          return;
+        }
+
+        // Update the info and show dialog
+        updateInfo = {
+          version: update.version,
+          // @ts-ignore
+          notes: update.body,
+        };
+        showUpdateDialog = true;
+      })
+      .catch(console.error);
+  });
 
   document
     .getElementById('titlebar-minimize')
@@ -39,6 +62,8 @@
 <main>
   {@render children()}
   <Sidebar />
+
+  <UpdateDialog bind:isOpen={showUpdateDialog} {updateInfo} />
 </main>
 
 <style>

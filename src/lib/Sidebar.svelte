@@ -6,6 +6,7 @@
   import { appState } from '../routes/state.svelte';
   import { convertFileSrc, invoke } from '@tauri-apps/api/core';
   import SquaresIcon from '$lib/util/SquaresIcon.svelte';
+  import SettingsButton from './util/SettingsButton.svelte';
 
   let pinnedGames = $derived.by(() =>
     Object.entries(appState.gamesList)
@@ -38,6 +39,10 @@
     </div>
   </section>
 
+  <section id="sidebar__footer">
+    <SettingsButton />
+  </section>
+
   <!-- TODO: Hidden until implemented for completeness -->
   <!-- <Icon
         icon="material-symbols:settings-outline-rounded"
@@ -56,12 +61,17 @@
     justify-content: space-between;
     align-items: center;
     position: sticky;
+    background-color: var(--accent);
+    color: var(--main-text);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 1px 0 10px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease;
     top: -1px;
     /*كل ما تعطل اديها */
     z-index: 3;
     #sidebar__header {
       h1 {
-        color: #5d5d5d;
+        color: var(--main-mauve); /* apply theme color to => 多 */
         font-size: 50px;
         padding: 1rem;
       }

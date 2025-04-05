@@ -3,9 +3,7 @@
   import { appState } from '../state.svelte.js';
 
   // use themes constants from the appState
-  // @ts-ignore
   const themes = appState.constructor.themes;
-  // @ts-ignore
   const colorSwatches = appState.constructor.colorSwatches;
 
   let selectedTheme = $state(appState.themeSettings.theme);
@@ -20,7 +18,6 @@
     });
   });
 
-  // @ts-ignore
   function selectTheme(themeId) {
     selectedTheme = themeId;
     appState.updateThemeSettings({ theme: themeId });
@@ -30,8 +27,6 @@
     useCustomColor = !useCustomColor;
     appState.updateThemeSettings({ useCustomColor });
   }
-
-  // @ts-ignore
   function selectColor(color) {
     customColor = color;
     useCustomColor = true;
@@ -41,7 +36,6 @@
     });
   }
 
-  // @ts-ignore
   function handleColorInput(event) {
     customColor = event.target.value;
     useCustomColor = true;
@@ -50,7 +44,7 @@
       useCustomColor: true,
     });
   }
-
+  //this reset function currently resets settings for themes only.
   function resetSettings() {
     appState.resetThemeSettings();
 
@@ -146,7 +140,16 @@
         </div>
       </div>
     </div>
-
+    <div class="settings-section">
+      <h2>App Settings</h2>
+      <div class="switch-container">
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button class="switch" class:active={useCustomColor}>
+          <span class="switch-thumb"></span>
+        </button>
+        <span class="switch-label">disable discord presence</span>
+      </div>
+    </div>
     <div class="settings-section">
       <h2>Reset Settings</h2>
       <button class="reset-button" onclick={resetSettings}>
@@ -160,36 +163,33 @@
   .container {
     padding: 25px;
     max-width: 1200px;
-    margin: 0 auto;
+    margin: auto;
   }
 
   .content {
-    border-radius: 12px;
     display: flex;
     flex-direction: column;
     width: 100%;
     gap: 2rem;
-    padding: 0 1rem;
+    padding: 1rem;
   }
 
   .header {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-bottom: 1rem;
   }
 
   .header h1 {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 600;
     color: var(--main-text);
-    margin-top: 0;
   }
 
   .header p {
     color: var(--secondary-text);
     font-size: 1rem;
-    margin-top: 0;
   }
 
   .settings-section {
@@ -226,7 +226,7 @@
     font-weight: 500;
     color: var(--main-text);
     margin-bottom: 1rem;
-    margin-top: 0.5rem;
+    margin-top: 0.2em;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 0.5rem;
   }
@@ -264,7 +264,7 @@
       rgba(255, 255, 255, 0.05),
       transparent
     );
-    transition: 0.8s ease;
+    transition: 0.2s ease;
   }
 
   .theme-item:hover::before {
@@ -338,7 +338,7 @@
   .switch-container {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
   .switch {
@@ -381,7 +381,7 @@
   .color-options {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .color-picker {
@@ -401,7 +401,7 @@
   .color-picker span {
     color: var(--main-text);
     font-family: monospace;
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .color-swatches {

@@ -140,6 +140,9 @@
         </div>
       </div>
     </div>
+    <!--Consider making the switch toggle a reusable component since it will be used multiple times later. or remove it entirely with something else lula
+
+    -->
     <div class="settings-section">
       <h2>App Settings</h2>
       <div class="switch-container">
@@ -149,6 +152,11 @@
         </button>
         <span class="switch-label">disable discord presence</span>
       </div>
+    </div>
+    <div class="settings-section">
+      <h2>App Settings</h2>
+      <button class="update-button">Check For Updates</button>
+      <button class="">DownloadUpdate</button>
     </div>
     <div class="settings-section">
       <h2>Reset Settings</h2>

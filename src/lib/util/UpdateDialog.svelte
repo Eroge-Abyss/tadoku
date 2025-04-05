@@ -1,11 +1,31 @@
 <script lang="ts">
   import CloseIcon from '$lib/util/CloseIcon.svelte';
-  import { check } from '@tauri-apps/plugin-updater';
-
-  let { isOpen = $bindable(), updateInfo = { version: '', notes: '' } } =
-    $props();
+  import { check, Update } from '@tauri-apps/plugin-updater';
+  import { onMount } from 'svelte';
 
   let loading = $state(false);
+  let update = $state<Update | null>(null);
+  let isOpen = $state(false);
+
+  onMount(() => {
+    check()
+      .then(async (maybeUpdate) => {
+        if (!maybeUpdate) {
+          return;
+        }
+
+        update = maybeUpdate;
+
+        // AI suggesstion to fix model opening transition
+        // it's because without the timeout, the browser does not have a chance
+        // to render this component in `isOpen = false` state
+        // so using the timeout makes `isOpen = true` in another execution cycle
+        setTimeout(() => {
+          isOpen = true;
+        }, 50);
+      })
+      .catch(console.error);
+  });
 
   // Close the modal
   function closeModal() {
@@ -16,7 +36,6 @@
   async function installNow() {
     loading = true;
     try {
-      const update = await check();
       if (!update) {
         closeModal();
         return;
@@ -32,60 +51,60 @@
     }
   }
 
-  // Handle the "Install Later" button click
   function installLater() {
-    // The update will be auto-installed on next restart
     closeModal();
   }
 </script>
 
-<section class="modal" class:open={isOpen}>
-  <section class="modal__content">
-    <header>
-      <h3>Update Available</h3>
-      <span onclick={closeModal}>
-        <CloseIcon style="font-size: 24px;" />
-      </span>
-    </header>
-    <section class="update-form">
-      <div class="update-info">
-        <h4>Version {updateInfo.version} is available</h4>
+{#if update && update.version}
+  <section class="modal" class:open={isOpen}>
+    <section class="modal__content">
+      <header>
+        <h3>Update Available</h3>
+        <span onclick={closeModal}>
+          <CloseIcon style="font-size: 24px;" />
+        </span>
+      </header>
+      <section class="update-form">
+        <div class="update-info">
+          <h4>Version {update.version} is available</h4>
 
-        {#if updateInfo.notes}
-          <div class="update-notes">
-            <h5>What's new:</h5>
-            <p>{updateInfo.notes}</p>
-          </div>
-        {/if}
-
-        <div class="info-container">
-          <span class="icon-info">
-            <i class="fa-solid fa-info-circle"></i>
-          </span>
-          <p class="note">
-            You can install the update now, or get prompted to install the next
-            time you start the application.
-          </p>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button
-          disabled={loading}
-          class="update-now-button"
-          onclick={installNow}
-        >
-          {#if loading}
-            Installing...
-          {:else}
-            Install Now
+          {#if update.body}
+            <div class="update-notes">
+              <h5>What's new:</h5>
+              <p>{update.body}</p>
+            </div>
           {/if}
-        </button>
-        <button onclick={installLater}>Install Later</button>
-      </div>
+
+          <div class="info-container">
+            <span class="icon-info">
+              <i class="fa-solid fa-info-circle"></i>
+            </span>
+            <p class="note">
+              You can install the update now, or get prompted to install the
+              next time you start the application.
+            </p>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button
+            disabled={loading}
+            class="update-now-button"
+            onclick={installNow}
+          >
+            {#if loading}
+              Installing...
+            {:else}
+              Install Now
+            {/if}
+          </button>
+          <button onclick={installLater}>Install Later</button>
+        </div>
+      </section>
     </section>
   </section>
-</section>
+{/if}
 
 <style>
   .modal {

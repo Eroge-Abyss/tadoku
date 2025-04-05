@@ -63,7 +63,9 @@
   {@render children()}
   <Sidebar />
 
-  <UpdateDialog bind:isOpen={showUpdateDialog} {updateInfo} />
+  {#if !updateInfo || !updateInfo.version}
+    <UpdateDialog bind:isOpen={showUpdateDialog} {updateInfo} />
+  {/if}
 </main>
 
 <style>

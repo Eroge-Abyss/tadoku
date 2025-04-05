@@ -14,7 +14,7 @@
   let isDropdownOpen = $state(false);
   let loading = $state(false);
   let process = $state<Process | null>(null);
-  let searchTerm = $state(''); // Reactive search term
+  let searchTerm = $state('');
 
   async function onConfirm(selectedProcessPath: string) {
     appState.updateGameProcessPath(gameId, selectedProcessPath);
@@ -23,20 +23,17 @@
     searchTerm = '';
   }
 
-  // Close the modal
   function closeModal() {
     isOpen = false;
   }
 
-  // Handle the "OK" button click
   function handleConfirm() {
     if (process) {
-      onConfirm(process.exe_path); // Run the provided function
+      onConfirm(process.exe_path);
     }
-    closeModal(); // Close the modal
+    closeModal(); 
   }
 
-  // Filtered items based on search term
   let filteredItems = $derived(
     processList.filter((item: Process) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -108,7 +105,6 @@
   </section>
 </section>
 
-<!-- Hide dropdown when clicking outside -->
 <svelte:window
   on:click={(e) => {
     if (!e.target?.closest('.dropdown')) {
@@ -133,13 +129,12 @@
     opacity: 0;
     pointer-events: none;
     transition: all 0.2s ease-in-out;
-    /* Start scaled down */
     &.open {
       opacity: 1;
       pointer-events: all;
 
       & .modal__content {
-        transform: translate(0, 0) scale(1); /* Scale up */
+        transform: translate(0, 0) scale(1);
       }
     }
 

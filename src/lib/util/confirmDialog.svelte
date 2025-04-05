@@ -7,17 +7,15 @@
     message = 'Are you sure you want to proceed?',
   } = $props();
 
-  // Close the modal
   function closeModal() {
     isOpen = false;
   }
 
-  // Handle the "OK" button click
   function handleConfirm() {
     if (onConfirm) {
-      onConfirm(); // Run the provided function
+      onConfirm();
     }
-    closeModal(); // Close the modal
+    closeModal();
   }
 </script>
 
@@ -67,7 +65,7 @@
       pointer-events: all;
 
       & .modal__content {
-        transform: translate(0, 0) scale(1); /* Scale up */
+        transform: translate(0, 0) scale(1); 
       }
     }
 

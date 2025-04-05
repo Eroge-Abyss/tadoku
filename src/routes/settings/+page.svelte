@@ -8,7 +8,6 @@
   // @ts-ignore
   const colorSwatches = appState.constructor.colorSwatches;
 
- 
   let selectedTheme = $state(appState.themeSettings.theme);
   let customColor = $state(appState.themeSettings.accentColor);
   let useCustomColor = $state(appState.themeSettings.useCustomColor);
@@ -160,39 +159,66 @@
 <style>
   .container {
     padding: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
   }
+
   .content {
     border-radius: 12px;
     display: flex;
     flex-direction: column;
     width: 100%;
     gap: 2rem;
+    padding: 0 1rem;
   }
 
   .header {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   .header h1 {
     font-size: 2rem;
     font-weight: 600;
     color: var(--main-text);
+    margin-top: 0;
   }
 
   .header p {
     color: var(--secondary-text);
     font-size: 1rem;
+    margin-top: 0;
   }
 
   .settings-section {
     background-color: var(--accent);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1.5rem 2rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .settings-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
   }
 
   .settings-section h2 {
@@ -200,10 +226,11 @@
     font-weight: 500;
     color: var(--main-text);
     margin-bottom: 1rem;
+    margin-top: 0.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 0.5rem;
   }
-  
+
   .theme-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -211,26 +238,48 @@
   }
 
   .theme-item {
-    background-color: #313131;
+    background: rgba(49, 49, 49, 0.5);
     border-radius: 8px;
     padding: 1rem;
     cursor: pointer;
-    transition:
-      transform 0.2s,
-      box-shadow 0.2s;
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    border: 2px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theme-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 80%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+    transition: 0.8s ease;
+  }
+
+  .theme-item:hover::before {
+    left: 100%;
   }
 
   .theme-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    background: rgba(49, 49, 49, 0.6);
   }
 
   .theme-item.active {
     border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
   }
 
   .theme-preview {
@@ -278,6 +327,7 @@
     font-size: 14px;
     color: var(--main-text);
     text-align: center;
+    margin-top: 0.5rem;
   }
   .custom-color-section {
     display: flex;
@@ -295,22 +345,23 @@
     position: relative;
     width: 40px;
     height: 22px;
-    background-color: #444;
+    background-color: rgba(68, 68, 68, 0.6);
     border-radius: 11px;
     padding: 0;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
 
   .switch.active {
-    background-color: var(--primary);
+    background: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   }
 
   .switch-thumb {
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: 1px;
+    left: 1px;
     width: 18px;
     height: 18px;
     background-color: white;
@@ -366,6 +417,23 @@
     cursor: pointer;
     transition: transform 0.2s;
     border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .color-swatch::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      transparent 50%
+    );
+    border-radius: 50%;
   }
 
   .color-swatch:hover {
@@ -396,6 +464,8 @@
     font-weight: 500;
     text-align: center;
     width: fit-content;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
   .reset-button {

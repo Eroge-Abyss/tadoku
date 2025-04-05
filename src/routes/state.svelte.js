@@ -32,7 +32,7 @@ import { invoke } from '@tauri-apps/api/core';
 class AppState {
   /**
    * Theme options
-   * @type {Array<{id: string, name: string, primary: string, accent: string}>}
+   * @type {Array<{id: string, name: string, primary: string, accent: string, background: string}>}
    */
   static themes = [
     {
@@ -67,7 +67,7 @@ class AppState {
       id: 'forest-green',
       name: 'Forest Green',
       primary: '#9ece6a',
-      background: '#1e2030',ه
+      background: '#1e2030',
       accent: '#282e44',
     },
   ];

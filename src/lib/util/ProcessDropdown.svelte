@@ -7,8 +7,8 @@
   import { invoke } from '@tauri-apps/api/core';
 
   let { selected = $bindable() } = $props();
-  let searchTerm = $state(''); // Reactive search term
-  let isOpen = $state(false); // Reactive dropdown state
+  let searchTerm = $state('');
+  let isOpen = $state(false); 
 
   let items = $state();
 
@@ -16,7 +16,6 @@
     appState.loadGames();
     items = await invoke('get_active_windows');
   });
-  // Filtered items based on search term
   let filteredItems = $derived(
     items.filter((item) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -50,8 +49,6 @@
     </div>
   {/if}
 </div>
-
-<!-- Hide dropdown when clicking outside -->
 <svelte:window
   on:click={(e) => {
     if (!e.target?.closest('.dropdown')) {

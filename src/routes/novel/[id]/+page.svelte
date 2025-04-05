@@ -10,18 +10,18 @@
   import { openUrl } from '@tauri-apps/plugin-opener';
   import ProcessDropdown from '$lib/util/ProcessDropdown.svelte';
   import ChangeProcess from '$lib/util/ChangeProcess.svelte';
-  // let characterProgress = $derived(
-  //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
-  // );
-  let exe_path = $state();
+  
+  // Initialize state variables
+  let exe_path = $state("");
   let showModal = $state(false);
   let showProcessSelector = $state(false);
+  let processList = $state([]);
 
   const closeProcessSelector = () => {
     showProcessSelector = false;
   };
 
-  let showImage = $state(false)
+  let showImage = $state(false);
   function toggleImage() {
     showImage = !showImage;
   }
@@ -32,13 +32,16 @@
     processDialog = true;
   };
 
+  // Load novel data
   const novel = $state(appState.loadGame(page.params.id));
   let playing = $state(false);
   let activeMenu = $state(false);
   let deleteDialog = $state(false);
+  
   const openDeleteDialog = () => {
     deleteDialog = true;
   };
+  
   const tabs = $state.raw([
     {
       label: 'Progress Overview',
@@ -48,14 +51,14 @@
     {
       label: 'Characters',
       id: 'chars',
-      visible: novel?.characters,
+      visible: novel?.characters && novel.characters.length > 0,
     },
   ]);
 
   let selectedTab = $state(tabs[0].id);
 
   if (!novel) {
-    throw new Error('FIXME');
+    throw new Error('Novel not found');
   }
 
   $effect(() => {
@@ -66,9 +69,6 @@
     }
   });
 
-  // Should I use derived?
-  // yes
-  // oki uwu
   let hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
   let minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
 
@@ -82,7 +82,6 @@
 
   const togglePin = async () => {
     appState.togglePinned(novel.id);
-
     novel.is_pinned = !novel.is_pinned;
   };
 
@@ -126,11 +125,12 @@
             alt={novel.title}
             class="novel-image blur"
             in:fly={{ y: 50, duration: 500, delay: 300 }}
+            onclick={toggleImage}
           />
         {/if}
         <div class="novel-text">
           <h1>{novel.title}</h1>
-          <p class="description">{novel.description}</p>
+          <p class="description">{novel.description || 'No description available.'}</p>
         </div>
       </div>
       <div class="buttons">
@@ -147,20 +147,10 @@
         <div class="menu" class:active={activeMenu}>
           <i
             onclick={togglePin}
-            class={[
-              'fa-solid',
-              novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
-            ]}
-            title="Toggle pinned"
+            class={novel.is_pinned ? 'fa-solid fa-thumbtack' : 'fa-regular fa-thumbtack'}
+            title={novel.is_pinned ? "Unpin novel" : "Pin novel"}
           ></i>
-          <section class="modal process-selector" class:open={showProcessSelector}>
-            <div class="process-selector-content">
-              <span onclick={closeProcessSelector}>
-                <CloseIcon style="font-size: 24px;" />
-              </span>
-              <ProcessDropdown bind:selected={exe_path} />
-            </div>
-          </section>
+          
           <i
             onclick={editExe}
             class="fa-regular fa-pen-to-square"
@@ -180,17 +170,19 @@
           <i
             onclick={openDeleteDialog}
             class="fa-regular fa-trash-can"
-            style="color:  #f7768e;"
+            style="color: #f7768e;"
             title="Delete game"
           ></i>
         </div>
       </div>
     </div>
+    
     <ConfirmDialog
       bind:isOpen={deleteDialog}
       onConfirm={deleteGame}
-      message={`Are you sure you want to delete <b style="color: red">${novel.title}</b>?`}
+      message={`Are you sure you want to delete <b style="color: #f7768e">${novel.title}</b>?`}
     />
+    
     <ChangeProcess
       bind:isOpen={processDialog}
       gameId={novel.id}
@@ -213,10 +205,10 @@
           <div class="stats-grid">
             <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
               <p class="stat-label">Time Played</p>
-              <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
+              <span class="stat-value">{hoursPlayed}時{minutesPlayed}分</span>
             </div>
           </div>
-        {:else}
+        {:else if selectedTab == 'chars' && novel.characters && novel.characters.length > 0}
           <div class="characters" in:fly={{ y: 20, duration: 300 }}>
             {#each novel.characters as character}
               <div
@@ -229,7 +221,7 @@
                     alt={character.id}
                   />
                 {:else}
-                  <p>No Image</p>
+                  <div class="no-image">No Image</div>
                 {/if}
                 <div class="character-content">
                   <p class="main">{character.og_name}</p>
@@ -241,84 +233,19 @@
           </div>
         {/if}
       </div>
-      <!-- <div
-                    class="stat-item"
-                    in:fly={{ y: 20, duration: 300, delay: 1000 }}
-                >
-                    <span class="stat-label">Characters Read</span>
-                    <span class="stat-value"
-                        >{novel.progress.charactersRead.toLocaleString()}</span
-                    >
-                </div>
-                <div
-                    class="stat-item"
-                    in:fly={{ y: 20, duration: 300, delay: 1100 }}
-                >
-                    <span class="stat-label">Characters Remaining</span>
-                    <span class="stat-value"
-                        >{(
-                            novel.progress.totalCharacters -
-                            novel.progress.charactersRead
-                        ).toLocaleString()}</span
-                    >
-                </div> -->
-
-      <!--div class="progress-bars">
-                <div
-                    class="progress-item"
-                    in:fly={{ x: -20, duration: 300, delay: 1200 }}
-                >
-                    <div class="progress-label">
-                        <span>Overall Progress</span>
-                        <span>{novel.progress.completion}%</span>
-                    </div>
-                    <ProgressBar progress={novel.progress.completion} />
-                </div>
-
-                <div
-                    class="progress-item"
-                    in:fly={{ x: -20, duration: 300, delay: 1300 }}
-                >
-                    <div class="progress-label">
-                        <span>Characters</span>
-                        <span>{Math.round(characterProgress)}%</span>
-                    </div>
-                    <ProgressBar
-                        progress={characterProgress}
-                        color="var(--primary-dark)"
-                    />
-                </div>
-            </div-->
     </div>
   </div>
 </div>
 
 <style>
-  /* TODO: FIX old CSS vars */
-
-  /* .back-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--primary);
-        text-decoration: none;
-        margin-bottom: 2rem;
-        font-size: 1rem;
-        font-weight: 500;
-        transition: color 0.2s;
-    }
-
-    .back-button:hover {
-        color: var(--primary-dark);
-    } */
-
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
+    cursor: pointer;
   }
 
   .blur:hover {
-    filter: blur(0);
+    filter: blur(3px);
   }
 
   .container {
@@ -337,21 +264,21 @@
     flex-direction: column;
     padding: 2rem;
     gap: 1rem;
-    /*background: linear-gradient(
-            to bottom,
-            rgba(0, 0, 0, 0.7) 0%,
-            rgba(0, 0, 0, 0) 100%
-        );*/
+    background-color: var(--accent);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1rem;
   }
 
   .novel-info {
     display: flex;
-    align-items: center;
-    gap: 1rem;
+    align-items: flex-start;
+    gap: 2rem;
   }
 
   .novel-text {
     height: 100%;
+    flex: 1;
   }
 
   .novel-image {
@@ -360,381 +287,373 @@
     object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
   }
+  
+  .novel-image:hover {
+    transform: scale(1.05);
+  }
+  
   h1 {
-    color: var(--foreground);
-    margin: 0 0 0.5rem 0;
+    color: var(--main-text);
+    margin: 0 0 1rem 0;
     font-size: 2.5rem;
     font-weight: 700;
+    transition: color 0.3s ease;
   }
 
   .description {
-    flex: 1;
-    color: var(--main-text);
+    color: var(--secondary-text);
     font-size: 14px;
-    font-weight: 600;
-    line-height: 1.5;
-    overflow-x: hidden;
-    overflow-y: scroll;
+    line-height: 1.6;
     max-height: 200px;
+    overflow-y: auto;
+    padding-right: 10px;
+    transition: color 0.3s ease;
   }
 
-  .buttons,
-  .buttons .menu {
+  .description::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .description::-webkit-scrollbar-thumb {
+    background: var(--main-mauve);
+    border-radius: 2px;
+  }
+
+  .buttons {
     display: flex;
     gap: 1rem;
     align-items: center;
     margin-top: 1rem;
+  }
+  
+  .buttons .menu {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 0;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .buttons .menu i {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, color 0.2s ease;
+  }
+  
+  .buttons .menu i:hover {
+    color: var(--main-text);
+  }
+  
+  .buttons .menu.active {
+    transform: translateX(0);
+    z-index: 1;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .buttons .menu.active i {
+    opacity: 1;
+    transform: translateY(0);
+    cursor: pointer;
+  }
+  
+  .buttons .menu.active i:nth-child(1) {
+    transition-delay: 0.1s;
+  }
+  
+  .buttons .menu.active i:nth-child(2) {
+    transition-delay: 0.2s;
+  }
+  
+  .buttons .menu.active i:nth-child(3) {
+    transition-delay: 0.3s;
+  }
+  
+  .buttons .menu.active i:nth-child(4) {
+    transition-delay: 0.4s;
+  }
+  
+  .buttons .menu.active i:nth-child(5) {
+    transition-delay: 0.5s;
+  }
+  
+  .buttons i {
+    color: var(--secondary-text);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+  }
+  
+  .buttons i.active {
+    color: var(--main-text);
+    transform: rotate(90deg);
+  }
 
-    & .menu {
-      margin-top: 0;
-      opacity: 0;
-      transform: translateX(-20px);
-      transition:
-        opacity 0.3s ease,
-        transform 0.3s ease;
-      pointer-events: none;
-      & i {
-        opacity: 0;
-        transform: translateY(-10px);
-        transition:
-          opacity 0.3s ease,
-          transform 0.3s ease;
-        &:hover {
-          color: var(--text-main);
-        }
-      }
-      &.active {
-        transform: translateX(0);
-        z-index: 0;
-        opacity: 1;
-        & i {
-          opacity: 1;
-          transform: translateY(0);
-          pointer-events: auto;
-          &:nth-child(1) {
-            transition-delay: 0.1s;
-          }
-          &:nth-child(2) {
-            transition-delay: 0.2s;
-          }
-          &:nth-child(3) {
-            transition-delay: 0.3s;
-          }
-          &:nth-child(4) {
-            transition-delay: 0.4s;
-          }
-          &:nth-child(5) {
-            transition-delay: 0.5s;
-          }
-        }
-      }
-    }
-    i {
-      color: #464545;
-      transition: all 0.2s ease-in-out;
-      cursor: pointer;
-      &.active {
-        color: var(--main-text);
-        transform: rotate(90deg);
-      }
-    }
+  .buttons button {
+    border: 0;
+    background-color: var(--accent);
+    color: var(--main-text);
+    width: 200px;
+    padding: 0.75rem;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .buttons button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .buttons button:first-child {
+    background: #9ece6a;
+    color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .buttons button:first-child:hover {
+    background: #8abb5b;
+  }
 
-    & button {
-      border: 0;
-      background-color: #313131;
-      color: var(--main-text);
-      width: 200px;
-      padding: 0.5rem;
-      font-size: 18px;
-      cursor: pointer;
-      &:first-child {
-        background: #9ece6a;
-
-        &.playing {
-          background: var(--main-mauve);
-        }
-      }
-    }
+  .buttons button.playing {
+    background: var(--main-mauve);
+    color: white;
+  }
+  
+  .buttons button.playing:hover {
+    background: rgba(var(--main-mauve-rgb, 187, 154, 247), 0.8);
   }
 
   .tabs {
-    padding: 2rem;
+    padding: 1rem 2rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+  }
 
-    & .tab {
-      display: flex;
-      gap: 1.5rem;
-      justify-content: flex-start;
-      align-items: center;
-      & button {
-        background: var(--main-background);
-        color: var(--main-text);
-        border: 0;
-        padding: 1rem;
-        font-size: 1.5rem;
+  .tab {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: flex-start;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .tab button {
+    background: transparent;
+    color: var(--secondary-text);
+    border: 0;
+    padding: 1rem;
+    font-size: 1.1rem;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  
+  .tab button:hover {
+    color: var(--main-text);
+  }
+  
+  .tab button:hover::after, 
+  .tab button.active::after {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  
+  .tab button::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: block;
+    height: 3px;
+    width: 100%;
+    background-color: var(--main-mauve);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+    border-radius: 2px;
+  }
+  
+  .tab button.active {
+    color: var(--main-text);
+  }
 
-        text-align: center;
-        position: relative;
-        cursor: pointer;
-
-        &:hover::after,
-        &.active::after {
-          transform: scaleX(1);
-          opacity: 1;
-        }
-
-        &:after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          display: block;
-          height: 5px;
-          width: 100%;
-          background-color: var(--main-mauve);
-          transform: scaleX(0);
-          transform-origin: left;
-          transition:
-            transform 0.3s ease,
-            opacity 0.3s ease;
-          opacity: 0;
-          border-radius: 2px;
-        }
-      }
-    }
+  .tab-content {
+    padding: 1rem;
   }
 
   .characters {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 1rem;
-    grid-auto-rows: 1fr;
-    padding: 1rem;
-    & .character-card {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-      transition:
-        box-shadow 0.3s ease,
-        transform 0.3s ease;
-      background: var(--accent);
-      border-radius: 8px;
-      & .character-content {
-        padding: 1rem;
-        text-align: justify;
-        & p.main {
-          color: var(--main-text);
-        }
-
-        & p.sub {
-          color: var(--secondary-text);
-          font-size: 14px;
-        }
-      }
-      & img {
-        height: 100px;
-        width: 100px;
-        object-fit: cover;
-        border-radius: 8px 0 0 8px;
-      }
-
-      & > p {
-        width: 100px;
-        text-align: center;
-      }
-
-      & i {
-        margin-left: auto;
-        padding: 1.5rem;
-        color: var(--secondary-text);
-      }
-
-      &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
-        & i {
-          color: var(--main-text);
-        }
-      }
-    }
+    padding: 1rem 0;
+  }
+  
+  .character-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    background: var(--accent);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .character-card:hover i {
+    color: var(--main-mauve);
   }
 
-  h2 {
-    color: var(--foreground);
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
+  .character-content {
+    flex: 1;
+    padding: 1rem;
+  }
+  
+  .character-content p.main {
+    color: var(--main-text);
     font-weight: 600;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .character-content p.sub {
+    color: var(--secondary-text);
+    font-size: 14px;
+    margin: 0;
+  }
+  
+  .character-card img {
+    height: 80px;
+    width: 80px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  
+  .no-image {
+    height: 80px;
+    width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--secondary-text);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .character-card i {
+    margin-left: auto;
+    padding: 1.5rem;
+    color: var(--secondary-text);
+    transition: color 0.3s ease;
   }
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 2rem;
+    padding: 1rem 0;
   }
 
   .stat-item {
     background-color: var(--accent);
-    padding: 1rem;
+    padding: 1.5rem;
     border-radius: 8px;
-    /* transition:
-            transform 0.2s,
-            box-shadow 0.2s; */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .stat-item:hover {
-    /* transform: translateY(-5px); */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
   }
 
   .stat-label {
-    color: var(--foreground);
+    color: var(--secondary-text);
     font-size: 0.875rem;
-    margin-bottom: 0.25rem;
-    opacity: 0.7;
+    margin-bottom: 0.5rem;
   }
 
   .stat-value {
-    color: var(--foreground);
-    font-size: 1.25rem;
+    color: var(--main-text);
+    font-size: 1.5rem;
     font-weight: 600;
   }
 
-  .progress-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .progress-item {
-    background-color: var(--accent);
-    padding: 1rem;
-    border-radius: 8px;
-  }
-
-  .progress-label {
-    display: flex;
-    justify-content: space-between;
-    color: var(--foreground);
-    font-size: 0.875rem;
-    margin-bottom: 0.5rem;
-    opacity: 0.7;
-  }
   .process-selector {
-    & .process-selector-content {
-      position: relative;
-      height: 100%;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      & span {
-        position: absolute;
-        top: 0;
-        right: 0;
-        margin: 2rem;
-        color: var(--secondary-text);
-        cursor: pointer;
-        transition: color 0.2s ease-in-out;
-        &:hover {
-          color: var(--main-text);
-        }
-      }
-    }
-  }
-
-  .modal {
     position: fixed;
     height: 100%;
     width: 100%;
-    z-index: 2;
+    z-index: 100;
     top: 0;
     left: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.2s ease-in-out;
-    &.process-selector {
-      z-index: 3;
-    }
-    /* Start scaled down */
-    &.open {
-      opacity: 1;
-      pointer-events: all;
+    transition: opacity 0.3s ease;
+  }
+  
+  .process-selector.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  
+  .process-selector-content {
+    background-color: var(--main-background);
+    border-radius: 8px;
+    padding: 2rem;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+  }
+  
+  .process-selector-content span {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    cursor: pointer;
+    color: var(--secondary-text);
+    transition: color 0.2s ease;
+  }
+  
+  .process-selector-content span:hover {
+    color: var(--main-text);
+  }
 
-      & .modal__content {
-        transform: translate(0, 0) scale(1); /* Scale up */
-      }
-    }
-
-    & .modal__content {
-      background-color: var(--main-background);
-      padding: 1rem;
-      width: 500px;
-      display: flex;
+  @media (max-width: 768px) {
+    .novel-info {
       flex-direction: column;
-      transform: translate(0, 100%) scale(0.8);
-      transition: all 0.2s ease-in-out;
-      & header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--main-text);
-        span {
-          color: #444;
-          cursor: pointer;
-          transition: color 0.2s ease-in-out;
-          &:hover {
-            color: var(--main-text);
-          }
-        }
-      }
-
-      & .game-form {
-        margin: 1rem;
-        & .form-group {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1rem;
-          & input {
-            background-color: #313131;
-            border: 0;
-            padding: 0.5rem;
-            color: var(--main-text);
-            max-width: 400px;
-          }
-
-          &.characters {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            & > * {
-              cursor: pointer;
-            }
-          }
-        }
-
-        & button {
-          border: 0;
-          background-color: #313131;
-          color: #fff;
-          width: 100%;
-          padding: 0.5rem;
-          font-size: 18px;
-          margin-top: 1rem;
-          cursor: pointer;
-        }
-      }
+      align-items: center;
+    }
+    
+    .novel-text {
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+    }
+    
+    .characters {
+      grid-template-columns: 1fr;
     }
   }
 </style>

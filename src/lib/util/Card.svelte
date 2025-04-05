@@ -56,44 +56,74 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     max-width: 250px;
     cursor: pointer;
+    position: relative;
+    will-change: transform, box-shadow;
   }
 
   .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
-    & .card-content h3 {
-      color: var(--main-text);
-    }
+  }
+
+  .card:hover .card-content h3 {
+    color: var(--main-text);
+  }
+
+  /* Card glossy overlay effect */
+  .card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 40%,
+      rgba(255, 255, 255, 0) 60%
+    );
+    transform: rotate(30deg);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .card:hover::before {
+    opacity: 1;
   }
 
   .card-image {
     position: relative;
     overflow: hidden;
   }
-
   .card-image::after {
     content: "";
     position: absolute;
-    top: 0;
+    top: -50%;
     left: -100%;
-    width: 200%;
-    height: 100%;
+    width: 120%;
+    height: 200%;
     background: linear-gradient(
-      90deg, 
-      transparent 0%, 
-      rgba(255, 255, 255, 0) 20%, 
-      rgba(255, 255, 255, 0.3) 50%, 
-      rgba(255, 255, 255, 0) 80%, 
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0) 10%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 90%,
       transparent 100%
     );
-    transform: skewX(-25deg);
+    transform: rotate(25deg);
     opacity: 0;
-    transition: left 0.6s ease-out;
+    transition: left 0.8s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.6s ease;
+    will-change: left, opacity;
+    z-index: 2;
+    pointer-events: none;
   }
 
-  .card-image:hover::after {
+  .card:hover .card-image::after {
     left: 100%;
-    opacity: 0.8;
+    opacity: 1;
   }
 
   .card-image img {
@@ -101,6 +131,7 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease-out;
+    will-change: transform;
   }
 
   .card:hover .card-image img {
@@ -110,6 +141,8 @@
   .card-content {
     padding: 1rem;
     transition: background-color 0.3s ease;
+    position: relative;
+    z-index: 1;
   }
 
   .card-content h3 {
@@ -119,43 +152,23 @@
     font-weight: 400;
     transition: color 0.2s ease-in-out;
     display: -webkit-box;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.5; 
-    min-height: calc(
-      1.5em * 2
-    ); 
+    min-height: calc(1.5em * 2); 
   }
-/*
+
   .progress-info {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    & .time {
-      color: var(--main-mauve);
-      font-weight: bold;
-      transition: color 0.3s ease;
-    }
   }
 
-  /* .progress-bar {
-        width: 100%;
-        height: 6px;
-        background-color: var(--accent);
-        border-radius: 3px;
-        overflow: hidden;
-    }
-
-    .progress {
-        height: 100%;
-        background-color: var(--main-background);
-        transition: width 0.3s ease;
-    }
-
-    .progress-text {
-        color: var(--main-text);
-        font-size: 0.875rem;
-        font-weight: 500;
-    } */
+  .progress-info .time {
+    color: var(--main-mauve);
+    font-weight: bold;
+    transition: color 0.3s ease;
+  }
 </style>

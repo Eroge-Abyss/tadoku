@@ -15,7 +15,7 @@
 
   let { children } = $props();
   let showUpdateDialog = $state(false);
-  let updateInfo = $state({ version: '', notes: '' });
+  let updateInfo = $state(null);
 
   const appWindow = getCurrentWindow();
 
@@ -30,7 +30,6 @@
         // Update the info and show dialog
         updateInfo = {
           version: update.version,
-          // @ts-ignore
           notes: update.body,
         };
         showUpdateDialog = true;
@@ -63,7 +62,7 @@
   {@render children()}
   <Sidebar />
 
-  {#if !updateInfo || !updateInfo.version}
+  {#if updateInfo}
     <UpdateDialog bind:isOpen={showUpdateDialog} {updateInfo} />
   {/if}
 </main>

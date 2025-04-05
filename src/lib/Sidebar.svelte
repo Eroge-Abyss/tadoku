@@ -86,4 +86,10 @@
       }
     }
   }
+  #sidebar__footer {
+    margin-top: auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
 </style>

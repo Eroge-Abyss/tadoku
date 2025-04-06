@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error, fs, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, error::Error, fs, path::PathBuf, sync::Arc, time};
 
 use crate::util;
 use serde::{Deserialize, Serialize};
@@ -19,6 +19,7 @@ pub struct Game {
     pub process_file_path: String,
     /// Play time in seconds
     pub playtime: u32,
+    pub last_played: Option<u64>,
     pub is_pinned: bool,
     pub is_nsfw: bool,
     pub icon_url: Option<String>,
@@ -48,6 +49,7 @@ impl Default for Game {
             exe_file_path: String::new(),
             process_file_path: String::new(),
             playtime: 0,
+            last_played: None,
             is_pinned: false,
             is_nsfw: false,
             icon_url: None,
@@ -205,6 +207,22 @@ impl GamesStore {
         let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
 
         game["characters"] = serde_json::json!(characters);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
+
+    pub fn update_last_played(&self, game_id: &str) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let start = time::SystemTime::now();
+        let since_the_epoch = start
+            .duration_since(time::UNIX_EPOCH)
+            .expect("Time went backwards");
+
+        dbg!(&since_the_epoch);
+
+        game["last_played"] = since_the_epoch.as_secs().into();
         self.store.set("gamesData", games_data);
 
         Ok(())

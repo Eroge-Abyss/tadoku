@@ -67,6 +67,9 @@
   // oki uwu
   let hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
   let minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
+  let lastPlayedDate = $derived(
+    novel.last_played ? new Date(novel.last_played * 1000) : null,
+  );
 
   const startGame = async () => {
     appState.startGame(novel.id);
@@ -103,6 +106,54 @@
     appState.deleteGame(novel.id);
     goto('/');
   };
+
+  /**
+   * @param {Date} date
+   */
+  function formatRelativeDate(date) {
+    const now = new Date();
+
+    // Get dates without time for comparison
+    const dateDay = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+    );
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Format time portion consistently
+    const timeFormat = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    const time = timeFormat.format(date);
+
+    // Check if the date is today, yesterday, or older
+    if (dateDay.getTime() === today.getTime()) {
+      return `Today at ${time}`;
+    } else if (dateDay.getTime() === yesterday.getTime()) {
+      return `Yesterday at ${time}`;
+    } else if (now.getTime() - date.getTime() < 7 * 24 * 60 * 60 * 1000) {
+      // Within the last week, show day name
+      const dayName = new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+      }).format(date);
+      return `${dayName} at ${time}`;
+    } else {
+      // Older than a week, show full date
+      const dateFormat = new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }).format(date);
+
+      return `${dateFormat} at ${time}`;
+    }
+  }
 </script>
 
 <div class="container">
@@ -207,6 +258,16 @@
             <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
               <p class="stat-label">Time Played</p>
               <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
+            </div>
+            <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
+              <p class="stat-label">Last Played</p>
+              <span class="stat-value">
+                {#if lastPlayedDate}
+                  {formatRelativeDate(lastPlayedDate)}
+                {:else}
+                  Never Played
+                {/if}
+              </span>
             </div>
           </div>
         {:else}

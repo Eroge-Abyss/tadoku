@@ -171,10 +171,8 @@ pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
         let pid = Pid::from_u32(game.pid);
         if let Some(process) = system.process(pid) {
             // Means the kill signal is successfully sent, doesn't mean the app has closed
-            if let Some(r) = process.kill_with(sysinfo::Signal::Term) {
-                if r {
-                    process.wait();
-                }
+            if process.kill() {
+                process.wait();
             }
         }
     }

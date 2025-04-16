@@ -39,6 +39,7 @@ pub fn run() {
             commands::storage::set_categories,
             commands::storage::get_theme_settings,
             commands::storage::set_theme_settings,
+            commands::storage::set_characters,
             commands::opener::open_game,
             commands::opener::close_game,
             commands::opener::get_active_windows

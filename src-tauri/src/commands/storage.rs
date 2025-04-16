@@ -28,14 +28,14 @@ pub async fn save_game(
     mut game: Game,
     options: Options,
 ) -> Result<(), String> {
-    let path = util::save_image(&app_handle, &game.image_url)
+    let _path = util::save_image(&app_handle, &game.image_url)
         .await
         .map_err(|_| "Error happened while saving image")?;
 
     #[cfg(windows)]
     {
         let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
-        let icon_path = format!("{}.icon.png", path);
+        let icon_path = format!("{}.icon.png", _path);
         icon.save(&icon_path)
             .map_err(|_| "Error happened while saving image")?;
 
@@ -114,7 +114,7 @@ pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> Result<(), String> 
 
     store
         .toggle_pin(&game_id)
-        .map_err(|_| "Error happened while deleting game")?;
+        .map_err(|_| "Error happened while toggling pin")?;
 
     Ok(())
 }
@@ -212,6 +212,39 @@ pub fn set_theme_settings(
     store
         .set_theme_settings(theme_settings)
         .map_err(|_| "Error happened while setting theme settings")?;
+
+    Ok(())
+}
+
+/// Sets the characters of an already saved game
+#[tauri::command]
+pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+    let chars = Vndb::get_vn_characters(&game_id).await?;
+    let mut characters: Vec<Character> = Vec::new();
+
+    for char in chars {
+        let path = match char.image {
+            Some(p) => Some(
+                util::save_image(&app_handle, &p.url)
+                    .await
+                    .map_err(|_| "Error happened while saving image")?,
+            ),
+            None => None,
+        };
+
+        characters.push(Character {
+            id: char.id,
+            en_name: char.name,
+            og_name: char.original,
+            image_url: path,
+        });
+    }
+
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_characters(&game_id, characters)
+        .map_err(|_| "Error happened while saving characters")?;
 
     Ok(())
 }

@@ -4,7 +4,8 @@ use windows_icons;
 
 use crate::{
     services::{
-        store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
+        games_store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
+        settings_store::{SettingsStore, ThemeSettings},
         vndb::Vndb,
     },
     util::{self},
@@ -184,6 +185,33 @@ pub fn set_game_categories(
     store
         .set_categories(&game_id, categories)
         .map_err(|_| "Error happened while setting categories")?;
+
+    Ok(())
+}
+
+/// Gets theme settings from storage
+#[tauri::command]
+pub fn get_theme_settings(app_handle: AppHandle) -> Result<ThemeSettings, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_theme_settings()
+        .map_err(|_| "Couldn't get theme settings")?)
+}
+
+/// Saves theme settings to storage
+#[tauri::command]
+pub fn set_theme_settings(
+    app_handle: AppHandle,
+    theme_settings: ThemeSettings,
+) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_theme_settings(theme_settings)
+        .map_err(|_| "Error happened while setting theme settings")?;
 
     Ok(())
 }

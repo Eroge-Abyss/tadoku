@@ -11,7 +11,7 @@ pub struct AppState {
     pub presence: Option<DiscordPresence>,
 }
 
-use crate::services::{discord::DiscordPresence, store::Game};
+use crate::services::{discord::DiscordPresence, games_store::Game};
 use std::{error::Error, fs, sync::Mutex};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;

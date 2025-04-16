@@ -24,6 +24,21 @@ impl Default for ThemeSettings {
     }
 }
 
+// #[derive(Serialize, Deserialize)]
+// struct Settings {
+//     theme_settings: ThemeSettings,
+//     disable_presence_on_nsfw: bool,
+// }
+
+// impl Default for Settings {
+//     fn default() -> Self {
+//         Self {
+//             disable_presence_on_nsfw: true,
+//             ..Default::default()
+//         }
+//     }
+// }
+
 pub struct SettingsStore {
     store: Store,
 }
@@ -47,5 +62,28 @@ impl SettingsStore {
             .set("theme_settings", serde_json::json!(theme_settings));
 
         Ok(())
+    }
+
+    pub fn toggle_presence_on_nsfw(&self) -> Result<()> {
+        let old: bool = serde_json::from_value(
+            self.store
+                .get("disable_presence_on_nsfw")
+                .unwrap_or(json!(true)),
+        )?;
+
+        self.store.set("disable_presence_on_nsfw", !old);
+
+        Ok(())
+    }
+
+    // TODO: Refactor
+    pub fn get_presence_on_nsfw(&self) -> Result<bool> {
+        let v: bool = serde_json::from_value(
+            self.store
+                .get("disable_presence_on_nsfw")
+                .unwrap_or(json!(true)),
+        )?;
+
+        Ok(v)
     }
 }

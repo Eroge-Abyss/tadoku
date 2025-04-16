@@ -6,12 +6,18 @@ pub struct GameState {
 }
 
 #[derive(Default)]
+pub struct Config {
+    pub disable_presence_on_nsfw: bool,
+}
+
+#[derive(Default)]
 pub struct AppState {
     pub game: Option<GameState>,
     pub presence: Option<DiscordPresence>,
+    pub config: Config,
 }
 
-use crate::services::{discord::DiscordPresence, games_store::Game};
+use crate::services::{discord::DiscordPresence, games_store::Game, settings_store::SettingsStore};
 use std::{error::Error, fs, sync::Mutex};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
@@ -97,11 +103,19 @@ pub fn create_images_folder(app_handle: &AppHandle) -> Result<()> {
 }
 
 /// Initializes app state
-pub fn initialize_state(app_handle: &AppHandle) {
+pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
+    let settings_store = SettingsStore::new(&app_handle)?;
+    let config = Config {
+        disable_presence_on_nsfw: settings_store.get_presence_on_nsfw()?,
+    };
+
     let state = AppState {
         presence: DiscordPresence::new().ok(),
+        config,
         ..Default::default()
     };
 
     app_handle.manage(Mutex::new(state));
+
+    Ok(())
 }

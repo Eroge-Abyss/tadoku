@@ -12,14 +12,16 @@ pub struct DiscordGameDetails {
     pub id: String,
     pub title: String,
     pub image_url: String,
+    pub nsfw_mode: bool,
 }
 
 impl DiscordGameDetails {
-    pub fn new(id: String, title: String, image_url: String) -> Self {
+    pub fn new(id: String, title: String, image_url: String, nsfw_mode: bool) -> Self {
         Self {
             id,
             title,
             image_url,
+            nsfw_mode,
         }
     }
 }
@@ -49,18 +51,26 @@ impl DiscordPresence {
             .duration_since(time::UNIX_EPOCH)
             .expect("Time went backwards");
         let unix_timestamp = since_the_epoch.as_secs();
+        let assets = if details.nsfw_mode {
+            Assets::new().large_image("app_icon").large_text("Tadoku")
+        } else {
+            Assets::new()
+                .large_image(&details.image_url)
+                .large_text(&details.title)
+        };
+        let buttons = if details.nsfw_mode {
+            vec![]
+        } else {
+            vec![Button::new("Game Details", &url)]
+        };
 
         self.client.set_activity(
             Activity::new()
                 .state(&details.title)
                 .details("Playing")
-                .assets(
-                    Assets::new()
-                        .large_image(&details.image_url)
-                        .large_text(&details.title),
-                )
+                .assets(assets)
                 .timestamps(Timestamps::new().start(unix_timestamp as i64))
-                .buttons(vec![Button::new("Game Details", &url)]),
+                .buttons(buttons),
         )
     }
 

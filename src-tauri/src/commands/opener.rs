@@ -1,5 +1,5 @@
 use crate::{
-    services::{discord::DiscordGameDetails, playtime, store::GamesStore},
+    services::{discord::DiscordGameDetails, games_store::GamesStore, playtime},
     util, AppState, GameState,
 };
 use serde::Serialize;
@@ -101,15 +101,14 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 ..Default::default()
             });
 
+            let disable_presence_on_nsfw = state.config.disable_presence_on_nsfw;
+
             if let Some(pres) = &mut state.presence {
                 pres.set(DiscordGameDetails::new(
                     game_id.clone(),
                     game.title,
-                    if game.is_nsfw {
-                        "app_icon".into()
-                    } else {
-                        game.image_url
-                    },
+                    game.image_url,
+                    game.is_nsfw && disable_presence_on_nsfw,
                 ))
                 .map_err(|_| "Error setting presence".to_string())?;
             }

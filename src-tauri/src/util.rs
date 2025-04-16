@@ -4,7 +4,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest;
 use url::Url;
 
-use crate::{scripts, services::store::GamesStore};
+use crate::{scripts, services::games_store::GamesStore};
 
 /// Extracts an image filename from an image URL
 pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {

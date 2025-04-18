@@ -4,12 +4,12 @@
   import { onMount } from 'svelte';
   import { appState } from './state.svelte';
   import { invoke } from '@tauri-apps/api/core';
-  let playtime = 0;
+  // let playtime = 0;
 
-  listen('playtime', (e) => {
-    playtime = e.payload;
-    console.log({ playtime });
-  });
+  // listen('playtime', (e) => {
+  //   playtime = e.payload;
+  //   console.log({ playtime });
+  // });
 
   let games = null;
 

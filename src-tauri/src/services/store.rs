@@ -220,8 +220,6 @@ impl GamesStore {
             .duration_since(time::UNIX_EPOCH)
             .expect("Time went backwards");
 
-        dbg!(&since_the_epoch);
-
         game["last_played"] = since_the_epoch.as_secs().into();
         self.store.set("gamesData", games_data);
 

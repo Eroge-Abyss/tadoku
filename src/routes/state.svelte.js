@@ -35,12 +35,20 @@ class AppState {
   }
 
   /**
-   * Loads the list of games from the backend.
+   * Loads the list of games from the backend and sorts them.
    * @returns {Promise<void>}
    */
   async loadGames() {
-    this.#gamesList = await invoke('load_games');
+    await this.refreshGamesList();
     this.sortGames();
+  }
+
+  /**
+   * Loads the games list from the backend.
+   * @returns {Promise<void>}
+   */
+  async refreshGamesList() {
+    this.#gamesList = await invoke('load_games');
   }
 
   /**
@@ -57,7 +65,7 @@ class AppState {
       options,
     });
 
-    await this.loadGames();
+    await this.refreshGamesList();
   }
 
   /**
@@ -80,7 +88,7 @@ class AppState {
   async deleteGame(gameId) {
     await invoke('delete_game', { gameId });
 
-    await this.loadGames();
+    await this.refreshGamesList();
   }
 
   /**
@@ -91,7 +99,7 @@ class AppState {
   async togglePinned(gameId) {
     await invoke('toggle_pin', { gameId });
 
-    await this.loadGames();
+    await this.refreshGamesList();
   }
 
   /**
@@ -103,7 +111,7 @@ class AppState {
   async updateExePath(gameId, newExePath) {
     await invoke('update_exe', { gameId, newExePath });
 
-    await this.loadGames();
+    await this.refreshGamesList();
   }
 
   /**
@@ -115,7 +123,7 @@ class AppState {
   async setGameCategories(gameId, categories) {
     await invoke('set_game_categories', { gameId, categories });
 
-    await this.loadGames();
+    await this.refreshGamesList();
   }
 
   /**
@@ -130,7 +138,7 @@ class AppState {
       newProcessPath: newProcessPath,
     });
 
-    await this.loadGames();
+    await this.refreshGamesList();
   }
 
   /**

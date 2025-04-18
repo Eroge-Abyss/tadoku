@@ -4,18 +4,16 @@
   import { onMount } from 'svelte';
   import { appState } from './state.svelte';
   import { invoke } from '@tauri-apps/api/core';
-  let playtime = $state(0);
 
-  listen('playtime', (e) => {
-    playtime = e.payload;
-    console.log({ playtime });
-  });
+  // let playtime = 0;
 
-  let games = null;
+  // listen('playtime', (e) => {
+  //   playtime = e.payload;
+  //   console.log({ playtime });
+  // });
 
   onMount(async () => {
     appState.loadGames();
-    games = await invoke('get_active_windows');
   });
 </script>
 

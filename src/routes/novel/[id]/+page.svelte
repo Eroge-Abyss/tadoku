@@ -5,37 +5,29 @@
   import { appState } from '../../state.svelte';
   import { page } from '$app/state';
   import { open } from '@tauri-apps/plugin-dialog';
-  import { listen } from '@tauri-apps/api/event';
   import ConfirmDialog from '$lib/util/confirmDialog.svelte';
-  import Card from '$lib/util/Card.svelte';
   import { openUrl } from '@tauri-apps/plugin-opener';
   import ChangeProcess from '$lib/util/ChangeProcess.svelte';
 
-  // let characterProgress = $derived(
-  //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
-  // );
+  const novel = $derived(appState.loadGame(page.params.id));
 
-  let processList = $state();
-
-  let showImage = $state(false);
-  function toggleImage() {
-    showImage = !showImage;
+  if (!novel) {
+    throw goto('/');
   }
 
-  let processDialog = $state(false);
-  const openProcessDialog = async () => {
-    processList = await invoke('get_active_windows');
-    processDialog = true;
-  };
+  // Should I use derived?
+  // yes
+  // oki uwu
+  const hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
+  const minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
+  const lastPlayedDate = $derived(
+    novel.last_played ? new Date(novel.last_played * 1000) : null,
+  );
 
-  const novel = $state(appState.loadGame(page.params.id));
   let playing = $state(false);
   let activeMenu = $state(false);
-  let deleteDialog = $state(false);
-  const openDeleteDialog = () => {
-    deleteDialog = true;
-  };
-  const tabs = $state.raw([
+
+  const TABS = $state.raw([
     {
       label: 'Progress Overview',
       id: 'progress',
@@ -48,63 +40,62 @@
     },
   ]);
 
-  let selectedTab = $state(tabs[0].id);
+  let processList = $state();
+  let processDialog = $state(false);
+  const openProcessDialog = async () => {
+    processList = await invoke('get_active_windows');
+    processDialog = true;
+  };
 
-  if (!novel) {
-    throw new Error('FIXME');
-  }
+  let deleteDialog = $state(false);
+  const openDeleteDialog = () => {
+    deleteDialog = true;
+  };
+
+  let selectedTab = $state(TABS[0].id);
 
   $effect(() => {
-    if (appState.currentGame && appState.currentGame.id == novel.id) {
+    if (appState.currentGame && appState.currentGame.id === novel.id) {
       playing = true;
     } else {
       playing = false;
     }
   });
 
-  // Should I use derived?
-  // yes
-  // oki uwu
-  let hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
-  let minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
-  let lastPlayedDate = $derived(
-    novel.last_played ? new Date(novel.last_played * 1000) : null,
-  );
+  const gameActions = {
+    startGame: async () => {
+      appState.startGame(novel.id);
+    },
 
-  const startGame = async () => {
-    appState.startGame(novel.id);
-  };
+    stopGame: async () => {
+      appState.closeGame();
+    },
 
-  const stopGame = async () => {
-    appState.closeGame();
-  };
+    togglePin: async () => {
+      appState.togglePinned(novel.id);
+    },
 
-  const togglePin = async () => {
-    appState.togglePinned(novel.id);
+    editExe: async () => {
+      const newPath = await open({
+        multiple: false,
+        directory: false,
+        filters: [
+          {
+            name: 'Game exe or shortcut path',
+            extensions: ['exe', 'lnk', 'bat'],
+          },
+        ],
+      });
 
-    novel.is_pinned = !novel.is_pinned;
-  };
+      if (newPath) {
+        await appState.updateExePath(novel.id, newPath);
+      }
+    },
 
-  const editExe = async () => {
-    const newPath = await open({
-      multiple: false,
-      directory: false,
-      filters: [
-        {
-          name: 'Game exe or shortcut path',
-          extensions: ['exe', 'lnk', 'bat'],
-        },
-      ],
-    });
-
-    if (newPath) {
-      await appState.updateExePath(novel.id, newPath);
-    }
-  };
-
-  const deleteGame = async () => {
-    appState.deleteGame(novel.id);
-    goto('/');
+    deleteGame: async () => {
+      await appState.deleteGame(novel.id);
+      goto('/');
+    },
   };
 
   /**
@@ -160,7 +151,7 @@
   <div class="content" in:fade={{ duration: 100 }}>
     <div class="header">
       <div class="novel-info" in:fly={{ x: 10, duration: 500 }}>
-        {#if !novel.is_nsfw || showImage}
+        {#if !novel.is_nsfw}
           <img
             src={convertFileSrc(novel.image_url)}
             alt={novel.title}
@@ -182,9 +173,9 @@
       </div>
       <div class="buttons">
         {#if playing}
-          <button onclick={stopGame} class="playing">Close</button>
+          <button onclick={gameActions.stopGame} class="playing">Close</button>
         {:else}
-          <button onclick={startGame}>Start</button>
+          <button onclick={gameActions.startGame}>Start</button>
         {/if}
         <i
           class="fa-solid fa-ellipsis fa-xl"
@@ -193,7 +184,7 @@
         ></i>
         <div class="menu" class:active={activeMenu}>
           <i
-            onclick={togglePin}
+            onclick={gameActions.togglePin}
             class={[
               'fa-solid',
               novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
@@ -201,7 +192,7 @@
             title="Toggle pinned"
           ></i>
           <i
-            onclick={editExe}
+            onclick={gameActions.editExe}
             class="fa-regular fa-pen-to-square"
             title="Edit exe path"
           ></i>
@@ -232,7 +223,7 @@
     </div>
     <ConfirmDialog
       bind:isOpen={deleteDialog}
-      onConfirm={deleteGame}
+      onConfirm={gameActions.deleteGame}
       message={`Are you sure you want to delete <b style="color: red">${novel.title}</b>?`}
     />
     <ChangeProcess
@@ -243,7 +234,7 @@
 
     <div class="tabs" in:fly={{ y: 50, duration: 500, delay: 600 }}>
       <div class="tab">
-        {#each tabs as tab}
+        {#each TABS as tab}
           {#if tab.visible}
             <button
               class={selectedTab == tab.id ? 'active' : ''}

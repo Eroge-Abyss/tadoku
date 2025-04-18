@@ -13,7 +13,7 @@
   // when using `"withGlobalTauri": true`, you may use
   // const { getCurrentWindow } = window.__TAURI__.window;
 
-  let { children } = $props();
+  const { children } = $props();
 
   const appWindow = getCurrentWindow();
 
@@ -32,9 +32,10 @@
       console.log(e.payload);
 
       appState.currentGame = e.payload;
+      appState.loadGames();
     });
 
-    listen('playtime', (e) => console.log(e.payload));
+    //listen('playtime', (e) => console.log(e.payload));
   });
 </script>
 

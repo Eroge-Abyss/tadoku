@@ -70,7 +70,6 @@
 
     togglePin: async () => {
       appState.togglePinned(novel.id);
-      novel.is_pinned = !novel.is_pinned;
     },
 
     editExe: async () => {
@@ -91,7 +90,7 @@
     },
 
     deleteGame: async () => {
-      appState.deleteGame(novel.id);
+      await appState.deleteGame(novel.id);
       goto('/');
     },
   };

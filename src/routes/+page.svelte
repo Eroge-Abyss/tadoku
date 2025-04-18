@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import { appState } from './state.svelte';
   import { invoke } from '@tauri-apps/api/core';
+
   // let playtime = 0;
 
   // listen('playtime', (e) => {
@@ -11,14 +12,15 @@
   //   console.log({ playtime });
   // });
 
-  let games = null;
-
   onMount(async () => {
     appState.loadGames();
-    games = await invoke('get_active_windows');
   });
 </script>
 
 <main class="container">
+  <!-- <div>
+    {appState.loadGame(appState.currentGame?.id)?.title}
+    playing for {playtime}
+  </div> -->
   <GamesList gamesList={appState.gamesList} />
 </main>

@@ -4,6 +4,8 @@ use serde_json::json;
 use std::{sync::Mutex, thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager};
 
+use super::store::GamesStore;
+
 pub fn spawn_playtime_thread(app_handle: AppHandle) {
     tauri::async_runtime::spawn(async move {
         loop {
@@ -81,8 +83,16 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                     thread::sleep(Duration::from_secs(1));
                 }
                 None => {
-                    util::flush_playtime(&app_handle, &game_id, current_playtime % 60)
-                        .map_err(|_| "Error happened while updating playtime")?;
+                    let store = GamesStore::new(&app_handle)
+                        .map_err(|_| "Error happened while accessing store")?;
+
+                    store
+                        .update_playtime(&game_id, current_playtime % 60)
+                        .map_err(|_| "Error happened while setting new playtime")?;
+
+                    store
+                        .update_last_played(&game_id)
+                        .map_err(|_| "Error happened while updating last played")?;
 
                     let state = app_handle.state::<Mutex<AppState>>();
                     let mut state = state

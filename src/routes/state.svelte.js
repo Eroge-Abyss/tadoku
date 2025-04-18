@@ -159,7 +159,7 @@ class AppState {
   }
 
   /**
-   * Sorts the games list by title.
+   * Sorts the games list by playtime.
    */
   sortGames() {
     const sortedEntries = Object.entries(this.#gamesList).sort(

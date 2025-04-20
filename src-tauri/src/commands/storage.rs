@@ -216,6 +216,30 @@ pub fn set_theme_settings(
     Ok(())
 }
 
+/// Gets nsfw presence toggle status
+#[tauri::command]
+pub fn get_nsfw_presence_status(app_handle: AppHandle) -> Result<bool, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_presence_on_nsfw()
+        .map_err(|_| "Couldn't get theme settings")?)
+}
+
+/// Saves theme settings to storage
+#[tauri::command]
+pub fn set_nsfw_presence_status(app_handle: AppHandle) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .toggle_presence_on_nsfw()
+        .map_err(|_| "Error happened while setting theme settings")?;
+
+    Ok(())
+}
+
 /// Sets the characters of an already saved game
 #[tauri::command]
 pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<(), String> {

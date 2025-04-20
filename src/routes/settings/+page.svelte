@@ -1,10 +1,13 @@
 <script>
   import { onMount } from 'svelte';
   import { appState } from '../state.svelte.js';
+  import { invoke } from '@tauri-apps/api/core';
+  import { getVersion } from '@tauri-apps/api/app';
 
   // use themes constants from the appState
   const themes = appState.constructor.themes;
   const colorSwatches = appState.constructor.colorSwatches;
+  let appVersion = $state();
 
   let selectedTheme = $state(appState.themeSettings.theme);
   let customColor = $state(appState.themeSettings.accentColor);
@@ -19,7 +22,6 @@
 
   //add function to get the app version from tauri
   //static version value for now
-  const appVersion = 'v1.0.4';
   function selectTheme(themeId) {
     selectedTheme = themeId;
     appState.updateThemeSettings({ theme: themeId });
@@ -55,6 +57,10 @@
     customColor = appState.themeSettings.accentColor;
     useCustomColor = appState.themeSettings.useCustomColor;
   }
+
+  onMount(async () => {
+    appVersion = await getVersion();
+  });
 </script>
 
 <div class="container">
@@ -127,6 +133,14 @@
               ></div>
             {/each}
           </div>
+
+          <!-- <button onclick={() => invoke('set_nsfw_presence_status')}
+            >sada</button
+          >
+          <button
+            onclick={() => invoke('get_nsfw_presence_status').then(console.log)}
+            >sada</button
+          > -->
         </div>
 
         <div class="preview">
@@ -166,7 +180,7 @@
       </button>
     </div>
     <div class="version-info">
-      Tadoku {appVersion}
+      Tadoku v{appVersion}
     </div>
   </div>
 </div>

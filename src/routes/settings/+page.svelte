@@ -3,34 +3,53 @@
   import { appState } from '../state.svelte.js';
   import { invoke } from '@tauri-apps/api/core';
   import { getVersion } from '@tauri-apps/api/app';
+  import { themes, colorSwatches } from '../../themeConstants.js';
 
-  // use themes constants from the appState
-  const themes = appState.constructor.themes;
-  const colorSwatches = appState.constructor.colorSwatches;
   let appVersion = $state();
-
   let selectedTheme = $state(appState.themeSettings.theme);
   let customColor = $state(appState.themeSettings.accentColor);
   let useCustomColor = $state(appState.themeSettings.useCustomColor);
-  onMount(() => {
-    $effect(() => {
-      selectedTheme = appState.themeSettings.theme;
-      customColor = appState.themeSettings.accentColor;
-      useCustomColor = appState.themeSettings.useCustomColor;
-    });
+  let disableDiscordPresence = $state(false);
+
+  $effect(() => {
+    selectedTheme = appState.themeSettings.theme;
+    customColor = appState.themeSettings.accentColor;
+    useCustomColor = appState.themeSettings.useCustomColor;
   });
 
-  //add function to get the app version from tauri
-  //static version value for now
+  async function toggleDiscordPresence() {
+    try {
+      await invoke('set_nsfw_presence_status');
+      
+      disableDiscordPresence = await invoke('get_nsfw_presence_status');
+    } catch (error) {
+      console.error('Error toggling Discord presence status:', error);
+    }
+  }
+
+  onMount(async () => {
+    try {
+      disableDiscordPresence = await invoke('get_nsfw_presence_status');
+    } catch (error) {
+      console.error('Error fetching Discord presence status:', error);
+      disableDiscordPresence = false;
+    }
+    
+    appVersion = await getVersion();
+  });
+
   function selectTheme(themeId) {
-    selectedTheme = themeId;
-    appState.updateThemeSettings({ theme: themeId });
+    requestAnimationFrame(() => {
+      selectedTheme = themeId;
+      appState.updateThemeSettings({ theme: themeId });
+    });
   }
 
   function toggleCustomColor() {
     useCustomColor = !useCustomColor;
     appState.updateThemeSettings({ useCustomColor });
   }
+
   function selectColor(color) {
     customColor = color;
     useCustomColor = true;
@@ -48,19 +67,27 @@
       useCustomColor: true,
     });
   }
-  //this reset function currently resets settings for themes only.
-  function resetSettings() {
-    appState.resetThemeSettings();
 
-    // Update local state vars
+  async function resetSettings() {
+    appState.resetThemeSettings();
+    
     selectedTheme = appState.themeSettings.theme;
     customColor = appState.themeSettings.accentColor;
     useCustomColor = appState.themeSettings.useCustomColor;
-  }
 
-  onMount(async () => {
-    appVersion = await getVersion();
-  });
+    try {
+      let currentStatus = await invoke('get_nsfw_presence_status');
+      
+      if (currentStatus !== true) {
+        await invoke('set_nsfw_presence_status');
+        disableDiscordPresence = await invoke('get_nsfw_presence_status');
+      } else {
+        disableDiscordPresence = true;
+      }
+    } catch(error) {
+      console.error('Error resetting Discord presence status:', error);
+    }
+  }
 </script>
 
 <div class="container">
@@ -133,14 +160,6 @@
               ></div>
             {/each}
           </div>
-
-          <!-- <button onclick={() => invoke('set_nsfw_presence_status')}
-            >sada</button
-          >
-          <button
-            onclick={() => invoke('get_nsfw_presence_status').then(console.log)}
-            >sada</button
-          > -->
         </div>
 
         <div class="preview">
@@ -156,14 +175,14 @@
         </div>
       </div>
     </div>
-    <!--
     <div class="settings-section">
       <h2>App Settings</h2>
       <div class="switch-container">
-        <button class="switch" class:active={useCustomColor}>
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button class="switch" class:active={disableDiscordPresence} onclick={toggleDiscordPresence}>
           <span class="switch-thumb"></span>
         </button>
-        <span class="switch-label">disable discord presence</span>
+        <span class="switch-label">Disable Discord Presence for NSFW content</span>
       </div>
     </div>
     <!--
@@ -300,10 +319,6 @@
     transition: 0.3s ease-in;
   }
 
-  .theme-item:hover::before {
-    left: 100%;
-  }
-
   .theme-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
@@ -386,20 +401,20 @@
     transition: background-color 0.3s ease;
   }
 
-  .switch.active {
-    background: var(--primary);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  }
-
   .switch-thumb {
     position: absolute;
     top: 1px;
+    will-change: transform;
     left: 1px;
     width: 18px;
     height: 18px;
     background-color: white;
     border-radius: 50%;
     transition: transform 0.3s ease;
+  }
+
+  .switch.active {
+    background: var(--primary);
   }
 
   .switch.active .switch-thumb {

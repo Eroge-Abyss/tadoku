@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-
+import { themes, defaultThemeSettings } from "../themeConstants.js";
 /**
  * @typedef {import('$lib/types').Game} Game
  * @typedef {import('$lib/types').Novel} Novel
@@ -31,63 +31,6 @@ import { invoke } from "@tauri-apps/api/core";
 
 class AppState {
 	/**
-	 * Theme options
-	 * @type {Array<{id: string, name: string, primary: string, accent: string, background: string}>}
-	 */
-	static themes = [
-		{
-			id: "default",
-			name: "Default",
-			primary: "#3b82f6",
-			background: "#1b1b1b",
-			accent: "#2a2a2a",
-		},
-		{
-			id: "tokyo-night",
-			name: "Tokyo Night",
-			primary: "#bb9af7",
-			background: "#1a1b26",
-			accent: "#24283b",
-		},
-		{
-			id: "sakura",
-			name: "Sakura Pink",
-			primary: "#f978b6",
-			background: "#1f1d2e",
-			accent: "#2d2a3e",
-		},
-		{
-			id: "ocean-blue",
-			name: "Ocean Blue",
-			primary: "#7aa2f7",
-			background: "#192330",
-			accent: "#24283b",
-		},
-		{
-			id: "forest-green",
-			name: "Forest Green",
-			primary: "#9ece6a",
-			background: "#1e2030",
-			accent: "#282e44",
-		},
-	];
-
-	/**
-	 * Color swatches for custom accent colors
-	 * @type {string[]}
-	 */
-	static colorSwatches = [
-		"#3b82f6", // Blue
-		"#bb9af7", // Purple
-		"#f978b6", // Pink
-		"#9ece6a", // Green
-		"#7aa2f7", // Light blue
-		"#e0af68", // Orange
-		"#f7768e", // Red
-		"#ffffff", // White
-	];
-
-	/**
 	 * @type {Record<string, Game>}
 	 */
 	#gamesList = $state({});
@@ -100,11 +43,7 @@ class AppState {
 	/**
 	 * @type {ThemeSettings}
 	 */
-	#themeSettings = $state({
-		theme: "default",
-		accentColor: "#3b82f6",
-		useCustomColor: false,
-	});
+	#themeSettings = $state({ ...defaultThemeSettings });
 
 	constructor() {
 		this.loadThemeSettings();
@@ -127,11 +66,6 @@ class AppState {
 		return this.#themeSettings;
 	}
 
-	// theme settings methods
-
-	/**
-	 * Loads theme settings from localstorage
-	 */
 	async loadThemeSettings() {
 		try {
 			const { theme, accent_color, use_custom_accent } =
@@ -143,7 +77,6 @@ class AppState {
 				useCustomColor: use_custom_accent,
 			};
 
-			// Apply theme immediately after loading
 			this.applyThemeSettings();
 		} catch (error) {
 			console.error("Failed to load theme settings:", error);
@@ -170,7 +103,6 @@ class AppState {
 			},
 		});
 
-		// Apply the updated settings
 		this.applyThemeSettings();
 	}
 
@@ -179,10 +111,9 @@ class AppState {
 	 */
 	applyThemeSettings() {
 		const theme =
-			AppState.themes.find((t) => t.id === this.#themeSettings.theme) ||
-			AppState.themes[0];
+			themes.find((t) => t.id === this.#themeSettings.theme) ||
+			themes[0];
 
-		// Apply theme colors as CSS variables
 		document.documentElement.style.setProperty(
 			"--primary",
 			this.#themeSettings.useCustomColor
@@ -203,7 +134,6 @@ class AppState {
 				: theme.primary,
 		);
 
-		// Apply theme class
 		document.documentElement.setAttribute(
 			"data-theme",
 			this.#themeSettings.theme,
@@ -214,15 +144,8 @@ class AppState {
 	 * Resets theme settings to defaults and clears localStorage
 	 */
 	resetThemeSettings() {
-		const defaultSettings = {
-			theme: "default",
-			accentColor: "#3b82f6",
-			useCustomColor: false,
-		};
-
-		this.#themeSettings = defaultSettings;
-
-		this.updateThemeSettings(defaultSettings);
+		this.#themeSettings = { ...defaultThemeSettings };
+    	this.updateThemeSettings(defaultThemeSettings);
 	}
 
 	async loadGames() {

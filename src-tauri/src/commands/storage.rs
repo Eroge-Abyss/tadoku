@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use serde::{Deserialize, Serialize};
 #[cfg(windows)]
 use windows_icons;
@@ -9,8 +11,9 @@ use crate::{
         vndb::Vndb,
     },
     util::{self},
+    AppState,
 };
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Options {
@@ -233,9 +236,15 @@ pub fn set_nsfw_presence_status(app_handle: AppHandle) -> Result<(), String> {
     let store =
         SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 
-    store
+    let new_status = store
         .toggle_presence_on_nsfw()
         .map_err(|_| "Error happened while setting theme settings")?;
+
+    let binding = app_handle.state::<Mutex<AppState>>();
+
+    let mut app_state = binding.lock().map_err(|_| "Cannot acquire state lock")?;
+
+    app_state.config.disable_presence_on_nsfw = new_status;
 
     Ok(())
 }

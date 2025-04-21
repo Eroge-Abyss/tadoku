@@ -64,7 +64,7 @@ impl SettingsStore {
         Ok(())
     }
 
-    pub fn toggle_presence_on_nsfw(&self) -> Result<()> {
+    pub fn toggle_presence_on_nsfw(&self) -> Result<bool> {
         let old: bool = serde_json::from_value(
             self.store
                 .get("disable_presence_on_nsfw")
@@ -73,7 +73,7 @@ impl SettingsStore {
 
         self.store.set("disable_presence_on_nsfw", !old);
 
-        Ok(())
+        Ok(!old)
     }
 
     // TODO: Refactor

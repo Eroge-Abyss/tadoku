@@ -5,10 +5,12 @@ export interface Novel extends Game {
 export interface Game {
   title: string;
   description: string;
-  image_url: string; // Is a local file path when loading games only, otherwise it's VNDB image URL.
+  /** Is a local file path when loading games only, otherwise it's VNDB image URL.*/
+  image_url: string;
   exe_file_path: string;
   process_file_path: string;
-  playtime: number; // Play time in seconds.
+  /** Play time in seconds. */
+  playtime: number;
   is_pinned: boolean;
   is_nsfw: boolean;
   icon_url: string | null;
@@ -33,4 +35,21 @@ export interface Process {
   title: string;
   exe_path: string;
   icon: string;
+}
+
+export interface ThemeSettings {
+  /** The theme ID (default, tokyo-night, etc) */
+  theme: string;
+  /** The custom accent color */
+  accentColor: string;
+  /** Whether to use custom color */
+  useCustomColor: boolean;
+}
+
+export interface Theme {
+  id: string;
+  name: string;
+  primary: string;
+  accent: string;
+  background: string;
 }

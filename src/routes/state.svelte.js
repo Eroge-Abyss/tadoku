@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { THEMES, defaultThemeSettings } from '../themeConstants.js';
+import { THEMES, DEFAULT_THEME_SETTINGS } from '../themeConstants.js';
 /**
  * @typedef {import('$lib/types').Game} Game
  * @typedef {import('$lib/types').Novel} Novel
@@ -22,7 +22,7 @@ class AppState {
   /**
    * @type {ThemeSettings}
    */
-  #themeSettings = $state({ ...defaultThemeSettings });
+  #themeSettings = $state({ ...DEFAULT_THEME_SETTINGS });
 
   constructor() {
     this.loadThemeSettings();
@@ -126,8 +126,8 @@ class AppState {
    * Resets theme settings to defaults and clears localStorage
    */
   resetThemeSettings() {
-    this.#themeSettings = { ...defaultThemeSettings };
-    this.updateThemeSettings(defaultThemeSettings);
+    this.#themeSettings = { ...DEFAULT_THEME_SETTINGS };
+    this.updateThemeSettings(DEFAULT_THEME_SETTINGS);
   }
 
   /**

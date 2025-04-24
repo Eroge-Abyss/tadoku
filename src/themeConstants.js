@@ -49,7 +49,7 @@ export const THEMES = [
  * Color swatches for custom accent colors
  * @type {string[]}
  */
-export const colorSwatches = [
+export const COLOR_SWATCHES = [
   '#3b82f6', // Blue
   '#bb9af7', // Purple
   '#f978b6', // Pink
@@ -64,7 +64,7 @@ export const colorSwatches = [
  * Default theme settings for application
  * @type {ThemeSettings}
  */
-export const defaultThemeSettings = {
+export const DEFAULT_THEME_SETTINGS = {
   theme: 'default',
   accentColor: '#888',
   useCustomColor: false,

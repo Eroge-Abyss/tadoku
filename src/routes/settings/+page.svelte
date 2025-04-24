@@ -3,7 +3,7 @@
   import { appState } from '../state.svelte.js';
   import { invoke } from '@tauri-apps/api/core';
   import { getVersion } from '@tauri-apps/api/app';
-  import { themes, colorSwatches } from '../../themeConstants.js';
+  import { THEMES, COLOR_SWATCHES } from '../../themeConstants.js';
 
   let appVersion = $state();
   let selectedTheme = $state(appState.themeSettings.theme);
@@ -20,7 +20,7 @@
   async function toggleDiscordPresence() {
     try {
       await invoke('set_nsfw_presence_status');
-      
+
       disableDiscordPresence = await invoke('get_nsfw_presence_status');
     } catch (error) {
       console.error('Error toggling Discord presence status:', error);
@@ -34,7 +34,7 @@
       console.error('Error fetching Discord presence status:', error);
       disableDiscordPresence = false;
     }
-    
+
     appVersion = await getVersion();
   });
 
@@ -70,21 +70,21 @@
 
   async function resetSettings() {
     appState.resetThemeSettings();
-    
+
     selectedTheme = appState.themeSettings.theme;
     customColor = appState.themeSettings.accentColor;
     useCustomColor = appState.themeSettings.useCustomColor;
 
     try {
       let currentStatus = await invoke('get_nsfw_presence_status');
-      
+
       if (currentStatus !== true) {
         await invoke('set_nsfw_presence_status');
         disableDiscordPresence = await invoke('get_nsfw_presence_status');
       } else {
         disableDiscordPresence = true;
       }
-    } catch(error) {
+    } catch (error) {
       console.error('Error resetting Discord presence status:', error);
     }
   }
@@ -100,7 +100,7 @@
     <div class="settings-section">
       <h2>Theme Selection</h2>
       <div class="theme-grid">
-        {#each themes as theme}
+        {#each THEMES as theme}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
@@ -149,7 +149,7 @@
           </div>
 
           <div class="color-swatches">
-            {#each colorSwatches as color}
+            {#each COLOR_SWATCHES as color}
               <!-- svelte-ignore a11y_click_events_have_key_events -->
               <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div
@@ -168,7 +168,7 @@
             class="preview-button"
             style="background-color: {useCustomColor
               ? customColor
-              : themes.find((t) => t.id === selectedTheme).primary}"
+              : THEMES.find((t) => t.id === selectedTheme).primary}"
           >
             Button
           </div>
@@ -179,10 +179,16 @@
       <h2>App Settings</h2>
       <div class="switch-container">
         <!-- svelte-ignore a11y_consider_explicit_label -->
-        <button class="switch" class:active={disableDiscordPresence} onclick={toggleDiscordPresence}>
+        <button
+          class="switch"
+          class:active={disableDiscordPresence}
+          onclick={toggleDiscordPresence}
+        >
           <span class="switch-thumb"></span>
         </button>
-        <span class="switch-label">Disable Discord Presence for NSFW content</span>
+        <span class="switch-label"
+          >Disable Discord Presence for NSFW content</span
+        >
       </div>
     </div>
     <!--

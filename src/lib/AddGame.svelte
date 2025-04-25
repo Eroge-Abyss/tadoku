@@ -147,7 +147,7 @@
   <section class="modal" class:open={showModal} onclick={handleModalClick}>
     <section class="modal__content">
       <header>
-        <h3>Add a game</h3>
+        <h3 class="title">Add a game</h3>
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span onclick={closeModal}>
@@ -246,6 +246,10 @@
 </section>
 
 <style>
+  .title {
+    padding-left: 15px;
+    padding-top: 10px;
+  }
   .note {
     font-size: 12px;
     color: var(--secondary-text);

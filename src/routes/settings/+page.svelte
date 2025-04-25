@@ -439,7 +439,7 @@
     gap: 1rem;
   }
 
-  .custom-color-section:not(:has(.color-options.visible)) { /* new fancy selectors */
+  .custom-color-section:not(:has(.color-options.visible)) { /* new fancy selector */
     gap: 0; 
   }
   .switch-container {

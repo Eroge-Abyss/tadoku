@@ -54,7 +54,7 @@
   <section class="modal" class:open={isOpen}>
     <section class="modal__content">
       <header>
-        <h3>{title}</h3>
+        <h3 class="title">{title}</h3>
         <span onclick={closeModal}>
           <CloseIcon style="font-size: 24px;" />
         </span>
@@ -118,6 +118,10 @@
 />
 
 <style>
+  .title {
+    padding-left: 15px;
+    padding-top: 10px;
+  }
   .modal {
     position: fixed;
     height: 100%;

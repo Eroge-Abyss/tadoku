@@ -511,7 +511,7 @@
         &.playing {
           background: rgb(224, 90, 90);
           &:hover {
-            background: color-mix(in srgb, var(--main-mauve), #000 10%);
+            background: color-mix(in srgb, var(--primary), rgb(244, 65, 98));
           }
         }
       }

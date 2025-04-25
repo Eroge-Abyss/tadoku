@@ -3,7 +3,7 @@
   import { appState } from '../state.svelte.js';
   import { invoke } from '@tauri-apps/api/core';
   import { getVersion } from '@tauri-apps/api/app';
-  import { themes, colorSwatches } from '../../themeConstants.js';
+  import { THEMES, COLOR_SWATCHES } from '../../themeConstants.js';
   import type { Theme } from '$lib/types';
   import type { ColorSwatch } from '$lib/types';
 
@@ -18,11 +18,11 @@
   let colorOptionsVisible = $state<boolean>(false);
 
   $effect(() => {
-    if (themes.length > 0) {
+    if (THEMES.length > 0) {
       const newMap = new Map<string, Theme>();
-      themes.forEach(theme => {
-        newMap.set(theme.id, theme);
-        selectHandlers[theme.id] = () => selectTheme(theme.id);
+      THEMES.forEach(THEMES => {
+        newMap.set(THEMES.id, THEMES);
+        selectHandlers[THEMES.id] = () => selectTheme(THEMES.id);
       });
       themeMap = newMap;
     }
@@ -38,7 +38,7 @@
   let previewColor = $derived(
     useCustomColor 
       ? customColor 
-      : themeMap.get(selectedTheme)?.primary || themes[0]?.primary || "#1e88e5"
+      : themeMap.get(selectedTheme)?.primary || THEMES[0]?.primary || "#1e88e5"
   );
 
   async function toggleDiscordPresence(): Promise<void> {
@@ -139,7 +139,7 @@
   }
     
   let indexedColorSwatches = $derived<ColorSwatch[]>(
-    colorSwatches.map((color, index) => ({ color, index }))
+    COLOR_SWATCHES.map((color, index) => ({ color, index }))
   );
 </script>
 
@@ -156,7 +156,7 @@
       <h2>Theme Selection</h2>
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div class="theme-grid" onclick={handleThemeSelection}>
-        {#each themes as theme}
+        {#each THEMES as theme}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div

@@ -14,7 +14,7 @@
   // let characterProgress = $derived(
   //     (novel.progress.charactersRead / novel.progress.totalCharacters) * 100,
   // );
-
+  
   let processList = $state();
 
   let showImage = $state(false);
@@ -133,7 +133,7 @@
         {#if playing}
           <button onclick={stopGame} class="playing">Close</button>
         {:else}
-          <button onclick={startGame}>Start</button>
+          <button onclick={startGame} class="start">Start</button>
         {/if}
         <i
           class="fa-solid fa-ellipsis fa-xl"
@@ -305,6 +305,7 @@
         color: var(--primary-dark);
     } */
 
+
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
@@ -438,17 +439,26 @@
 
     & button {
       border: 0;
-      background-color: #313131;
       color: var(--main-text);
       width: 200px;
       padding: 0.5rem;
       font-size: 18px;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+      
       &:first-child {
-        background: #9ece6a;
-
+        background: var(--primary);
+        
+        &:hover {
+          background: var(--primary-dark, color-mix(in srgb, var(--primary), #000 10%)); /* test */
+        }
+        
         &.playing {
           background: var(--main-mauve);
+          
+          &:hover {
+            background: color-mix(in srgb, var(--main-mauve), #000 10%);
+          }
         }
       }
     }

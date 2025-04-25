@@ -1,27 +1,51 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { appState } from '../state.svelte.js';
   import { invoke } from '@tauri-apps/api/core';
   import { getVersion } from '@tauri-apps/api/app';
   import { themes, colorSwatches } from '../../themeConstants.js';
+  import type { Theme } from '$lib/types';
+  import type { ColorSwatch } from '$lib/types';
 
-  let appVersion = $state();
-  let selectedTheme = $state(appState.themeSettings.theme);
-  let customColor = $state(appState.themeSettings.accentColor);
-  let useCustomColor = $state(appState.themeSettings.useCustomColor);
-  let disableDiscordPresence = $state(false);
+  let appVersion = $state<string>();
+  let selectedTheme = $state<string>(appState.themeSettings.theme);
+  let customColor = $state<string>(appState.themeSettings.accentColor);
+  let useCustomColor = $state<boolean>(appState.themeSettings.useCustomColor);
+  let disableDiscordPresence = $state<boolean>(false);
+  let themeMap = $state<Map<string, Theme>>(new Map());
+  const selectHandlers: Record<string, () => void> = {};
+
+  let colorOptionsVisible = $state<boolean>(false);
+
+  $effect(() => {
+    if (themes.length > 0) {
+      const newMap = new Map<string, Theme>();
+      themes.forEach(theme => {
+        newMap.set(theme.id, theme);
+        selectHandlers[theme.id] = () => selectTheme(theme.id);
+      });
+      themeMap = newMap;
+    }
+  });
 
   $effect(() => {
     selectedTheme = appState.themeSettings.theme;
     customColor = appState.themeSettings.accentColor;
     useCustomColor = appState.themeSettings.useCustomColor;
+    colorOptionsVisible = useCustomColor;
   });
 
-  async function toggleDiscordPresence() {
+  let previewColor = $derived(
+    useCustomColor 
+      ? customColor 
+      : themeMap.get(selectedTheme)?.primary || themes[0]?.primary || "#1e88e5"
+  );
+
+  async function toggleDiscordPresence(): Promise<void> {
     try {
       await invoke('set_nsfw_presence_status');
       
-      disableDiscordPresence = await invoke('get_nsfw_presence_status');
+      disableDiscordPresence = await invoke<boolean>('get_nsfw_presence_status');
     } catch (error) {
       console.error('Error toggling Discord presence status:', error);
     }
@@ -29,7 +53,7 @@
 
   onMount(async () => {
     try {
-      disableDiscordPresence = await invoke('get_nsfw_presence_status');
+      disableDiscordPresence = await invoke<boolean>('get_nsfw_presence_status');
     } catch (error) {
       console.error('Error fetching Discord presence status:', error);
       disableDiscordPresence = false;
@@ -38,56 +62,85 @@
     appVersion = await getVersion();
   });
 
-  function selectTheme(themeId) {
+  function selectTheme(themeId: string): void {
     requestAnimationFrame(() => {
       selectedTheme = themeId;
       appState.updateThemeSettings({ theme: themeId });
     });
   }
 
-  function toggleCustomColor() {
-    useCustomColor = !useCustomColor;
-    appState.updateThemeSettings({ useCustomColor });
+  function toggleCustomColor(): void {
+    if (useCustomColor) {
+      colorOptionsVisible = false;
+      setTimeout(() => {
+        useCustomColor = false;
+        appState.updateThemeSettings({ useCustomColor: false });
+      }, 300);
+    } else {
+      useCustomColor = true;
+      appState.updateThemeSettings({ useCustomColor: true });
+      setTimeout(() => {
+        colorOptionsVisible = true;
+      }, 50);
+    }
   }
 
-  function selectColor(color) {
+  function selectColor(color: string): void {
     customColor = color;
     useCustomColor = true;
+    colorOptionsVisible = true;
     appState.updateThemeSettings({
       accentColor: color,
       useCustomColor: true,
     });
   }
 
-  function handleColorInput(event) {
-    customColor = event.target.value;
+  function handleColorInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    customColor = input.value;
     useCustomColor = true;
+    colorOptionsVisible = true;
     appState.updateThemeSettings({
       accentColor: customColor,
       useCustomColor: true,
     });
   }
 
-  async function resetSettings() {
+  async function resetSettings(): Promise<void> {
     appState.resetThemeSettings();
     
     selectedTheme = appState.themeSettings.theme;
     customColor = appState.themeSettings.accentColor;
     useCustomColor = appState.themeSettings.useCustomColor;
+    colorOptionsVisible = useCustomColor;
 
     try {
-      let currentStatus = await invoke('get_nsfw_presence_status');
+      let currentStatus = await invoke<boolean>('get_nsfw_presence_status');
       
-      if (currentStatus !== true) {
+      if (currentStatus !== false) {
         await invoke('set_nsfw_presence_status');
-        disableDiscordPresence = await invoke('get_nsfw_presence_status');
+        disableDiscordPresence = await invoke<boolean>('get_nsfw_presence_status');
       } else {
-        disableDiscordPresence = true;
+        disableDiscordPresence = false;
       }
     } catch(error) {
       console.error('Error resetting Discord presence status:', error);
     }
   }
+
+  function handleThemeSelection(e: MouseEvent): void {
+    const themeItem = (e.target as HTMLElement).closest('.theme-item');
+    if (themeItem) {
+      const themeId = themeItem.getAttribute('data-theme-id');
+      if (themeId) {
+        selectTheme(themeId);
+      }
+    }
+  }
+    
+  let indexedColorSwatches = $derived<ColorSwatch[]>(
+    colorSwatches.map((color, index) => ({ color, index }))
+  );
 </script>
 
 <div class="container">
@@ -97,9 +150,12 @@
       <p>Customize your Tadoku experience</p>
     </div>
 
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="settings-section">
       <h2>Theme Selection</h2>
-      <div class="theme-grid">
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <div class="theme-grid" onclick={handleThemeSelection}>
         {#each themes as theme}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -107,7 +163,7 @@
             class="theme-item"
             class:active={selectedTheme === theme.id}
             style="--preview-primary: {theme.primary}; --preview-bg: {theme.background}; --preview-accent: {theme.accent};"
-            onclick={() => selectTheme(theme.id)}
+            data-theme-id={theme.id}
           >
             <div class="theme-preview">
               <div class="preview-sidebar"></div>
@@ -136,8 +192,8 @@
           </button>
           <span class="switch-label">Use custom accent color</span>
         </div>
-
-        <div class="color-options">
+        
+        <div class="color-options" class:visible={colorOptionsVisible}>
           <div class="color-picker">
             <input
               type="color"
@@ -149,32 +205,31 @@
           </div>
 
           <div class="color-swatches">
-            {#each colorSwatches as color}
+            {#each indexedColorSwatches as { color, index }}
               <!-- svelte-ignore a11y_click_events_have_key_events -->
               <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div
                 class="color-swatch"
-                style="background-color: {color};"
-                class:active={useCustomColor && customColor === color}
+                style="background-color: {color}; --index: {index};"
+                class:active={customColor === color}
                 onclick={() => selectColor(color)}
               ></div>
             {/each}
           </div>
         </div>
 
-        <div class="preview">
+        <div class="preview" class:visible={colorOptionsVisible}>
           <div class="preview-title">Preview</div>
           <div
             class="preview-button"
-            style="background-color: {useCustomColor
-              ? customColor
-              : themes.find((t) => t.id === selectedTheme).primary}"
+            style="background-color: {previewColor}"
           >
             Button
           </div>
         </div>
       </div>
     </div>
+
     <div class="settings-section">
       <h2>App Settings</h2>
       <div class="switch-container">
@@ -284,9 +339,11 @@
   }
 
   .theme-grid {
+    will-change: transform;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1rem;
+    contain: layout style;
   }
 
   .theme-item {
@@ -301,6 +358,7 @@
     border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
     overflow: hidden;
+    contain: layout paint;
   }
 
   .theme-item::before {
@@ -430,6 +488,22 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: 
+      max-height 0.3s ease,
+      opacity 0.3s ease,
+      transform 0.3s ease;
+    pointer-events: none;
+  }
+
+  .color-options.visible {
+    max-height: 300px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
   }
 
   .color-picker {
@@ -453,6 +527,7 @@
   }
 
   .color-swatches {
+    margin: 5px;
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
@@ -494,10 +569,28 @@
   }
 
   .preview {
-    margin-top: 1rem;
+    margin-top: 0;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: 
+      max-height 0.3s ease,
+      opacity 0.3s ease,
+      transform 0.3s ease,
+      margin-top 0.3s ease;
+    pointer-events: none;
+  }
+
+  .preview.visible {
+    margin-top: 1rem;
+    max-height: 200px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
   }
 
   .preview-title {

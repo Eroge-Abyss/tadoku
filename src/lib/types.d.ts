@@ -1,6 +1,18 @@
 export interface Novel extends Game {
   id: string;
 }
+export interface Theme {
+  id: string;
+  name: string;
+  primary: string;
+  background: string;
+  accent: string;
+}
+
+type ColorSwatch = {
+  color: string;
+  index: number;
+};
 
 export interface Game {
   title: string;

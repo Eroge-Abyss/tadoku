@@ -54,7 +54,7 @@
   <section class="modal" class:open={isOpen}>
     <section class="modal__content">
       <header>
-        <h3>{title}</h3>
+        <h3 class="title">{title}</h3>
         <span onclick={closeModal}>
           <CloseIcon style="font-size: 24px;" />
         </span>
@@ -118,6 +118,10 @@
 />
 
 <style>
+  .title {
+    padding-left: 15px;
+    padding-top: 10px;
+  }
   .modal {
     position: fixed;
     height: 100%;
@@ -147,6 +151,7 @@
       background-color: var(--main-background);
       padding: 1rem;
       width: 500px;
+      border-radius: var(--big-radius);
       display: flex;
       flex-direction: column;
       transform: translate(0, 100%) scale(0.8);
@@ -172,21 +177,33 @@
         & button {
           border: 0;
           background-color: #313131;
+          border-radius: var(--small-radius);
           color: #fff;
           width: 100%;
           padding: 0.5rem;
           font-size: 18px;
           margin-top: 1rem;
           cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: #404040;
+          }
         }
       }
     }
   }
 
   .save-button {
-    background: #9ece6a !important;
+    background: var(--primary) !important;
     &[disabled] {
       opacity: 0.5;
+    }
+    &:hover:not([disabled]) {
+      background: var(
+        --primary-dark,
+        color-mix(in srgb, var(--primary), #000 10%)
+      ) !important;
     }
   }
 
@@ -199,13 +216,21 @@
     width: 100%;
     padding: 10px;
     font-size: 16px;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     background: #313131;
     border: 0;
+    /* border-left: 3px solid
+      var(--primary-dark, color-mix(in srgb, var(--primary), #000 15%)); */
     margin-top: 1rem;
     margin-bottom: 0.5rem;
     color: var(--main-text);
     grid-column: 1 / -1;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-left: 3px solid var(--primary);
+    }
   }
 
   .dropdown-menu {
@@ -215,7 +240,7 @@
     width: 100%;
     max-height: 200px;
     overflow-y: auto;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     background: var(--main-background);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: none;

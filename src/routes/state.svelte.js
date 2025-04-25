@@ -1,10 +1,11 @@
 import { invoke } from '@tauri-apps/api/core';
-
+import { THEMES, DEFAULT_THEME_SETTINGS } from '../themeConstants.js';
 /**
  * @typedef {import('$lib/types').Game} Game
  * @typedef {import('$lib/types').Novel} Novel
  * @typedef {import('$lib/types').Options} Options
  * @typedef {import('$lib/types').CurrentGame} CurrentGame
+ * @typedef {import('$lib/types').ThemeSettings} ThemeSettings
  */
 
 class AppState {
@@ -18,6 +19,16 @@ class AppState {
    */
   #currentGame = $state(null);
 
+  /**
+   * @type {ThemeSettings}
+   */
+  #themeSettings = $state({ ...DEFAULT_THEME_SETTINGS });
+
+  constructor() {
+    this.loadThemeSettings();
+  }
+
+  // Getters and Setters
   get currentGame() {
     return this.#currentGame;
   }
@@ -32,6 +43,91 @@ class AppState {
    */
   get gamesList() {
     return this.#gamesList;
+  }
+
+  get themeSettings() {
+    return this.#themeSettings;
+  }
+
+  async loadThemeSettings() {
+    try {
+      const { theme, accent_color, use_custom_accent } =
+        await invoke('get_theme_settings');
+
+      this.#themeSettings = {
+        theme,
+        accentColor: accent_color,
+        useCustomColor: use_custom_accent,
+      };
+
+      this.applyThemeSettings();
+    } catch (error) {
+      console.error('Failed to load theme settings:', error);
+    }
+  }
+
+  /**
+   * Updates theme settings and saves them to localStorage
+   * @param {Partial<ThemeSettings>} settings - The settings to update
+   */
+  async updateThemeSettings(settings) {
+    this.#themeSettings = {
+      ...this.#themeSettings,
+      ...settings,
+    };
+
+    console.log(this.#themeSettings);
+
+    await invoke('set_theme_settings', {
+      themeSettings: {
+        accent_color: this.#themeSettings.accentColor,
+        theme: this.#themeSettings.theme,
+        use_custom_accent: this.#themeSettings.useCustomColor,
+      },
+    });
+
+    this.applyThemeSettings();
+  }
+
+  /**
+   * Applies the current theme settings to the document
+   */
+  applyThemeSettings() {
+    const theme =
+      THEMES.find((t) => t.id === this.#themeSettings.theme) || THEMES[0];
+
+    document.documentElement.style.setProperty(
+      '--primary',
+      this.#themeSettings.useCustomColor
+        ? this.#themeSettings.accentColor
+        : theme.primary,
+    );
+    document.documentElement.style.setProperty(
+      '--main-background',
+      theme.background,
+    );
+    document.documentElement.style.setProperty('--accent', theme.accent);
+    document.documentElement.style.setProperty('--main-text', '#ffffff');
+    document.documentElement.style.setProperty('--secondary-text', '#9ca3af');
+    document.documentElement.style.setProperty(
+      '--main-mauve',
+      this.#themeSettings.useCustomColor
+        ? this.#themeSettings.accentColor
+        : theme.primary,
+    );
+
+    document.documentElement.setAttribute(
+      'data-theme',
+      this.#themeSettings.theme,
+    );
+  }
+
+  /**
+   * Resets theme settings to defaults and clears localStorage
+   */
+  resetThemeSettings() {
+    this.#themeSettings = { ...DEFAULT_THEME_SETTINGS };
+    this.updateThemeSettings(DEFAULT_THEME_SETTINGS);
   }
 
   /**

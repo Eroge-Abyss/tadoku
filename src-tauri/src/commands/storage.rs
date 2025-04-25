@@ -1,15 +1,19 @@
+use std::sync::Mutex;
+
 use serde::{Deserialize, Serialize};
 #[cfg(windows)]
 use windows_icons;
 
 use crate::{
     services::{
-        store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
+        games_store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
+        settings_store::{SettingsStore, ThemeSettings},
         vndb::Vndb,
     },
     util::{self},
+    AppState,
 };
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Options {
@@ -184,6 +188,63 @@ pub fn set_game_categories(
     store
         .set_categories(&game_id, categories)
         .map_err(|_| "Error happened while setting categories")?;
+
+    Ok(())
+}
+
+/// Gets theme settings from storage
+#[tauri::command]
+pub fn get_theme_settings(app_handle: AppHandle) -> Result<ThemeSettings, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_theme_settings()
+        .map_err(|_| "Couldn't get theme settings")?)
+}
+
+/// Saves theme settings to storage
+#[tauri::command]
+pub fn set_theme_settings(
+    app_handle: AppHandle,
+    theme_settings: ThemeSettings,
+) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_theme_settings(theme_settings)
+        .map_err(|_| "Error happened while setting theme settings")?;
+
+    Ok(())
+}
+
+/// Gets nsfw presence toggle status
+#[tauri::command]
+pub fn get_nsfw_presence_status(app_handle: AppHandle) -> Result<bool, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_presence_on_nsfw()
+        .map_err(|_| "Couldn't get theme settings")?)
+}
+
+/// Saves theme settings to storage
+#[tauri::command]
+pub fn set_nsfw_presence_status(app_handle: AppHandle) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    let new_status = store
+        .toggle_presence_on_nsfw()
+        .map_err(|_| "Error happened while setting theme settings")?;
+
+    let binding = app_handle.state::<Mutex<AppState>>();
+
+    let mut app_state = binding.lock().map_err(|_| "Cannot acquire state lock")?;
+
+    app_state.config.disable_presence_on_nsfw = new_status;
 
     Ok(())
 }

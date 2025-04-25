@@ -44,8 +44,13 @@
     filter: blur(0);
   }
   .card {
-    background-color: var(--secondary);
-    border-radius: 12px;
+    background-color: color-mix(
+      in srgb,
+      var(--primary) 2.5%,
+      var(--main-background) 92%
+    );
+    color: var(--main-text);
+    border-radius: var(--big-radius);
     overflow: hidden;
     transition:
       transform 0.3s ease,

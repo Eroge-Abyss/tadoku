@@ -15,7 +15,7 @@
     width: 100%;
     height: 8px;
     background-color: var(--accent);
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     overflow: hidden;
   }
 

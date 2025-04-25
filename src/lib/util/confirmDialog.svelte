@@ -73,6 +73,7 @@
 
     & .modal__content {
       background-color: var(--main-background);
+      border-radius: var(--big-radius);
       padding: 1rem;
       width: 50%;
       display: flex;
@@ -105,6 +106,7 @@
           & button {
             border: 0;
             background-color: #313131;
+            border-radius: var(--small-radius);
             color: #fff;
             width: 100%;
             padding: 0.5rem;

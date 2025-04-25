@@ -22,7 +22,7 @@ pub fn run() {
         .setup(|app| {
             scripts::setup_store(&app.app_handle())?;
             scripts::create_images_folder(&app.app_handle())?;
-            scripts::initialize_state(&app.app_handle());
+            scripts::initialize_state(&app.app_handle())?;
 
             Ok(())
         })
@@ -37,6 +37,10 @@ pub fn run() {
             commands::storage::update_process,
             commands::storage::get_categories,
             commands::storage::set_categories,
+            commands::storage::get_theme_settings,
+            commands::storage::set_theme_settings,
+            commands::storage::get_nsfw_presence_status,
+            commands::storage::set_nsfw_presence_status,
             commands::storage::set_characters,
             commands::opener::open_game,
             commands::opener::close_game,

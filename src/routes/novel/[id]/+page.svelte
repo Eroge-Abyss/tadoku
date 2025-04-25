@@ -371,7 +371,7 @@
   }
 
   .content {
-    border-radius: 12px;
+    border-radius: var(--big-radius);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -490,17 +490,30 @@
 
     & button {
       border: 0;
-      background-color: #313131;
+      border-radius: var(--small-radius);
       color: var(--main-text);
+      background-color: #313131;
       width: 200px;
       padding: 0.5rem;
       font-size: 18px;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+
       &:first-child {
-        background: #9ece6a;
+        background: var(--primary);
+
+        &:hover {
+          background: var(
+            --primary-dark,
+            color-mix(in srgb, var(--primary), #000 10%)
+          ); /* test */
+        }
 
         &.playing {
-          background: var(--main-mauve);
+          background: rgb(224, 90, 90);
+          &:hover {
+            background: color-mix(in srgb, var(--primary), rgb(244, 65, 98));
+          }
         }
       }
     }
@@ -523,7 +536,6 @@
         border: 0;
         padding: 1rem;
         font-size: 1.5rem;
-
         text-align: center;
         position: relative;
         cursor: pointer;

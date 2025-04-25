@@ -7,7 +7,7 @@
 </script>
 
 <div class="container">
-  <h1 in:fade={{ duration: 500, easing: elasticOut }}>Visual Novels</h1>
+  <h1>Visual Novels</h1>
   <div class="grid">
     {#each Object.entries(gamesList) as [id, game]}
       <div

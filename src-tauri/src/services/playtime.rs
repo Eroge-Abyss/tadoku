@@ -4,7 +4,7 @@ use serde_json::json;
 use std::{sync::Mutex, thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager};
 
-use super::store::GamesStore;
+use super::games_store::GamesStore;
 
 pub fn spawn_playtime_thread(app_handle: AppHandle) {
     tauri::async_runtime::spawn(async move {

@@ -44,7 +44,11 @@
     filter: blur(0);
   }
   .card {
-    background-color: color-mix(in srgb, var(--primary) 2.5%, var(--main-background) 92%);
+    background-color: color-mix(
+      in srgb,
+      var(--primary) 2.5%,
+      var(--main-background) 92%
+    );
     color: var(--main-text);
     border-radius: 12px;
     overflow: hidden;
@@ -92,7 +96,6 @@
 
   .card-content {
     padding: 1rem;
-    
   }
 
   .card-content h3 {

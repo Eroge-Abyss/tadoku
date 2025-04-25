@@ -357,7 +357,6 @@
         color: var(--primary-dark);
     } */
 
-
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
@@ -492,20 +491,23 @@
     & button {
       border: 0;
       color: var(--main-text);
-      background-color:  #313131;
+      background-color: #313131;
       width: 200px;
       padding: 0.5rem;
       font-size: 18px;
       cursor: pointer;
       transition: background-color 0.3s ease;
-      
+
       &:first-child {
         background: var(--primary);
-        
+
         &:hover {
-          background: var(--primary-dark, color-mix(in srgb, var(--primary), #000 10%)); /* test */
+          background: var(
+            --primary-dark,
+            color-mix(in srgb, var(--primary), #000 10%)
+          ); /* test */
         }
-        
+
         &.playing {
           background: rgb(224, 90, 90);
           &:hover {

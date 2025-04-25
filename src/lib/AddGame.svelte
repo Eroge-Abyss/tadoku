@@ -91,12 +91,12 @@
       alert('Please select a game from the list.');
       return;
     }
-    
+
     if (!exe_path) {
       alert('Please select a game executable file.');
       return;
     }
-    
+
     loading = true;
     try {
       const gameData = {
@@ -113,14 +113,10 @@
         characters: [],
       };
 
-      await appState.saveGame(
-        vn.id,
-        gameData,
-        {
-          include_characters: charactersDownload,
-        },
-      );
-      
+      await appState.saveGame(vn.id, gameData, {
+        include_characters: charactersDownload,
+      });
+
       closeModal();
     } catch (error) {
       console.error('Error saving game:', error);
@@ -284,7 +280,7 @@
     margin: auto;
     cursor: pointer;
     color: var(--primary);
-        background: rgba(185, 154, 250, 0.17);
+    background: rgba(185, 154, 250, 0.17);
     border-radius: 12px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(20px);
@@ -371,7 +367,7 @@
             box-sizing: border-box;
             grid-column: 1 / -1;
             transition: border-color 0.2s ease;
-            
+
             &:focus {
               outline: none;
             }
@@ -398,7 +394,7 @@
           margin-top: 1rem;
           cursor: pointer;
           transition: background-color 0.3s ease;
-          
+
           &:hover {
             background-color: #404040;
           }
@@ -494,7 +490,10 @@
       opacity: 0.5;
     }
     &:hover:not([disabled]) {
-      background: var(--primary-dark, color-mix(in srgb, var(--primary), #000 10%)) !important;
+      background: var(
+        --primary-dark,
+        color-mix(in srgb, var(--primary), #000 10%)
+      ) !important;
     }
   }
 

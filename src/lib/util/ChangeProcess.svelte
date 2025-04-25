@@ -183,7 +183,7 @@
           margin-top: 1rem;
           cursor: pointer;
           transition: background-color 0.3s ease;
-          
+
           &:hover {
             background-color: #404040;
           }
@@ -198,7 +198,10 @@
       opacity: 0.5;
     }
     &:hover:not([disabled]) {
-      background: var(--primary-dark, color-mix(in srgb, var(--primary), #000 10%)) !important;
+      background: var(
+        --primary-dark,
+        color-mix(in srgb, var(--primary), #000 10%)
+      ) !important;
     }
   }
 
@@ -214,13 +217,14 @@
     border-radius: 4px;
     background: #313131;
     border: 0;
-    border-left: 3px solid var(--primary-dark, color-mix(in srgb, var(--primary), #000 15%));
+    border-left: 3px solid
+      var(--primary-dark, color-mix(in srgb, var(--primary), #000 15%));
     margin-top: 1rem;
     margin-bottom: 0.5rem;
     color: var(--main-text);
     grid-column: 1 / -1;
     transition: border-color 0.2s ease;
-    
+
     &:focus {
       outline: none;
       border-left: 3px solid var(--primary);

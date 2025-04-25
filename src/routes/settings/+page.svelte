@@ -20,7 +20,7 @@
   $effect(() => {
     if (THEMES.length > 0) {
       const newMap = new Map<string, Theme>();
-      THEMES.forEach(THEMES => {
+      THEMES.forEach((THEMES) => {
         newMap.set(THEMES.id, THEMES);
         selectHandlers[THEMES.id] = () => selectTheme(THEMES.id);
       });
@@ -36,16 +36,18 @@
   });
 
   let previewColor = $derived(
-    useCustomColor 
-      ? customColor 
-      : themeMap.get(selectedTheme)?.primary || THEMES[0]?.primary || "#1e88e5"
+    useCustomColor
+      ? customColor
+      : themeMap.get(selectedTheme)?.primary || THEMES[0]?.primary || '#1e88e5',
   );
 
   async function toggleDiscordPresence(): Promise<void> {
     try {
       await invoke('set_nsfw_presence_status');
-      
-      disableDiscordPresence = await invoke<boolean>('get_nsfw_presence_status');
+
+      disableDiscordPresence = await invoke<boolean>(
+        'get_nsfw_presence_status',
+      );
     } catch (error) {
       console.error('Error toggling Discord presence status:', error);
     }
@@ -53,7 +55,9 @@
 
   onMount(async () => {
     try {
-      disableDiscordPresence = await invoke<boolean>('get_nsfw_presence_status');
+      disableDiscordPresence = await invoke<boolean>(
+        'get_nsfw_presence_status',
+      );
     } catch (error) {
       console.error('Error fetching Discord presence status:', error);
       disableDiscordPresence = false;
@@ -116,10 +120,12 @@
 
     try {
       let currentStatus = await invoke<boolean>('get_nsfw_presence_status');
-      
+
       if (currentStatus !== false) {
         await invoke('set_nsfw_presence_status');
-        disableDiscordPresence = await invoke<boolean>('get_nsfw_presence_status');
+        disableDiscordPresence = await invoke<boolean>(
+          'get_nsfw_presence_status',
+        );
       } else {
         disableDiscordPresence = false;
       }
@@ -137,9 +143,9 @@
       }
     }
   }
-    
+
   let indexedColorSwatches = $derived<ColorSwatch[]>(
-    COLOR_SWATCHES.map((color, index) => ({ color, index }))
+    COLOR_SWATCHES.map((color, index) => ({ color, index })),
   );
 </script>
 
@@ -192,7 +198,7 @@
           </button>
           <span class="switch-label">Use custom accent color</span>
         </div>
-        
+
         <div class="color-options" class:visible={colorOptionsVisible}>
           <div class="color-picker">
             <input
@@ -220,10 +226,7 @@
 
         <div class="preview" class:visible={colorOptionsVisible}>
           <div class="preview-title">Preview</div>
-          <div
-            class="preview-button"
-            style="background-color: {previewColor}"
-          >
+          <div class="preview-button" style="background-color: {previewColor}">
             Button
           </div>
         </div>
@@ -439,8 +442,9 @@
     gap: 1rem;
   }
 
-  .custom-color-section:not(:has(.color-options.visible)) { /* new fancy selector */
-    gap: 0; 
+  .custom-color-section:not(:has(.color-options.visible)) {
+    /* new fancy selector */
+    gap: 0;
   }
   .switch-container {
     display: flex;
@@ -493,7 +497,7 @@
     overflow: hidden;
     opacity: 0;
     transform: translateY(-10px);
-    transition: 
+    transition:
       max-height 0.3s ease,
       opacity 0.3s ease,
       transform 0.3s ease;
@@ -578,7 +582,7 @@
     overflow: hidden;
     opacity: 0;
     transform: translateY(-10px);
-    transition: 
+    transition:
       max-height 0.3s ease,
       opacity 0.3s ease,
       transform 0.3s ease,

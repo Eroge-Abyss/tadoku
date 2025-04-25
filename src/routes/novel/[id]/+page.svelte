@@ -492,6 +492,7 @@
     & button {
       border: 0;
       color: var(--main-text);
+      background-color:  #313131;
       width: 200px;
       padding: 0.5rem;
       font-size: 18px;
@@ -506,8 +507,7 @@
         }
         
         &.playing {
-          background: var(--main-mauve);
-          
+          background: rgb(224, 90, 90);
           &:hover {
             background: color-mix(in srgb, var(--main-mauve), #000 10%);
           }

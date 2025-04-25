@@ -1,15 +1,19 @@
+use std::sync::Mutex;
+
 use serde::{Deserialize, Serialize};
 #[cfg(windows)]
 use windows_icons;
 
 use crate::{
     services::{
-        store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
+        games_store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
+        settings_store::{SettingsStore, ThemeSettings},
         vndb::Vndb,
     },
     util::{self},
+    AppState,
 };
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Options {
@@ -27,14 +31,14 @@ pub async fn save_game(
     mut game: Game,
     options: Options,
 ) -> Result<(), String> {
-    let path = util::save_image(&app_handle, &game.image_url)
+    let _path = util::save_image(&app_handle, &game.image_url)
         .await
         .map_err(|_| "Error happened while saving image")?;
 
     #[cfg(windows)]
     {
         let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
-        let icon_path = format!("{}.icon.png", path);
+        let icon_path = format!("{}.icon.png", _path);
         icon.save(&icon_path)
             .map_err(|_| "Error happened while saving image")?;
 
@@ -113,7 +117,7 @@ pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> Result<(), String> 
 
     store
         .toggle_pin(&game_id)
-        .map_err(|_| "Error happened while deleting game")?;
+        .map_err(|_| "Error happened while toggling pin")?;
 
     Ok(())
 }
@@ -184,6 +188,96 @@ pub fn set_game_categories(
     store
         .set_categories(&game_id, categories)
         .map_err(|_| "Error happened while setting categories")?;
+
+    Ok(())
+}
+
+/// Gets theme settings from storage
+#[tauri::command]
+pub fn get_theme_settings(app_handle: AppHandle) -> Result<ThemeSettings, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_theme_settings()
+        .map_err(|_| "Couldn't get theme settings")?)
+}
+
+/// Saves theme settings to storage
+#[tauri::command]
+pub fn set_theme_settings(
+    app_handle: AppHandle,
+    theme_settings: ThemeSettings,
+) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_theme_settings(theme_settings)
+        .map_err(|_| "Error happened while setting theme settings")?;
+
+    Ok(())
+}
+
+/// Gets nsfw presence toggle status
+#[tauri::command]
+pub fn get_nsfw_presence_status(app_handle: AppHandle) -> Result<bool, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_presence_on_nsfw()
+        .map_err(|_| "Couldn't get theme settings")?)
+}
+
+/// Saves theme settings to storage
+#[tauri::command]
+pub fn set_nsfw_presence_status(app_handle: AppHandle) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    let new_status = store
+        .toggle_presence_on_nsfw()
+        .map_err(|_| "Error happened while setting theme settings")?;
+
+    let binding = app_handle.state::<Mutex<AppState>>();
+
+    let mut app_state = binding.lock().map_err(|_| "Cannot acquire state lock")?;
+
+    app_state.config.disable_presence_on_nsfw = new_status;
+
+    Ok(())
+}
+
+/// Sets the characters of an already saved game
+#[tauri::command]
+pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+    let chars = Vndb::get_vn_characters(&game_id).await?;
+    let mut characters: Vec<Character> = Vec::new();
+
+    for char in chars {
+        let path = match char.image {
+            Some(p) => Some(
+                util::save_image(&app_handle, &p.url)
+                    .await
+                    .map_err(|_| "Error happened while saving image")?,
+            ),
+            None => None,
+        };
+
+        characters.push(Character {
+            id: char.id,
+            en_name: char.name,
+            og_name: char.original,
+            image_url: path,
+        });
+    }
+
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_characters(&game_id, characters)
+        .map_err(|_| "Error happened while saving characters")?;
 
     Ok(())
 }

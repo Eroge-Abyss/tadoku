@@ -193,7 +193,7 @@
   .update-notes {
     background: #313131;
     padding: 10px;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     margin-bottom: 1rem;
   }
 

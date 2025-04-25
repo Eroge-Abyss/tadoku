@@ -17,6 +17,12 @@
   let showImage = $state(false);
   let charactersDownload = $state(false);
   let loading = $state(false);
+
+  function handleModalClick(e) {
+    if (e.target.classList.contains('modal')) {
+      closeModal();
+    }
+  }
   function toggleImage() {
     showImage = !showImage;
   }
@@ -81,23 +87,19 @@
   };
 
   const saveGame = async (vn) => {
-    loading = true;
-    const testData = {
-      title: vn.title,
-      description: vn.description || 'No Description',
-      exe_file_path: exe_path,
-      process_file_path: exe_path,
-      categories: [],
-      icon_url: null,
-      image_url: vn.image.url,
-      is_pinned: false,
-      is_nsfw: vn.image.sexual > NSFW_RATE,
-      playtime: 0,
-    };
+    if (!vn || vn.id === undefined) {
+      alert('Please select a game from the list.');
+      return;
+    }
 
-    await appState.saveGame(
-      vn.id,
-      {
+    if (!exe_path) {
+      alert('Please select a game executable file.');
+      return;
+    }
+
+    loading = true;
+    try {
+      const gameData = {
         title: vn.title,
         description: vn.description || 'No Description',
         exe_file_path: exe_path,
@@ -109,16 +111,24 @@
         is_nsfw: vn.image.sexual > NSFW_RATE,
         playtime: 0,
         characters: [],
-      },
-      {
+      };
+
+      await appState.saveGame(vn.id, gameData, {
         include_characters: charactersDownload,
-      },
-    );
-    loading = false;
-    closeModal();
+      });
+
+      closeModal();
+    } catch (error) {
+      console.error('Error saving game:', error);
+      alert(`Failed to save game: ${error.message || 'Unknown error'}`);
+    } finally {
+      loading = false;
+    }
   };
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <section>
   <button id="btn__add" onclick={openModal}> + </button>
   <!--section class="modal process-selector" class:open={showProcessSelector}>
@@ -129,10 +139,11 @@
       // we will probably use this later
     </div>
   </section-->
-  <section class="modal" class:open={showModal}>
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <section class="modal" class:open={showModal} onclick={handleModalClick}>
     <section class="modal__content">
       <header>
-        <h3>Add a game</h3>
+        <h3 class="title">Add a game</h3>
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <span onclick={closeModal}>
@@ -231,6 +242,10 @@
 </section>
 
 <style>
+  .title {
+    padding-left: 15px;
+    padding-top: 10px;
+  }
   .note {
     font-size: 12px;
     color: var(--secondary-text);
@@ -256,16 +271,33 @@
   }
   #btn__add {
     border: 0;
-    background: #313131;
-    color: #5d5d5d;
-    border: 2px solid #5d5d5d;
-    height: 56px;
     width: 56px;
+    height: 56px;
     font-size: 2.5rem;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: auto;
-    border-radius: 5px;
     cursor: pointer;
+    color: var(--primary);
+    background: rgba(185, 154, 250, 0.17);
+    border-radius: var(--big-radius);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(185, 154, 250, 0.13);
+    transition: all 0.3s ease;
+  }
+
+  #btn__add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    background: rgba(185, 154, 250, 0.25);
+  }
+
+  #btn__add:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
   .modal {
@@ -300,6 +332,7 @@
       background-color: var(--main-background);
       padding: 1rem;
       width: 500px;
+      border-radius: var(--big-radius);
       display: flex;
       flex-direction: column;
       transform: translate(0, 100%) scale(0.8);
@@ -330,10 +363,16 @@
             width: 100%;
             background-color: #313131;
             border: 0;
+            border-radius: var(--small-radius);
             padding: 0.5rem;
             color: var(--main-text);
             box-sizing: border-box;
             grid-column: 1 / -1;
+            transition: border-color 0.2s ease;
+
+            &:focus {
+              outline: none;
+            }
           }
 
           &.characters {
@@ -350,12 +389,18 @@
         & button {
           border: 0;
           background-color: #313131;
+          border-radius: var(--small-radius);
           color: #fff;
           width: 100%;
           padding: 0.5rem;
           font-size: 18px;
           margin-top: 1rem;
           cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: #404040;
+          }
         }
       }
     }
@@ -376,7 +421,7 @@
     align-items: center;
     padding: 10px;
     background-color: #1b1b1b;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     margin-bottom: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -411,7 +456,7 @@
   .selected-suggestion img {
     width: 60px;
     height: 60px;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     object-fit: cover;
   }
 
@@ -419,7 +464,7 @@
     margin-top: 20px;
     padding: 10px;
     background-color: #1b1b1b;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     color: #fff;
     display: flex;
     align-items: center;
@@ -428,7 +473,7 @@
   .selected-suggestion img {
     width: 100px;
     height: 100px;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     margin-top: 10px;
   }
 
@@ -443,9 +488,15 @@
   }
 
   .save-button {
-    background: #9ece6a !important;
+    background: var(--primary) !important;
     &[disabled] {
       opacity: 0.5;
+    }
+    &:hover:not([disabled]) {
+      background: var(
+        --primary-dark,
+        color-mix(in srgb, var(--primary), #000 10%)
+      ) !important;
     }
   }
 
@@ -494,13 +545,13 @@
     width: 16px;
     background-color: #313131;
     border: 2px solid #5d5d5d;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     cursor: pointer;
   }
 
   .custom-checkbox input:checked ~ .checkmark {
-    background-color: #9ece6a;
-    border-color: #9ece6a;
+    background-color: var(--primary);
+    border-color: #5d5d5d;
   }
 
   .checkmark:after {

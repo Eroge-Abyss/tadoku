@@ -58,7 +58,7 @@
       console.error('Error fetching Discord presence status:', error);
       disableDiscordPresence = false;
     }
-    
+
     appVersion = await getVersion();
   });
 
@@ -108,7 +108,7 @@
 
   async function resetSettings(): Promise<void> {
     appState.resetThemeSettings();
-    
+
     selectedTheme = appState.themeSettings.theme;
     customColor = appState.themeSettings.accentColor;
     useCustomColor = appState.themeSettings.useCustomColor;
@@ -123,7 +123,7 @@
       } else {
         disableDiscordPresence = false;
       }
-    } catch(error) {
+    } catch (error) {
       console.error('Error resetting Discord presence status:', error);
     }
   }
@@ -234,10 +234,16 @@
       <h2>App Settings</h2>
       <div class="switch-container">
         <!-- svelte-ignore a11y_consider_explicit_label -->
-        <button class="switch" class:active={disableDiscordPresence} onclick={toggleDiscordPresence}>
+        <button
+          class="switch"
+          class:active={disableDiscordPresence}
+          onclick={toggleDiscordPresence}
+        >
           <span class="switch-thumb"></span>
         </button>
-        <span class="switch-label">Disable Discord Presence for NSFW content</span>
+        <span class="switch-label"
+          >Disable Discord Presence for NSFW content</span
+        >
       </div>
     </div>
     <!--

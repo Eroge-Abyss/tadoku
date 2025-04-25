@@ -151,6 +151,7 @@
       background-color: var(--main-background);
       padding: 1rem;
       width: 500px;
+      border-radius: var(--big-radius);
       display: flex;
       flex-direction: column;
       transform: translate(0, 100%) scale(0.8);
@@ -176,6 +177,7 @@
         & button {
           border: 0;
           background-color: #313131;
+          border-radius: var(--small-radius);
           color: #fff;
           width: 100%;
           padding: 0.5rem;
@@ -214,11 +216,11 @@
     width: 100%;
     padding: 10px;
     font-size: 16px;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     background: #313131;
     border: 0;
-    border-left: 3px solid
-      var(--primary-dark, color-mix(in srgb, var(--primary), #000 15%));
+    /* border-left: 3px solid
+      var(--primary-dark, color-mix(in srgb, var(--primary), #000 15%)); */
     margin-top: 1rem;
     margin-bottom: 0.5rem;
     color: var(--main-text);
@@ -238,7 +240,7 @@
     width: 100%;
     max-height: 200px;
     overflow-y: auto;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     background: var(--main-background);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: none;

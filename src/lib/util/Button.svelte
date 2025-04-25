@@ -54,7 +54,7 @@
       overflow: hidden;
       /* From https://css.glass */
       background: rgba(185, 154, 250, 0.17);
-      border-radius: 12px;
+      border-radius: var(--big-radius);
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);

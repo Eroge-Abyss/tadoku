@@ -310,7 +310,7 @@
 
   .settings-section {
     background-color: var(--accent);
-    border-radius: 12px;
+    border-radius: var(--big-radius);
     padding: 1.5rem 2rem;
     display: flex;
     flex-direction: column;
@@ -390,7 +390,7 @@
     height: 100px;
     display: flex;
     background-color: var(--preview-bg);
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     overflow: hidden;
   }
 
@@ -412,7 +412,7 @@
   .preview-card {
     height: 35%;
     background-color: var(--preview-accent);
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     position: relative;
   }
 
@@ -457,7 +457,7 @@
     width: 40px;
     height: 22px;
     background-color: rgba(68, 68, 68, 0.6);
-    border-radius: 11px;
+    border-radius: var(--big-radius);
     padding: 0;
     border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
@@ -605,7 +605,7 @@
 
   .preview-button {
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     color: white;
     font-weight: 500;
     text-align: center;
@@ -619,7 +619,7 @@
     color: white;
     border: none;
     padding: 0.75rem 1rem;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     font-weight: 500;
     cursor: pointer;
     width: fit-content;

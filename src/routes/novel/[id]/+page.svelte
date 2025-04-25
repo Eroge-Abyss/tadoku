@@ -371,7 +371,7 @@
   }
 
   .content {
-    border-radius: 12px;
+    border-radius: var(--big-radius);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -490,6 +490,7 @@
 
     & button {
       border: 0;
+      border-radius: var(--small-radius);
       color: var(--main-text);
       background-color: #313131;
       width: 200px;
@@ -535,7 +536,6 @@
         border: 0;
         padding: 1rem;
         font-size: 1.5rem;
-
         text-align: center;
         position: relative;
         cursor: pointer;

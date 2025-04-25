@@ -281,7 +281,7 @@
     cursor: pointer;
     color: var(--primary);
     background: rgba(185, 154, 250, 0.17);
-    border-radius: 12px;
+    border-radius: var(--big-radius);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -332,6 +332,7 @@
       background-color: var(--main-background);
       padding: 1rem;
       width: 500px;
+      border-radius: var(--big-radius);
       display: flex;
       flex-direction: column;
       transform: translate(0, 100%) scale(0.8);
@@ -362,6 +363,7 @@
             width: 100%;
             background-color: #313131;
             border: 0;
+            border-radius: var(--small-radius);
             padding: 0.5rem;
             color: var(--main-text);
             box-sizing: border-box;
@@ -387,6 +389,7 @@
         & button {
           border: 0;
           background-color: #313131;
+          border-radius: var(--small-radius);
           color: #fff;
           width: 100%;
           padding: 0.5rem;
@@ -418,7 +421,7 @@
     align-items: center;
     padding: 10px;
     background-color: #1b1b1b;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     margin-bottom: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -453,7 +456,7 @@
   .selected-suggestion img {
     width: 60px;
     height: 60px;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     object-fit: cover;
   }
 
@@ -461,7 +464,7 @@
     margin-top: 20px;
     padding: 10px;
     background-color: #1b1b1b;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     color: #fff;
     display: flex;
     align-items: center;
@@ -470,7 +473,7 @@
   .selected-suggestion img {
     width: 100px;
     height: 100px;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     margin-top: 10px;
   }
 
@@ -542,7 +545,7 @@
     width: 16px;
     background-color: #313131;
     border: 2px solid #5d5d5d;
-    border-radius: 4px;
+    border-radius: var(--small-radius);
     cursor: pointer;
   }
 

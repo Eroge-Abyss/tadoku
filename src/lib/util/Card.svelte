@@ -50,7 +50,7 @@
       var(--main-background) 92%
     );
     color: var(--main-text);
-    border-radius: 12px;
+    border-radius: var(--big-radius);
     overflow: hidden;
     transition:
       transform 0.3s ease,

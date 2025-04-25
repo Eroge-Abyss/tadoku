@@ -433,9 +433,15 @@
   .custom-color-section {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
+  }
+  .custom-color-section:has(.color-options.visible) {
+    gap: 1rem;
   }
 
+  .custom-color-section:not(:has(.color-options.visible)) { /* new fancy selectors */
+    gap: 0; 
+  }
   .switch-container {
     display: flex;
     align-items: center;

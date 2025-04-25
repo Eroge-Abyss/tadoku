@@ -11,7 +11,7 @@ export const THEMES = [
   {
     id: 'default',
     name: 'Default',
-    primary: '#888',
+    primary: '#bb9af7',
     background: '#1b1b1b',
     accent: '#2a2a2a',
   },
@@ -66,6 +66,6 @@ export const COLOR_SWATCHES = [
  */
 export const DEFAULT_THEME_SETTINGS = {
   theme: 'default',
-  accentColor: '#888',
+  accentColor: '#3b82f6',
   useCustomColor: false,
 };

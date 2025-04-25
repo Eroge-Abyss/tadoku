@@ -209,7 +209,7 @@
           ></i>
           <i
             onclick={() => invoke('set_characters', { gameId: novel.id })}
-            class="fa-regular fa-user-plus"
+            class="fa-solid fa-user-plus"
             title="Save game characters"
           ></i>
           <i
@@ -600,6 +600,7 @@
         height: 100px;
         width: 100px;
         object-fit: cover;
+        object-position: top;
         border-radius: 8px 0 0 8px;
       }
 

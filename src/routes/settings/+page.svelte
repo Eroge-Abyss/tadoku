@@ -325,12 +325,7 @@
     left: 0;
     right: 0;
     height: 100%;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      rgba(255, 255, 255, 0.02) 50%,
-      transparent 100%
-    );
+
     pointer-events: none;
   }
 
@@ -374,12 +369,6 @@
     left: -100%;
     width: 80%;
     height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.05),
-      transparent
-    );
     transition: 0.3s ease-in;
   }
 

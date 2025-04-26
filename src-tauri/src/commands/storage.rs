@@ -7,7 +7,7 @@ use windows_icons;
 use crate::{
     services::{
         games_store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
-        settings_store::{SettingsStore, ThemeSettings},
+        settings_store::{SettingsStore, SortOrder, ThemeSettings},
         vndb::Vndb,
     },
     util::{self},
@@ -278,6 +278,30 @@ pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<()
     store
         .set_characters(&game_id, characters)
         .map_err(|_| "Error happened while saving characters")?;
+
+    Ok(())
+}
+
+/// Gets sort order
+#[tauri::command]
+pub fn get_sort_order(app_handle: AppHandle) -> Result<SortOrder, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_sort_order()
+        .map_err(|_| "Couldn't get sort order")?)
+}
+
+/// Saves theme settings to storage
+#[tauri::command]
+pub fn set_sort_order(app_handle: AppHandle, sort_order: SortOrder) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_sort_order(sort_order)
+        .map_err(|_| "Error happened while setting sort order")?;
 
     Ok(())
 }

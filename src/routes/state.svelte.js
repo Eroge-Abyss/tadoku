@@ -25,8 +25,14 @@ class AppState {
    */
   #themeSettings = $state({ ...DEFAULT_THEME_SETTINGS });
 
+  /**
+   * @type {SortOrder | null}
+   */
+  #sortOrder = $state(null);
+
   constructor() {
     this.loadThemeSettings();
+    this.loadSortOrder();
   }
 
   // Getters and Setters
@@ -48,6 +54,10 @@ class AppState {
 
   get themeSettings() {
     return this.#themeSettings;
+  }
+
+  get sortOrder() {
+    return this.#sortOrder;
   }
 
   async loadThemeSettings() {
@@ -259,7 +269,7 @@ class AppState {
    * Sorts the games list by playtime.
    */
   async sortGames() {
-    const sortOrder = await this.getSortOrder();
+    const sortOrder = this.#sortOrder;
     const sortedEntries =
       sortOrder === 'last_played'
         ? this.sortByLastPlayed()
@@ -277,10 +287,11 @@ class AppState {
    */
   async setSortOrder(sortOrder) {
     await invoke('set_sort_order', { sortOrder });
+    await this.refreshGamesList();
   }
 
-  async getSortOrder() {
-    return invoke('get_sort_order');
+  async loadSortOrder() {
+    this.#sortOrder = await invoke('get_sort_order');
   }
 
   sortByPlaytime() {

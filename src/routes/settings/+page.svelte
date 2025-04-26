@@ -13,7 +13,6 @@
   let useCustomColor = $state<boolean>(appState.themeSettings.useCustomColor);
   let disableDiscordPresence = $state<boolean>(false);
   let themeMap = $state<Map<string, Theme>>(new Map());
-  let sortOrder = $state<SortOrder>();
   const selectHandlers: Record<string, () => void> = {};
 
   let colorOptionsVisible = $state<boolean>(false);
@@ -27,8 +26,6 @@
       });
       themeMap = newMap;
     }
-
-    appState.getSortOrder().then((s) => (sortOrder = s));
   });
 
   $effect(() => {
@@ -147,12 +144,6 @@
     }
   }
 
-  async function handleSortOrderSelection(e: Event) {
-    await appState.setSortOrder(
-      (e.target as HTMLSelectElement).value as SortOrder,
-    );
-  }
-
   let indexedColorSwatches = $derived<ColorSwatch[]>(
     COLOR_SWATCHES.map((color, index) => ({ color, index })),
   );
@@ -256,19 +247,6 @@
         <span class="switch-label"
           >Disable Discord Presence for NSFW content</span
         >
-      </div>
-
-      <div class="select-container">
-        <label for="sort-order">Sort games by:</label>
-        <select
-          id="sort-order"
-          value={sortOrder}
-          onchange={handleSortOrderSelection}
-        >
-          <option value="title">Title</option>
-          <option value="last_played">Last Played</option>
-          <option value="playtime">Playtime</option>
-        </select>
       </div>
     </div>
     <!--
@@ -651,45 +629,5 @@
 
   .reset-button:hover {
     background-color: #dc2626;
-  }
-
-  .select-container {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 0.5rem;
-  }
-
-  .select-container label {
-    font-size: 14px;
-    color: var(--main-text);
-  }
-
-  .select-container select {
-    background-color: rgba(49, 49, 49, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--small-radius);
-    padding: 0.5rem 0.75rem;
-    color: var(--main-text);
-    font-size: 14px;
-    cursor: pointer;
-    transition:
-      border-color 0.2s,
-      box-shadow 0.2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-    padding-right: 2rem;
-  }
-
-  .select-container select:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .select-container select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 1px var(--primary);
   }
 </style>

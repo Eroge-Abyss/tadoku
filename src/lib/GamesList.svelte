@@ -2,12 +2,16 @@
   import { fly, fade } from 'svelte/transition';
   import { elasticOut } from 'svelte/easing';
   import Card from './util/Card.svelte';
+  import SortOrderSelect from './util/SortOrderSelect.svelte';
 
   let { gamesList } = $props();
 </script>
 
 <div class="container">
-  <h1>Visual Novels</h1>
+  <div class="header">
+    <h1>Visual Novels</h1>
+    <SortOrderSelect />
+  </div>
   <div class="grid">
     {#each Object.entries(gamesList) as [id, game]}
       <div
@@ -39,7 +43,6 @@
 
   h1 {
     color: var(--foreground);
-    margin-bottom: 2rem;
     font-size: 2.5rem;
     font-weight: 700;
   }
@@ -77,5 +80,12 @@
     to {
       transform: rotate(360deg);
     }
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
   }
 </style>

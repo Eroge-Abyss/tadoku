@@ -24,10 +24,19 @@ impl Default for ThemeSettings {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SortOrder {
+    Playtime,
+    LastPlayed,
+    Title
+}
+
 // #[derive(Serialize, Deserialize)]
 // struct Settings {
 //     theme_settings: ThemeSettings,
 //     disable_presence_on_nsfw: bool,
+//     sort_order: SortOrder
 // }
 
 // impl Default for Settings {
@@ -85,5 +94,17 @@ impl SettingsStore {
         )?;
 
         Ok(v)
+    }
+
+    pub fn get_sort_order(&self) -> Result<SortOrder>{
+        let v: SortOrder = serde_json::from_value(self.store.get("sort_order").unwrap_or(json!("title")))?;
+
+        Ok(v)
+    }
+
+    pub fn set_sort_order(&self, new_sort_order: SortOrder) -> Result<()> {
+        self.store.set("sort_order", json!(new_sort_order));
+
+        Ok(())
     }
 }

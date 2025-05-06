@@ -6,6 +6,7 @@ import { THEMES, DEFAULT_THEME_SETTINGS } from '../themeConstants.js';
  * @typedef {import('$lib/types').Options} Options
  * @typedef {import('$lib/types').CurrentGame} CurrentGame
  * @typedef {import('$lib/types').ThemeSettings} ThemeSettings
+ * @typedef {import('$lib/types').SortOrder} SortOrder
  */
 
 class AppState {
@@ -24,8 +25,14 @@ class AppState {
    */
   #themeSettings = $state({ ...DEFAULT_THEME_SETTINGS });
 
+  /**
+   * @type {SortOrder | null}
+   */
+  #sortOrder = $state(null);
+
   constructor() {
     this.loadThemeSettings();
+    this.loadSortOrder();
   }
 
   // Getters and Setters
@@ -47,6 +54,10 @@ class AppState {
 
   get themeSettings() {
     return this.#themeSettings;
+  }
+
+  get sortOrder() {
+    return this.#sortOrder;
   }
 
   async loadThemeSettings() {
@@ -257,17 +268,52 @@ class AppState {
   /**
    * Sorts the games list by playtime.
    */
-  sortGames() {
-    const sortedEntries = Object.entries(this.#gamesList).sort(
-      ([, a], [, b]) => {
-        if (b.playtime !== a.playtime) {
-          return b.playtime - a.playtime;
-        }
-        return a.title.localeCompare(b.title);
-      },
-    );
+  async sortGames() {
+    const sortOrder = this.#sortOrder;
+    const sortedEntries =
+      sortOrder === 'last_played'
+        ? this.sortByLastPlayed()
+        : sortOrder === 'playtime'
+          ? this.sortByPlaytime()
+          : this.sortByTitle();
 
     this.#gamesList = Object.fromEntries(sortedEntries);
+  }
+
+  /**
+   * Opens a game in a child process
+   * @param {SortOrder} sortOrder - The unique identifier for the game.
+   * @returns {Promise<void>}
+   */
+  async setSortOrder(sortOrder) {
+    await invoke('set_sort_order', { sortOrder });
+    await this.refreshGamesList();
+  }
+
+  async loadSortOrder() {
+    this.#sortOrder = await invoke('get_sort_order');
+  }
+
+  sortByPlaytime() {
+    return Object.entries(this.#gamesList).sort(([, a], [, b]) => {
+      if (b.playtime !== a.playtime) {
+        return b.playtime - a.playtime;
+      }
+      return a.title.localeCompare(b.title);
+    });
+  }
+
+  sortByTitle() {
+    return Object.entries(this.#gamesList).sort(([, a], [, b]) =>
+      a.title.localeCompare(b.title),
+    );
+  }
+
+  sortByLastPlayed() {
+    return Object.entries(this.#gamesList).sort(
+      ([, a], [, b]) =>
+        (b.last_played || Infinity) - (a.last_played || Infinity),
+    );
   }
 }
 

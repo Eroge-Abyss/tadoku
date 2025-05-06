@@ -66,3 +66,5 @@ export interface Theme {
   accent: string;
   background: string;
 }
+
+export type SortOrder = 'title' | 'last_played' | 'playtime';

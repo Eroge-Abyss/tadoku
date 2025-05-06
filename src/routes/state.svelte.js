@@ -156,6 +156,7 @@ class AppState {
    */
   async refreshGamesList() {
     this.#gamesList = await invoke('load_games');
+    this.sortGames();
   }
 
   /**
@@ -287,6 +288,7 @@ class AppState {
    */
   async setSortOrder(sortOrder) {
     await invoke('set_sort_order', { sortOrder });
+    this.#sortOrder = sortOrder;
     await this.refreshGamesList();
   }
 
@@ -310,10 +312,12 @@ class AppState {
   }
 
   sortByLastPlayed() {
-    return Object.entries(this.#gamesList).sort(
-      ([, a], [, b]) =>
-        (b.last_played || Infinity) - (a.last_played || Infinity),
-    );
+    return Object.entries(this.#gamesList).sort(([, a], [, b]) => {
+      if (b.last_played !== a.last_played) {
+        return (b.last_played || 0) - (a.last_played || 0);
+      }
+      return a.title.localeCompare(b.title);
+    });
   }
 }
 

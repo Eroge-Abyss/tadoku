@@ -140,7 +140,7 @@
     </div>
   </section-->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <section class="modal" class:open={showModal} onclick={handleModalClick}>
+  <section class="modal" class:open={showModal} onmousedown={handleModalClick}>
     <section class="modal__content">
       <header>
         <h3 class="title">Add a game</h3>

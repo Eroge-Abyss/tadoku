@@ -30,9 +30,11 @@
     playing for {playtime}
   </div> -->
   <GamesList gamesList={appState.gamesList} />
-  <button class="fa-dice-shake" onclick={getRandomGame}>
-    <i class="fa-solid fa-dice"></i>
-  </button>
+  {#if appState.showRandomButton}
+    <button class="fa-dice-shake" onclick={getRandomGame}>
+      <i class="fa-solid fa-dice"></i>
+    </button>
+  {/if}
 </main>
 
 <style>
@@ -41,7 +43,7 @@
     width: 50px;
     border-radius: 50%;
     border: none;
-    background-color: var(--dark-handle);
+    background: var(--accent);
     color: var(--main-text);
     cursor: pointer;
     position: fixed;
@@ -94,8 +96,5 @@
   /* Apply the animation on hover */
   .fa-dice-shake:hover i {
     animation: diceShake 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
-    perspective: 1000px;
   }
 </style>

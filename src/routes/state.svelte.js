@@ -30,9 +30,15 @@ class AppState {
    */
   #sortOrder = $state(null);
 
+  /**
+   * @type {boolean}
+   */
+  #showRandomButton = $state(false);
+
   constructor() {
     this.loadThemeSettings();
     this.loadSortOrder();
+    this.loadShowRandomButton();
   }
 
   // Getters and Setters
@@ -42,6 +48,10 @@ class AppState {
 
   set currentGame(game) {
     this.#currentGame = game;
+  }
+
+  get showRandomButton() {
+    return this.#showRandomButton;
   }
 
   /**
@@ -279,6 +289,19 @@ class AppState {
           : this.sortByTitle();
 
     this.#gamesList = Object.fromEntries(sortedEntries);
+  }
+
+  /**
+   * @param {boolean} to
+   * @returns {Promise<void>}
+   */
+  async setShowRandomButton(to) {
+    this.#showRandomButton = to;
+    await invoke('set_show_random_picker', { to });
+  }
+
+  async loadShowRandomButton() {
+    this.#showRandomButton = await invoke('get_show_random_picker');
   }
 
   /**

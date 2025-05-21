@@ -18,7 +18,7 @@ impl Default for ThemeSettings {
     fn default() -> Self {
         Self {
             theme: String::from("default"),
-            accent_color: String::from("#3b82f6"),
+            accent_color: String::from("#2a2a2a"),
             use_custom_accent: false,
         }
     }
@@ -29,7 +29,7 @@ impl Default for ThemeSettings {
 pub enum SortOrder {
     Playtime,
     LastPlayed,
-    Title
+    Title,
 }
 
 // #[derive(Serialize, Deserialize)]
@@ -60,10 +60,13 @@ impl SettingsStore {
     }
 
     pub fn get_theme_settings(&self) -> Result<ThemeSettings> {
-        let theme_settings: ThemeSettings =
-            serde_json::from_value(self.store.get("theme_settings").unwrap_or(json!({})))?;
-
-        Ok(theme_settings)
+        match self.store.get("theme_settings") {
+            Some(v) => {
+                let settings: ThemeSettings = serde_json::from_value(v)?;
+                Ok(settings)
+            }
+            None => Ok(ThemeSettings::default()),
+        }
     }
 
     pub fn set_theme_settings(&self, theme_settings: ThemeSettings) -> Result<()> {
@@ -96,14 +99,28 @@ impl SettingsStore {
         Ok(v)
     }
 
-    pub fn get_sort_order(&self) -> Result<SortOrder>{
-        let v: SortOrder = serde_json::from_value(self.store.get("sort_order").unwrap_or(json!("title")))?;
+    pub fn get_sort_order(&self) -> Result<SortOrder> {
+        let v: SortOrder =
+            serde_json::from_value(self.store.get("sort_order").unwrap_or(json!("title")))?;
 
         Ok(v)
     }
 
     pub fn set_sort_order(&self, new_sort_order: SortOrder) -> Result<()> {
         self.store.set("sort_order", json!(new_sort_order));
+
+        Ok(())
+    }
+
+    pub fn get_show_random_picker(&self) -> Result<bool> {
+        let v: bool =
+            serde_json::from_value(self.store.get("show_random_picker").unwrap_or(json!(true)))?;
+
+        Ok(v)
+    }
+
+    pub fn set_show_random_picker(&self, to: bool) -> Result<()> {
+        self.store.set("show_random_picker", json!(to));
 
         Ok(())
     }

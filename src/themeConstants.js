@@ -66,6 +66,6 @@ export const COLOR_SWATCHES = [
  */
 export const DEFAULT_THEME_SETTINGS = {
   theme: 'default',
-  accentColor: '#3b82f6',
+  accentColor: '#2a2a2a',
   useCustomColor: false,
 };

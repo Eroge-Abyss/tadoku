@@ -248,6 +248,19 @@
           >Disable Discord Presence for NSFW content</span
         >
       </div>
+
+      <div class="switch-container">
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button
+          class="switch"
+          class:active={appState.showRandomButton}
+          onclick={() =>
+            appState.setShowRandomButton(!appState.showRandomButton)}
+        >
+          <span class="switch-thumb"></span>
+        </button>
+        <span class="switch-label">Show the random game button in home</span>
+      </div>
     </div>
     <!--
     <div class="settings-section">

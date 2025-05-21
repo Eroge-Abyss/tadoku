@@ -18,7 +18,7 @@ impl Default for ThemeSettings {
     fn default() -> Self {
         Self {
             theme: String::from("default"),
-            accent_color: String::from("#3b82f6"),
+            accent_color: String::from("#2a2a2a"),
             use_custom_accent: false,
         }
     }
@@ -60,10 +60,13 @@ impl SettingsStore {
     }
 
     pub fn get_theme_settings(&self) -> Result<ThemeSettings> {
-        let theme_settings: ThemeSettings =
-            serde_json::from_value(self.store.get("theme_settings").unwrap_or(json!({})))?;
-
-        Ok(theme_settings)
+        match self.store.get("theme_settings") {
+            Some(v) => {
+                let settings: ThemeSettings = serde_json::from_value(v)?;
+                Ok(settings)
+            }
+            None => Ok(ThemeSettings::default()),
+        }
     }
 
     pub fn set_theme_settings(&self, theme_settings: ThemeSettings) -> Result<()> {

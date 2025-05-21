@@ -1,3 +1,9 @@
+use crate::services::{discord::DiscordPresence, games_store::Game, settings_store::SettingsStore};
+use std::{error::Error, fs, sync::Mutex};
+use tauri::{AppHandle, Manager};
+use tauri_plugin_fs::FsExt;
+use tauri_plugin_store::StoreExt;
+
 #[derive(Default, Clone)]
 pub struct GameState {
     pub id: String,
@@ -16,13 +22,6 @@ pub struct AppState {
     pub presence: Option<DiscordPresence>,
     pub config: Config,
 }
-
-use crate::services::{discord::DiscordPresence, games_store::Game, settings_store::SettingsStore};
-use std::{error::Error, fs, sync::Mutex};
-use tauri::{AppHandle, Manager};
-use tauri_plugin_fs::FsExt;
-use tauri_plugin_store::StoreExt;
-
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 // This script should be able to
@@ -110,12 +109,46 @@ pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
     };
 
     let state = AppState {
-        presence: DiscordPresence::new().ok(),
+        presence: None,
         config,
         ..Default::default()
     };
 
     app_handle.manage(Mutex::new(state));
+
+    Ok(())
+}
+
+pub fn initalize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
+    let app_handle_clone = app_handle.clone();
+
+    tauri::async_runtime::spawn(async move {
+        let app_state_mutex = app_handle_clone.state::<Mutex<AppState>>();
+
+        let mut state = match app_state_mutex.lock() {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!(
+                    "Background task: Error acquiring mutex lock for AppState: {}",
+                    e
+                );
+                return;
+            }
+        };
+
+        match DiscordPresence::new() {
+            Ok(presence) => {
+                state.presence = Some(presence);
+            }
+            Err(e) => {
+                eprintln!(
+                    "Background task: Failed to initialize DiscordPresence: {}",
+                    e
+                );
+                state.presence = None;
+            }
+        }
+    });
 
     Ok(())
 }

@@ -1,6 +1,6 @@
 [package]
 name = "tadoku"
-version = "1.2.2"
+version = "1.2.3"
 description = "A Visual Novel manager and stats tracker"
 authors = ["kofta999 <mostafaxxx555@gmail.com>", "rekka69", "applesx"]
 edition = "2021"

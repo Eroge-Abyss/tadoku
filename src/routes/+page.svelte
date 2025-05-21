@@ -30,9 +30,11 @@
     playing for {playtime}
   </div> -->
   <GamesList gamesList={appState.gamesList} />
-  <button class="fa-dice-shake" onclick={getRandomGame}>
-    <i class="fa-solid fa-dice"></i>
-  </button>
+  {#if appState.showRandomButton}
+    <button class="fa-dice-shake" onclick={getRandomGame}>
+      <i class="fa-solid fa-dice"></i>
+    </button>
+  {/if}
 </main>
 
 <style>

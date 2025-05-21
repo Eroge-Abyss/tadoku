@@ -41,6 +41,8 @@ pub fn run() {
             commands::storage::set_theme_settings,
             commands::storage::get_nsfw_presence_status,
             commands::storage::set_nsfw_presence_status,
+            commands::storage::get_show_random_picker,
+            commands::storage::set_show_random_picker,
             commands::storage::get_sort_order,
             commands::storage::set_sort_order,
             commands::storage::set_characters,

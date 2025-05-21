@@ -29,7 +29,7 @@ impl Default for ThemeSettings {
 pub enum SortOrder {
     Playtime,
     LastPlayed,
-    Title
+    Title,
 }
 
 // #[derive(Serialize, Deserialize)]
@@ -96,14 +96,28 @@ impl SettingsStore {
         Ok(v)
     }
 
-    pub fn get_sort_order(&self) -> Result<SortOrder>{
-        let v: SortOrder = serde_json::from_value(self.store.get("sort_order").unwrap_or(json!("title")))?;
+    pub fn get_sort_order(&self) -> Result<SortOrder> {
+        let v: SortOrder =
+            serde_json::from_value(self.store.get("sort_order").unwrap_or(json!("title")))?;
 
         Ok(v)
     }
 
     pub fn set_sort_order(&self, new_sort_order: SortOrder) -> Result<()> {
         self.store.set("sort_order", json!(new_sort_order));
+
+        Ok(())
+    }
+
+    pub fn get_show_random_picker(&self) -> Result<bool> {
+        let v: bool =
+            serde_json::from_value(self.store.get("show_random_picker").unwrap_or(json!(true)))?;
+
+        Ok(v)
+    }
+
+    pub fn set_show_random_picker(&self, to: bool) -> Result<()> {
+        self.store.set("show_random_picker", json!(to));
 
         Ok(())
     }

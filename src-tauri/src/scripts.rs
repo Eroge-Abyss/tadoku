@@ -98,7 +98,7 @@ pub fn create_images_folder(app_handle: &AppHandle) -> Result<()> {
 
         Ok(())
     } else {
-        return Err("Failed to get app local data directory".into());
+        Err("Failed to get app local data directory".into())
     }
 }
 

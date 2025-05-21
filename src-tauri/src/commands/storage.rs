@@ -305,3 +305,27 @@ pub fn set_sort_order(app_handle: AppHandle, sort_order: SortOrder) -> Result<()
 
     Ok(())
 }
+
+/// Gets show random picker
+#[tauri::command]
+pub fn get_show_random_picker(app_handle: AppHandle) -> Result<bool, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_show_random_picker()
+        .map_err(|_| "Couldn't get show random picker")?)
+}
+
+/// Saves theme settings to storage
+#[tauri::command]
+pub fn set_show_random_picker(app_handle: AppHandle, to: bool) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_show_random_picker(to)
+        .map_err(|_| "Error happened while setting show random picker")?;
+
+    Ok(())
+}

@@ -40,6 +40,12 @@ class AppState {
   #sortOrder = $state(null);
 
   /**
+   * Whether Discord presence should be disabled for NSFW games.
+   * @type {boolean}
+   */
+  #disablePresenceOnNsfw = $state(true);
+
+  /**
    * Whether the random game picker button should be shown.
    * @type {boolean}
    */
@@ -52,6 +58,7 @@ class AppState {
     this.loadThemeSettings();
     this.loadSortOrder();
     this.loadShowRandomButton();
+    this.loadDisablePresenceOnNsfw();
   }
 
   // --- Getters ---
@@ -62,6 +69,14 @@ class AppState {
    */
   get currentGame() {
     return this.#currentGame;
+  }
+
+  /**
+   * Gets whether Discord presence is disabled for NSFW games.
+   * @returns {boolean}
+   */
+  get disablePresenceOnNsfw() {
+    return this.#disablePresenceOnNsfw;
   }
 
   /**
@@ -160,6 +175,18 @@ class AppState {
       this.#sortOrder = await invoke('get_sort_order');
     } catch (error) {
       console.error('Failed to load sort order:', error);
+    }
+  }
+
+  /**
+   * Loads the disable presence on NSFW setting from the backend.
+   * @returns {Promise<void>}
+   */
+  async loadDisablePresenceOnNsfw() {
+    try {
+      this.#disablePresenceOnNsfw = await invoke('get_nsfw_presence_status');
+    } catch (error) {
+      console.error('Failed to load disable presence on NSFW:', error);
     }
   }
 
@@ -451,6 +478,21 @@ class AppState {
       await invoke('set_show_random_picker', { to });
     } catch (error) {
       console.error('Failed to set show random button setting:', error);
+      throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
+   * Sets whether Discord presence should be disabled for NSFW games and saves the setting to the backend.
+   * @param {boolean} to - The desired state (true to disable, false to enable).
+   * @returns {Promise<void>}
+   */
+  async setDisablePresenceOnNsfw(to) {
+    try {
+      this.#disablePresenceOnNsfw = to;
+      await invoke('set_nsfw_presence_status', { to });
+    } catch (error) {
+      console.error('Failed to set NSFW presence status:', error);
       throw error; // Re-throw to allow UI to handle
     }
   }

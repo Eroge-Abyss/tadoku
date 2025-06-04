@@ -11,7 +11,6 @@
   let selectedTheme = $state<string>(appState.themeSettings.theme);
   let customColor = $state<string>(appState.themeSettings.accentColor);
   let useCustomColor = $state<boolean>(appState.themeSettings.useCustomColor);
-  let disableDiscordPresence = $state<boolean>(false);
   let themeMap = $state<Map<string, Theme>>(new Map());
   const selectHandlers: Record<string, () => void> = {};
 
@@ -41,28 +40,7 @@
       : themeMap.get(selectedTheme)?.primary || THEMES[0]?.primary || '#1e88e5',
   );
 
-  async function toggleDiscordPresence(): Promise<void> {
-    try {
-      await invoke('set_nsfw_presence_status');
-
-      disableDiscordPresence = await invoke<boolean>(
-        'get_nsfw_presence_status',
-      );
-    } catch (error) {
-      console.error('Error toggling Discord presence status:', error);
-    }
-  }
-
   onMount(async () => {
-    try {
-      disableDiscordPresence = await invoke<boolean>(
-        'get_nsfw_presence_status',
-      );
-    } catch (error) {
-      console.error('Error fetching Discord presence status:', error);
-      disableDiscordPresence = false;
-    }
-
     appVersion = await getVersion();
   });
 
@@ -119,16 +97,8 @@
     colorOptionsVisible = useCustomColor;
 
     try {
-      let currentStatus = await invoke<boolean>('get_nsfw_presence_status');
-
-      if (currentStatus !== false) {
-        await invoke('set_nsfw_presence_status');
-        disableDiscordPresence = await invoke<boolean>(
-          'get_nsfw_presence_status',
-        );
-      } else {
-        disableDiscordPresence = false;
-      }
+      appState.setShowRandomButton(true);
+      appState.setDisablePresenceOnNsfw(true);
     } catch (error) {
       console.error('Error resetting Discord presence status:', error);
     }
@@ -239,8 +209,9 @@
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
           class="switch"
-          class:active={disableDiscordPresence}
-          onclick={toggleDiscordPresence}
+          class:active={appState.disablePresenceOnNsfw}
+          onclick={() =>
+            appState.setDisablePresenceOnNsfw(!appState.disablePresenceOnNsfw)}
         >
           <span class="switch-thumb"></span>
         </button>

@@ -1,6 +1,6 @@
 use crate::prelude::Result;
 use crate::services::discord::DiscordPresenceMode;
-use crate::services::{discord::DiscordPresence, games_store::Game, settings_store::SettingsStore};
+use crate::services::{discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore};
 use std::{fs, sync::Mutex};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;

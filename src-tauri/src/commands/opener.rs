@@ -1,5 +1,5 @@
 use crate::{
-    services::{discord::DiscordGameDetails, games_store::GamesStore, playtime},
+    services::{discord::DiscordGameDetails, stores::games::GamesStore, playtime},
     util, AppState, GameState,
 };
 use serde::Serialize;

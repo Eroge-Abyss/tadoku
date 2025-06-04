@@ -1,7 +1,8 @@
 use crate::{
     services::{
-        games_store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
-        settings_store::{SettingsStore, SortOrder, ThemeSettings},
+        stores::categories::{Categories, CategoriesStore},
+        stores::games::{Character, Game, Games, GamesStore},
+        stores::settings::{SettingsStore, SortOrder, ThemeSettings},
         vndb::Vndb,
     },
     util::{self},
@@ -130,7 +131,7 @@ pub fn update_exe(
     let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 
     store
-        .edit_exe(&game_id, &new_exe_path)
+        .update_exe_path(&game_id, &new_exe_path)
         .map_err(|_| "Error happened while updating exe")?;
 
     Ok(())
@@ -146,7 +147,7 @@ pub fn update_process(
     let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 
     store
-        .edit_process(&game_id, &new_process_path)
+        .update_process_path(&game_id, &new_process_path)
         .map_err(|_| "Error happened while updating process path")?;
 
     Ok(())
@@ -230,19 +231,19 @@ pub fn get_nsfw_presence_status(app_handle: AppHandle) -> Result<bool, String> {
 
 /// Saves theme settings to storage
 #[tauri::command]
-pub fn set_nsfw_presence_status(app_handle: AppHandle) -> Result<(), String> {
+pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> Result<(), String> {
     let store =
         SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 
-    let new_status = store
-        .toggle_presence_on_nsfw()
+    store
+        .set_presence_on_nsfw(to)
         .map_err(|_| "Error happened while setting theme settings")?;
 
     let binding = app_handle.state::<Mutex<AppState>>();
 
     let mut app_state = binding.lock().map_err(|_| "Cannot acquire state lock")?;
 
-    app_state.config.disable_presence_on_nsfw = new_status;
+    app_state.config.disable_presence_on_nsfw = to;
 
     Ok(())
 }

@@ -1,7 +1,6 @@
 <script>
   import SidebarButton from '$lib/util/SidebarButton.svelte';
   import AddGame from '$lib/AddGame.svelte';
-  // import Icon from "@iconify/svelte";
   import { goto } from '$app/navigation';
   import { appState } from '../routes/state.svelte';
   import { convertFileSrc, invoke } from '@tauri-apps/api/core';

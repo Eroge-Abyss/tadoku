@@ -100,6 +100,7 @@
 <!-- Hide dropdown when clicking outside -->
 <svelte:window
   on:click={(e) => {
+    // @ts-ignore
     if (!e.target?.closest('.dropdown')) {
       isDropdownOpen = false;
     }

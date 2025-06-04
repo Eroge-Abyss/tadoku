@@ -1,9 +1,9 @@
 <script>
   import GamesList from '$lib/GamesList.svelte';
-  import { listen } from '@tauri-apps/api/event';
+  // import { listen } from '@tauri-apps/api/event';
   import { onMount } from 'svelte';
   import { appState } from './state.svelte';
-  import { invoke } from '@tauri-apps/api/core';
+  // import { invoke } from '@tauri-apps/api/core';
   import { goto } from '$app/navigation';
   // let playtime = 0;
 

@@ -1,4 +1,6 @@
 <script>
+  /** @typedef {import('$lib/types').VndbResult} VndbResult */
+
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
   import { appState } from '../routes/state.svelte';
@@ -7,33 +9,19 @@
   const NSFW_RATE = 0.5;
 
   let showModal = $state(false);
-  let showProcessSelector = $state(false);
   let search = $state();
-  let processSearch = $state();
   let exe_path = $state();
+
+  /**
+   * @type {VndbResult[]}
+   */
   let results = $state.raw([]);
   let selectedVn = $state.raw();
   let showImage = $state(false);
   let charactersDownload = $state(false);
   let loading = $state(false);
 
-  function handleModalClick(e) {
-    if (e.target.classList.contains('modal')) {
-      closeModal();
-    }
-  }
-  function toggleImage() {
-    showImage = !showImage;
-  }
-
-  // State for tracking if the switch is active
-  let isActive = $state(false);
-
-  // Function to toggle the switch state
-  function toggleSwitch() {
-    isActive = !isActive;
-  }
-
+  // @ts-ignore
   async function updateSearch(e) {
     search = e.target.value;
     const data = await invoke('fetch_vn_info', { key: search });
@@ -48,10 +36,7 @@
     selectedVn = '';
   };
 
-  const closeProcessSelector = () => {
-    showProcessSelector = false;
-  };
-
+  // @ts-ignore
   const debounce = (v) => {
     let timer;
     clearTimeout(timer);
@@ -74,10 +59,7 @@
     exe_path = file;
   };
 
-  const pickProcess = async () => {
-    showProcessSelector = true;
-  };
-
+  // @ts-ignore
   const selectGame = (game) => {
     selectedVn = game;
     showImage = false;
@@ -85,6 +67,9 @@
     search = '';
   };
 
+  /**
+   * @param {VndbResult} vn
+   */
   const saveGame = async (vn) => {
     if (!vn || vn.id === undefined) {
       alert('Please select a game from the list.');
@@ -110,6 +95,7 @@
         is_nsfw: vn.image.sexual > NSFW_RATE,
         playtime: 0,
         characters: [],
+        last_played: null,
       };
 
       await appState.saveGame(vn.id, gameData, {
@@ -119,6 +105,7 @@
       closeModal();
     } catch (error) {
       console.error('Error saving game:', error);
+      // @ts-ignore
       alert(`Failed to save game: ${error.message || 'Unknown error'}`);
     } finally {
       loading = false;

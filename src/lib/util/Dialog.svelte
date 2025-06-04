@@ -2,9 +2,10 @@
   import CloseIcon from '$lib/util/CloseIcon.svelte';
   let { show, close, header, children } = $props(); // Prop to control visibility
 
+  // @ts-ignore
   function handleModalClick(e) {
     // Check if the click occurred directly on the modal backdrop
-    if (e.target.classList.contains('modal')) {
+    if (e.target?.classList.contains('modal')) {
       close();
     }
   }

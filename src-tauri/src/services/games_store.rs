@@ -1,12 +1,10 @@
-use std::{collections::HashMap, error::Error, fs, path::PathBuf, sync::Arc, time};
-
+use crate::prelude::*;
 use crate::util;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, Wry};
+use std::{collections::HashMap, fs, path::PathBuf, time};
+use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
 
-type Store = Arc<tauri_plugin_store::Store<Wry>>;
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 pub type Categories = Vec<String>;
 
 #[derive(Serialize, Deserialize, Debug, Default)]

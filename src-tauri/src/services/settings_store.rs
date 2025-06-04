@@ -1,11 +1,8 @@
+use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::{error::Error, sync::Arc};
-use tauri::{AppHandle, Wry};
+use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
-
-type Store = Arc<tauri_plugin_store::Store<Wry>>;
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Serialize, Deserialize)]
 pub struct ThemeSettings {

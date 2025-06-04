@@ -1,5 +1,7 @@
+use crate::prelude::Result;
+use crate::services::discord::DiscordPresenceMode;
 use crate::services::{discord::DiscordPresence, games_store::Game, settings_store::SettingsStore};
-use std::{error::Error, fs, sync::Mutex};
+use std::{fs, sync::Mutex};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
 use tauri_plugin_store::StoreExt;
@@ -22,7 +24,6 @@ pub struct AppState {
     pub presence: Option<DiscordPresence>,
     pub config: Config,
 }
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 // This script should be able to
 // 1. Get the store
@@ -119,7 +120,7 @@ pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
     Ok(())
 }
 
-pub fn initalize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
+pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
     let app_handle_clone = app_handle.clone();
 
     tauri::async_runtime::spawn(async move {
@@ -136,7 +137,7 @@ pub fn initalize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
             }
         };
 
-        match DiscordPresence::new() {
+        match DiscordPresence::new(DiscordPresenceMode::default()) {
             Ok(presence) => {
                 state.presence = Some(presence);
             }

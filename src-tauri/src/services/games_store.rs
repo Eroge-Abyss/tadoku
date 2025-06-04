@@ -9,7 +9,7 @@ type Store = Arc<tauri_plugin_store::Store<Wry>>;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 pub type Categories = Vec<String>;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Game {
     pub title: String,
     pub description: String,
@@ -38,25 +38,6 @@ pub struct Character {
 
 pub struct CategoriesStore {
     store: Store,
-}
-
-impl Default for Game {
-    fn default() -> Self {
-        Self {
-            title: String::new(),
-            description: String::new(),
-            image_url: String::new(),
-            exe_file_path: String::new(),
-            process_file_path: String::new(),
-            playtime: 0,
-            last_played: None,
-            is_pinned: false,
-            is_nsfw: false,
-            icon_url: None,
-            categories: Vec::new(),
-            characters: None,
-        }
-    }
 }
 
 pub type Games = HashMap<String, Game>;
@@ -158,7 +139,7 @@ impl GamesStore {
 
     pub fn update_playtime(&self, game_id: &str, playtime: u64) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
         let old_playtime = game["playtime"].as_u64().ok_or("Can't convert to u64")?;
 
         game["playtime"] = serde_json::json!(old_playtime + playtime);
@@ -174,7 +155,7 @@ impl GamesStore {
 
     pub fn edit_exe(&self, game_id: &str, exe_path: &str) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
         game["exe_file_path"] = serde_json::json!(exe_path);
         self.store.set("gamesData", games_data);
@@ -184,7 +165,7 @@ impl GamesStore {
 
     pub fn edit_process(&self, game_id: &str, process_path: &str) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
         game["process_file_path"] = serde_json::json!(process_path);
         self.store.set("gamesData", games_data);
@@ -194,7 +175,7 @@ impl GamesStore {
 
     pub fn set_categories(&self, game_id: &str, categories: Categories) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
         game["categories"] = serde_json::json!(categories);
         self.store.set("gamesData", games_data);
@@ -204,7 +185,7 @@ impl GamesStore {
 
     pub fn set_characters(&self, game_id: &str, characters: Vec<Character>) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
         game["characters"] = serde_json::json!(characters);
         self.store.set("gamesData", games_data);
@@ -214,7 +195,7 @@ impl GamesStore {
 
     pub fn update_last_played(&self, game_id: &str) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
         let start = time::SystemTime::now();
         let since_the_epoch = start
             .duration_since(time::UNIX_EPOCH)

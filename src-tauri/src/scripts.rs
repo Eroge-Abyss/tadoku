@@ -103,7 +103,7 @@ pub fn create_images_folder(app_handle: &AppHandle) -> Result<()> {
 
 /// Initializes app state
 pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
-    let settings_store = SettingsStore::new(&app_handle)?;
+    let settings_store = SettingsStore::new(app_handle)?;
     let config = Config {
         disable_presence_on_nsfw: settings_store.get_presence_on_nsfw()?,
     };

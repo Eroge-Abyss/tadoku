@@ -1,4 +1,6 @@
-use crate::util::{self, get_playtime};
+#[cfg(windows)]
+use crate::util::flush_playtime;
+use crate::util::get_playtime;
 use crate::AppState;
 use serde_json::json;
 use std::{sync::Mutex, thread, time::Duration};
@@ -43,7 +45,7 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                                 }
 
                                 if current_playtime % 60 == 0 {
-                                    util::flush_playtime(&app_handle, &game_id, 60)
+                                    flush_playtime(&app_handle, &game_id, 60)
                                         .map_err(|_| "Error happened while updating playtime")?;
                                 }
 

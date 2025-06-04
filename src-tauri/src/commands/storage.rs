@@ -1,9 +1,3 @@
-use std::sync::Mutex;
-
-use serde::{Deserialize, Serialize};
-#[cfg(windows)]
-use windows_icons;
-
 use crate::{
     services::{
         games_store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
@@ -13,7 +7,11 @@ use crate::{
     util::{self},
     AppState,
 };
+use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
+#[cfg(windows)]
+use windows_icons;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Options {

@@ -20,9 +20,9 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(prevent_default())
         .setup(|app| {
-            scripts::setup_store(&app.app_handle())?;
-            scripts::create_images_folder(&app.app_handle())?;
-            scripts::initialize_state(&app.app_handle())?;
+            scripts::setup_store(app.app_handle())?;
+            scripts::create_images_folder(app.app_handle())?;
+            scripts::initialize_state(app.app_handle())?;
             scripts::initalize_discord(app.app_handle())?;
 
             Ok(())

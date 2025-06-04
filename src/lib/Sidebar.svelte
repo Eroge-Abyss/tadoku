@@ -1,5 +1,5 @@
 <script>
-  import Button from '$lib/util/Button.svelte';
+  import SidebarButton from '$lib/util/SidebarButton.svelte';
   import AddGame from '$lib/AddGame.svelte';
   // import Icon from "@iconify/svelte";
   import { goto } from '$app/navigation';
@@ -23,12 +23,12 @@
   <section id="sidebar__header">
     <h1>多</h1>
     <div id="sidebar__header__buttons">
-      <Button onclick={() => goto('/')}>
+      <SidebarButton onclick={() => goto('/')}>
         <SquaresIcon style="font-size: 24px;" />
-      </Button>
+      </SidebarButton>
 
       {#each pinnedGames as { id, image, char } (id)}
-        <Button
+        <SidebarButton
           onclick={() => invoke('open_game', { gameId: id })}
           image={image ? image : undefined}
           text={image ? undefined : char}

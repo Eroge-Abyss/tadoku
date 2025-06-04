@@ -4,7 +4,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { getVersion } from '@tauri-apps/api/app';
   import { THEMES, COLOR_SWATCHES } from '../../themeConstants.js';
-  import type { SortOrder, Theme } from '$lib/types';
+  import type { Theme } from '$lib/types';
   import type { ColorSwatch } from '$lib/types';
 
   let appVersion = $state<string>();

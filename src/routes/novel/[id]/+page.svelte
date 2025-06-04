@@ -339,24 +339,6 @@
 </div>
 
 <style>
-  /* TODO: FIX old CSS vars */
-
-  /* .back-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--primary);
-        text-decoration: none;
-        margin-bottom: 2rem;
-        font-size: 1rem;
-        font-weight: 500;
-        transition: color 0.2s;
-    }
-
-    .back-button:hover {
-        color: var(--primary-dark);
-    } */
-
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
@@ -625,12 +607,12 @@
     }
   }
 
-  h2 {
+  /* h2 {
     color: var(--foreground);
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
     font-weight: 600;
-  }
+  } */
 
   .stats-grid {
     display: grid;
@@ -666,7 +648,7 @@
     font-weight: 600;
   }
 
-  .progress-bars {
+  /* .progress-bars {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -685,5 +667,5 @@
     font-size: 0.875rem;
     margin-bottom: 0.5rem;
     opacity: 0.7;
-  }
+  } */
 </style>

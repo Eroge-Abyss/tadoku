@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { Process } from '$lib/types';
-  import CloseIcon from '$lib/util/CloseIcon.svelte';
-  import { invoke } from '@tauri-apps/api/core';
+  import Dialog from '$lib/util/Dialog.svelte';
   import { appState } from '../../routes/state.svelte';
 
   let {
@@ -51,66 +50,57 @@
 </script>
 
 <section>
-  <section class="modal" class:open={isOpen}>
-    <section class="modal__content">
-      <header>
-        <h3 class="title">{title}</h3>
-        <span onclick={closeModal}>
-          <CloseIcon style="font-size: 24px;" />
+  <Dialog show={isOpen} close={closeModal}>
+    {#snippet header()}
+      {title}
+    {/snippet}
+
+    <section class="game-form">
+      <div class="dropdown">
+        <input
+          type="text"
+          placeholder="Search..."
+          bind:value={searchTerm}
+          onfocus={() => (isDropdownOpen = true)}
+        />
+
+        {#if isDropdownOpen}
+          <div class="dropdown-menu show">
+            {#each filteredItems as item}
+              <div onclick={() => selectItem(item)} class="dropdown-item">
+                <img src={item.icon} alt={item.title} width={32} height={32} />
+                <span>{item.title}</span>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+
+      <div class="info-container">
+        <span class="icon-info">
+          <i class="fa-solid fa-info-circle"></i>
         </span>
-      </header>
-      <section class="game-form">
-        <div class="dropdown">
-          <input
-            type="text"
-            placeholder="Search..."
-            bind:value={searchTerm}
-            onfocus={() => (isDropdownOpen = true)}
-          />
+        <p class="note">
+          If you can't find your game, try setting it to windowed then return to
+          full screen when done.
+        </p>
+      </div>
 
-          {#if isDropdownOpen}
-            <div class="dropdown-menu show">
-              {#each filteredItems as item}
-                <div onclick={() => selectItem(item)} class="dropdown-item">
-                  <img
-                    src={item.icon}
-                    alt={item.title}
-                    width={32}
-                    height={32}
-                  />
-                  <span>{item.title}</span>
-                </div>
-              {/each}
-            </div>
-          {/if}
-        </div>
-
-        <div class="info-container">
-          <span class="icon-info">
-            <i class="fa-solid fa-info-circle"></i>
-          </span>
-          <p class="note">
-            If you can't find your game, try setting it to windowed then return
-            to full screen when done.
-          </p>
-        </div>
-
-        <button disabled={loading} class="save-button" onclick={handleConfirm}>
-          {#if loading}
-            Saving...
-          {:else}
-            Save
-          {/if}
-        </button>
-        <button onclick={closeModal}>Cancel</button>
-      </section>
+      <button disabled={loading} class="save-button" onclick={handleConfirm}>
+        {#if loading}
+          Saving...
+        {:else}
+          Save
+        {/if}
+      </button>
     </section>
-  </section>
+  </Dialog>
 </section>
 
 <!-- Hide dropdown when clicking outside -->
 <svelte:window
   on:click={(e) => {
+    // @ts-ignore
     if (!e.target?.closest('.dropdown')) {
       isDropdownOpen = false;
     }
@@ -118,79 +108,24 @@
 />
 
 <style>
-  .title {
-    padding-left: 15px;
-    padding-top: 10px;
+  .game-form {
+    margin: 1rem;
   }
-  .modal {
-    position: fixed;
-    height: 100%;
-    width: 100%;
-    z-index: 3;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+
+  .game-form button {
+    border: 0;
+    background-color: #313131;
+    border-radius: var(--small-radius);
     color: #fff;
-    background: rgba(0, 0, 0, 0.6);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.2s ease-in-out;
-    /* Start scaled down */
-    &.open {
-      opacity: 1;
-      pointer-events: all;
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 18px;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 
-      & .modal__content {
-        transform: translate(0, 0) scale(1); /* Scale up */
-      }
-    }
-
-    & .modal__content {
-      background-color: var(--main-background);
-      padding: 1rem;
-      width: 500px;
-      border-radius: var(--big-radius);
-      display: flex;
-      flex-direction: column;
-      transform: translate(0, 100%) scale(0.8);
-      transition: all 0.2s ease-in-out;
-      & header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--main-text);
-        span {
-          color: #444;
-          cursor: pointer;
-          transition: color 0.2s ease-in-out;
-          &:hover {
-            color: var(--main-text);
-          }
-        }
-      }
-
-      & .game-form {
-        margin: 1rem;
-
-        & button {
-          border: 0;
-          background-color: #313131;
-          border-radius: var(--small-radius);
-          color: #fff;
-          width: 100%;
-          padding: 0.5rem;
-          font-size: 18px;
-          margin-top: 1rem;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-
-          &:hover {
-            background-color: #404040;
-          }
-        }
-      }
+    &:hover {
+      background-color: #404040;
     }
   }
 

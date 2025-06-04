@@ -7,7 +7,6 @@
   import { onMount } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
   import { appState } from './state.svelte';
-  import { check } from '@tauri-apps/plugin-updater';
   import UpdateDialog from '$lib/util/UpdateDialog.svelte';
 
   // when using `"withGlobalTauri": true`, you may use

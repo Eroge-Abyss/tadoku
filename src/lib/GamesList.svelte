@@ -54,21 +54,6 @@
     width: 100%;
   }
 
-  /* .loading {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 50vh;
-        color: var(--foreground);
-    }
-
-    .loading p {
-        margin-top: 1rem;
-        font-size: 1.125rem;
-        font-weight: 500;
-    } */
-
   :global(.animate-spin) {
     animation: spin 1s linear infinite;
   }

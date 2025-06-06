@@ -1,10 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { appState } from '../state.svelte.js';
-  import { invoke } from '@tauri-apps/api/core';
   import { getVersion } from '@tauri-apps/api/app';
   import { THEMES, COLOR_SWATCHES } from '../../themeConstants.js';
-  import type { Theme } from '$lib/types';
+  import type { DiscordPresenceMode, Theme } from '$lib/types';
   import type { ColorSwatch } from '$lib/types';
 
   let appVersion = $state<string>();
@@ -15,6 +14,9 @@
   const selectHandlers: Record<string, () => void> = {};
 
   let colorOptionsVisible = $state<boolean>(false);
+  let selectedPresenceMode = $state<DiscordPresenceMode>(
+    appState.discordPresenceMode,
+  );
 
   $effect(() => {
     if (THEMES.length > 0) {
@@ -32,6 +34,7 @@
     customColor = appState.themeSettings.accentColor;
     useCustomColor = appState.themeSettings.useCustomColor;
     colorOptionsVisible = useCustomColor;
+    selectedPresenceMode = appState.discordPresenceMode;
   });
 
   let previewColor = $derived(
@@ -204,7 +207,19 @@
     </div>
 
     <div class="settings-section">
-      <h2>App Settings</h2>
+      <h2>Discord Presence</h2>
+      <div class="select-container">
+        <label for="presence-mode">Mode:</label>
+        <select
+          id="presence-mode"
+          bind:value={selectedPresenceMode}
+          onchange={() => appState.setDiscordPresenceMode(selectedPresenceMode)}
+        >
+          <option value="All">Show Presence for All Games</option>
+          <option value="Menu">Show Presence in Menus Only</option>
+          <option value="None">Disable All Discord Presence</option>
+        </select>
+      </div>
       <div class="switch-container">
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
@@ -215,11 +230,13 @@
         >
           <span class="switch-thumb"></span>
         </button>
-        <span class="switch-label"
-          >Disable Discord Presence for NSFW content</span
+        <span class="switch-label">Hide image and VNDB link for NSFW games</span
         >
       </div>
+    </div>
 
+    <div class="settings-section">
+      <h2>App Settings</h2>
       <div class="switch-container">
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
@@ -260,6 +277,45 @@
     user-select: none;
     opacity: 0.5;
     font-family: monospace;
+  }
+  .select-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .select-container label {
+    font-size: 14px;
+    color: var(--main-text);
+  }
+
+  .select-container select {
+    background-color: var(--main-background);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--small-radius);
+    padding: 0.5rem 0.75rem;
+    color: var(--main-text);
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    padding-right: 2rem;
+  }
+
+  .select-container select:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .select-container select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
   }
   .container {
     padding: 25px;

@@ -7,6 +7,7 @@ import { THEMES, DEFAULT_THEME_SETTINGS } from '../themeConstants.js';
  * @typedef {import('$lib/types').CurrentGame} CurrentGame
  * @typedef {import('$lib/types').ThemeSettings} ThemeSettings
  * @typedef {import('$lib/types').SortOrder} SortOrder
+ * @typedef {import('$lib/types').DiscordPresenceMode} DiscordPresenceMode
  */
 
 /**
@@ -52,6 +53,12 @@ class AppState {
   #showRandomButton = $state(false);
 
   /**
+   * The current Discord presence mode setting.
+   * @type {DiscordPresenceMode}
+   */
+  #discordPresenceMode = $state('All');
+
+  /**
    * Creates an instance of AppState and loads initial settings.
    */
   constructor() {
@@ -59,6 +66,7 @@ class AppState {
     this.loadSortOrder();
     this.loadShowRandomButton();
     this.loadDisablePresenceOnNsfw();
+    this.loadDiscordPresenceMode();
   }
 
   // --- Getters ---
@@ -77,6 +85,14 @@ class AppState {
    */
   get disablePresenceOnNsfw() {
     return this.#disablePresenceOnNsfw;
+  }
+
+  /**
+   * Gets the current Discord presence mode.
+   * @returns {DiscordPresenceMode}
+   */
+  get discordPresenceMode() {
+    return this.#discordPresenceMode;
   }
 
   /**
@@ -187,6 +203,19 @@ class AppState {
       this.#disablePresenceOnNsfw = await invoke('get_nsfw_presence_status');
     } catch (error) {
       console.error('Failed to load disable presence on NSFW:', error);
+    }
+  }
+
+  /**
+   * Loads the Discord presence mode setting from the backend.
+   *
+   * @returns {Promise<void>}
+   */
+  async loadDiscordPresenceMode() {
+    try {
+      this.#discordPresenceMode = await invoke('get_discord_presence_mode');
+    } catch (error) {
+      console.error('Failed to load discord presence mode setting:', error);
     }
   }
 
@@ -493,6 +522,22 @@ class AppState {
       await invoke('set_nsfw_presence_status', { to });
     } catch (error) {
       console.error('Failed to set NSFW presence status:', error);
+      throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
+   * Sets the Discord presence mode and saves the setting to the backend.
+   *
+   * @param {DiscordPresenceMode} to - The desired presence mode ('All', 'SafeOnly', 'Disabled').
+   * @returns {Promise<void>}
+   */
+  async setDiscordPresenceMode(to) {
+    try {
+      this.#discordPresenceMode = to;
+      await invoke('set_discord_presence_mode', { to });
+    } catch (error) {
+      console.error('Failed to set discord presence mode setting:', error);
       throw error; // Re-throw to allow UI to handle
     }
   }

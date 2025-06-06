@@ -215,8 +215,8 @@
           bind:value={selectedPresenceMode}
           onchange={() => appState.setDiscordPresenceMode(selectedPresenceMode)}
         >
-          <option value="All">Show Presence for All Games</option>
-          <option value="Menu">Show Presence in Menus Only</option>
+          <option value="All">Show Presence for Everything</option>
+          <option value="InGame">Show Presence for Games Only</option>
           <option value="None">Disable All Discord Presence</option>
         </select>
       </div>

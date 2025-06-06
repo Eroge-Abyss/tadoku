@@ -14,7 +14,7 @@ const DISCORD_CLIENT_ID: &str = "1333425743572500490";
 pub enum DiscordPresenceMode {
     #[default]
     All,
-    Menu,
+    InGame,
     None,
 }
 
@@ -29,7 +29,7 @@ impl DiscordPresence {
 
         client.connect()?;
 
-        if mode != DiscordPresenceMode::None {
+        if mode == DiscordPresenceMode::All {
             client.set_activity(
                 Activity::new()
                     .state("In Menus")
@@ -41,7 +41,7 @@ impl DiscordPresence {
     }
 
     pub fn set(&mut self, details: DiscordGameDetails) -> Result<()> {
-        if self.mode != DiscordPresenceMode::All {
+        if self.mode == DiscordPresenceMode::None {
             return Ok(());
         }
 
@@ -78,12 +78,14 @@ impl DiscordPresence {
     }
 
     pub fn reset(&mut self) -> Result<()> {
-        if self.mode != DiscordPresenceMode::None {
+        if self.mode == DiscordPresenceMode::All {
             return self.client.set_activity(
                 Activity::new()
                     .state("In Menus")
                     .assets(Assets::new().large_image("app_icon").large_text("Tadoku")),
             );
+        } else {
+            self.client.clear_activity()?;
         }
 
         Ok(())
@@ -91,11 +93,6 @@ impl DiscordPresence {
 
     pub fn set_mode(&mut self, to: DiscordPresenceMode) {
         self.mode = to;
-
-        if to == DiscordPresenceMode::None {
-            let _ = self.client.clear_activity();
-        } else {
-            let _ = self.reset();
-        }
+        let _ = self.reset();
     }
 }

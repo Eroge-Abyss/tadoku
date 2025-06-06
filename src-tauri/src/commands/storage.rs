@@ -1,19 +1,21 @@
-use std::sync::Mutex;
-
-use serde::{Deserialize, Serialize};
-#[cfg(windows)]
-use windows_icons;
-
 use crate::{
     services::{
-        games_store::{Categories, CategoriesStore, Character, Game, Games, GamesStore},
-        settings_store::{SettingsStore, SortOrder, ThemeSettings},
+        discord::DiscordPresenceMode,
+        stores::{
+            categories::{Categories, CategoriesStore},
+            games::{Character, Game, Games, GamesStore},
+            settings::{SettingsStore, SortOrder, ThemeSettings},
+        },
         vndb::Vndb,
     },
     util::{self},
     AppState,
 };
+use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
+#[cfg(windows)]
+use windows_icons;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Options {
@@ -132,7 +134,7 @@ pub fn update_exe(
     let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 
     store
-        .edit_exe(&game_id, &new_exe_path)
+        .update_exe_path(&game_id, &new_exe_path)
         .map_err(|_| "Error happened while updating exe")?;
 
     Ok(())
@@ -148,7 +150,7 @@ pub fn update_process(
     let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 
     store
-        .edit_process(&game_id, &new_process_path)
+        .update_process_path(&game_id, &new_process_path)
         .map_err(|_| "Error happened while updating process path")?;
 
     Ok(())
@@ -232,19 +234,19 @@ pub fn get_nsfw_presence_status(app_handle: AppHandle) -> Result<bool, String> {
 
 /// Saves theme settings to storage
 #[tauri::command]
-pub fn set_nsfw_presence_status(app_handle: AppHandle) -> Result<(), String> {
+pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> Result<(), String> {
     let store =
         SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
 
-    let new_status = store
-        .toggle_presence_on_nsfw()
+    store
+        .set_presence_on_nsfw(to)
         .map_err(|_| "Error happened while setting theme settings")?;
 
     let binding = app_handle.state::<Mutex<AppState>>();
 
     let mut app_state = binding.lock().map_err(|_| "Cannot acquire state lock")?;
 
-    app_state.config.disable_presence_on_nsfw = new_status;
+    app_state.config.disable_presence_on_nsfw = to;
 
     Ok(())
 }
@@ -317,7 +319,7 @@ pub fn get_show_random_picker(app_handle: AppHandle) -> Result<bool, String> {
         .map_err(|_| "Couldn't get show random picker")?)
 }
 
-/// Saves theme settings to storage
+/// Saves show random picker setting to storage
 #[tauri::command]
 pub fn set_show_random_picker(app_handle: AppHandle, to: bool) -> Result<(), String> {
     let store =
@@ -326,6 +328,41 @@ pub fn set_show_random_picker(app_handle: AppHandle, to: bool) -> Result<(), Str
     store
         .set_show_random_picker(to)
         .map_err(|_| "Error happened while setting show random picker")?;
+
+    Ok(())
+}
+
+/// Gets discord presence mode
+#[tauri::command]
+pub fn get_discord_presence_mode(app_handle: AppHandle) -> Result<DiscordPresenceMode, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_discord_presence_mode()
+        .map_err(|_| "Couldn't get discord presence mode")?)
+}
+
+/// Saves show random picker setting to storage
+#[tauri::command]
+pub fn set_discord_presence_mode(
+    app_handle: AppHandle,
+    to: DiscordPresenceMode,
+) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_discord_presence_mode(to)
+        .map_err(|_| "Error happened while setting discord presence mode")?;
+
+    let binding = app_handle.state::<Mutex<AppState>>();
+
+    let mut app_state = binding.lock().map_err(|_| "Cannot acquire state lock")?;
+
+    if let Some(presence) = app_state.presence.as_mut() {
+        presence.set_mode(to);
+    };
 
     Ok(())
 }

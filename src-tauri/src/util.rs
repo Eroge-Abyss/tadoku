@@ -1,10 +1,16 @@
-use std::{error::Error, fs, io::Cursor, path::PathBuf};
+use crate::scripts;
+#[cfg(windows)]
+use crate::services::games_store::GamesStore;
+use std::{
+    error::Error,
+    fs,
+    io::Cursor,
+    path::{Path, PathBuf},
+};
 use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest;
 use url::Url;
-
-use crate::{scripts, services::games_store::GamesStore};
 
 /// Extracts an image filename from an image URL
 pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
@@ -12,12 +18,12 @@ pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
     Ok(url
         .path_segments()
         .ok_or("Failed to get segments")?
-        .last()
+        .next_back()
         .ok_or("Failed to get filename")?
         .to_string())
 }
 
-pub fn construct_image_path(base_path: &PathBuf, url: &str) -> Result<PathBuf, Box<dyn Error>> {
+pub fn construct_image_path(base_path: &Path, url: &str) -> Result<PathBuf, Box<dyn Error>> {
     Ok(base_path.join("images").join(extract_image(url)?))
 }
 
@@ -38,9 +44,9 @@ pub fn get_pid_from_process_path(process_file_path: &str) -> Option<Pid> {
         RefreshKind::nothing().with_processes(ProcessRefreshKind::everything()),
     );
 
-    for (_, process) in s.processes() {
+    for process in s.processes().values() {
         if let Some(exe) = process.exe() {
-            if exe.to_str().unwrap() == process_file_path {
+            if exe.to_str()? == process_file_path {
                 return Some(process.pid());
             }
         }
@@ -60,7 +66,7 @@ pub async fn save_image(app_handle: &AppHandle, image_url: &str) -> Result<Strin
         .app_local_data_dir()
         .map_err(|err| err.to_string())?;
 
-    scripts::create_images_folder(&app_handle).map_err(|err| err.to_string())?;
+    scripts::create_images_folder(app_handle).map_err(|err| err.to_string())?;
 
     let path = construct_image_path(&base_path, image_url)
         .map_err(|_| "Failed to construct image path")?;
@@ -73,13 +79,14 @@ pub async fn save_image(app_handle: &AppHandle, image_url: &str) -> Result<Strin
     Ok(path.to_str().expect("Should not happen").to_owned())
 }
 
+#[cfg(windows)]
 /// Flushes playtime to disk
 pub fn flush_playtime(
     app_handle: &AppHandle,
     game_id: &str,
     playtime: u64,
 ) -> Result<(), Box<dyn Error>> {
-    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+    let store = GamesStore::new(app_handle).map_err(|_| "Error happened while accessing store")?;
 
     store
         .update_playtime(game_id, playtime)

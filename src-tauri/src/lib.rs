@@ -2,6 +2,7 @@ use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod commands;
+mod prelude;
 mod scripts;
 mod services;
 mod util;
@@ -20,10 +21,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(prevent_default())
         .setup(|app| {
-            scripts::setup_store(&app.app_handle())?;
-            scripts::create_images_folder(&app.app_handle())?;
-            scripts::initialize_state(&app.app_handle())?;
-            scripts::initalize_discord(app.app_handle())?;
+            scripts::setup_store(app.app_handle())?;
+            scripts::create_images_folder(app.app_handle())?;
+            scripts::initialize_state(app.app_handle())?;
+            scripts::initialize_discord(app.app_handle())?;
 
             Ok(())
         })
@@ -44,6 +45,8 @@ pub fn run() {
             commands::storage::set_nsfw_presence_status,
             commands::storage::get_show_random_picker,
             commands::storage::set_show_random_picker,
+            commands::storage::get_discord_presence_mode,
+            commands::storage::set_discord_presence_mode,
             commands::storage::get_sort_order,
             commands::storage::set_sort_order,
             commands::storage::set_characters,

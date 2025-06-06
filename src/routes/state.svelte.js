@@ -7,6 +7,7 @@ import { THEMES, DEFAULT_THEME_SETTINGS } from '../themeConstants.js';
  * @typedef {import('$lib/types').CurrentGame} CurrentGame
  * @typedef {import('$lib/types').ThemeSettings} ThemeSettings
  * @typedef {import('$lib/types').SortOrder} SortOrder
+ * @typedef {import('$lib/types').DiscordPresenceMode} DiscordPresenceMode
  */
 
 /**
@@ -40,10 +41,22 @@ class AppState {
   #sortOrder = $state(null);
 
   /**
+   * Whether Discord presence should be disabled for NSFW games.
+   * @type {boolean}
+   */
+  #disablePresenceOnNsfw = $state(true);
+
+  /**
    * Whether the random game picker button should be shown.
    * @type {boolean}
    */
   #showRandomButton = $state(false);
+
+  /**
+   * The current Discord presence mode setting.
+   * @type {DiscordPresenceMode}
+   */
+  #discordPresenceMode = $state('All');
 
   /**
    * Creates an instance of AppState and loads initial settings.
@@ -52,6 +65,8 @@ class AppState {
     this.loadThemeSettings();
     this.loadSortOrder();
     this.loadShowRandomButton();
+    this.loadDisablePresenceOnNsfw();
+    this.loadDiscordPresenceMode();
   }
 
   // --- Getters ---
@@ -62,6 +77,22 @@ class AppState {
    */
   get currentGame() {
     return this.#currentGame;
+  }
+
+  /**
+   * Gets whether Discord presence is disabled for NSFW games.
+   * @returns {boolean}
+   */
+  get disablePresenceOnNsfw() {
+    return this.#disablePresenceOnNsfw;
+  }
+
+  /**
+   * Gets the current Discord presence mode.
+   * @returns {DiscordPresenceMode}
+   */
+  get discordPresenceMode() {
+    return this.#discordPresenceMode;
   }
 
   /**
@@ -160,6 +191,31 @@ class AppState {
       this.#sortOrder = await invoke('get_sort_order');
     } catch (error) {
       console.error('Failed to load sort order:', error);
+    }
+  }
+
+  /**
+   * Loads the disable presence on NSFW setting from the backend.
+   * @returns {Promise<void>}
+   */
+  async loadDisablePresenceOnNsfw() {
+    try {
+      this.#disablePresenceOnNsfw = await invoke('get_nsfw_presence_status');
+    } catch (error) {
+      console.error('Failed to load disable presence on NSFW:', error);
+    }
+  }
+
+  /**
+   * Loads the Discord presence mode setting from the backend.
+   *
+   * @returns {Promise<void>}
+   */
+  async loadDiscordPresenceMode() {
+    try {
+      this.#discordPresenceMode = await invoke('get_discord_presence_mode');
+    } catch (error) {
+      console.error('Failed to load discord presence mode setting:', error);
     }
   }
 
@@ -451,6 +507,37 @@ class AppState {
       await invoke('set_show_random_picker', { to });
     } catch (error) {
       console.error('Failed to set show random button setting:', error);
+      throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
+   * Sets whether Discord presence should be disabled for NSFW games and saves the setting to the backend.
+   * @param {boolean} to - The desired state (true to disable, false to enable).
+   * @returns {Promise<void>}
+   */
+  async setDisablePresenceOnNsfw(to) {
+    try {
+      this.#disablePresenceOnNsfw = to;
+      await invoke('set_nsfw_presence_status', { to });
+    } catch (error) {
+      console.error('Failed to set NSFW presence status:', error);
+      throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
+   * Sets the Discord presence mode and saves the setting to the backend.
+   *
+   * @param {DiscordPresenceMode} to - The desired presence mode ('All', 'SafeOnly', 'Disabled').
+   * @returns {Promise<void>}
+   */
+  async setDiscordPresenceMode(to) {
+    try {
+      this.#discordPresenceMode = to;
+      await invoke('set_discord_presence_mode', { to });
+    } catch (error) {
+      console.error('Failed to set discord presence mode setting:', error);
       throw error; // Re-throw to allow UI to handle
     }
   }

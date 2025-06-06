@@ -5,11 +5,12 @@ use discord_rich_presence::{
     activity::{Activity, Assets, Button, Timestamps},
     DiscordIpc, DiscordIpcClient,
 };
+use serde::{Deserialize, Serialize};
 use std::time;
 
 const DISCORD_CLIENT_ID: &str = "1333425743572500490";
 
-#[derive(Default, PartialEq, Eq)]
+#[derive(Default, PartialEq, Eq, Deserialize, Serialize, Clone, Copy)]
 pub enum DiscordPresenceMode {
     #[default]
     All,
@@ -76,7 +77,7 @@ impl DiscordPresence {
         )
     }
 
-    pub fn clear(&mut self) -> Result<()> {
+    pub fn reset(&mut self) -> Result<()> {
         if self.mode != DiscordPresenceMode::None {
             return self.client.set_activity(
                 Activity::new()
@@ -86,5 +87,15 @@ impl DiscordPresence {
         }
 
         Ok(())
+    }
+
+    pub fn set_mode(&mut self, to: DiscordPresenceMode) {
+        self.mode = to;
+
+        if to == DiscordPresenceMode::None {
+            let _ = self.client.clear_activity();
+        } else {
+            let _ = self.reset();
+        }
     }
 }

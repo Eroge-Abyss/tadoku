@@ -1,6 +1,7 @@
 use crate::prelude::Result;
-use crate::services::discord::DiscordPresenceMode;
-use crate::services::{discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore};
+use crate::services::{
+    discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore,
+};
 use std::{fs, sync::Mutex};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
@@ -125,6 +126,8 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
 
     tauri::async_runtime::spawn(async move {
         let app_state_mutex = app_handle_clone.state::<Mutex<AppState>>();
+        let store = SettingsStore::new(&app_handle_clone)
+            .map_err(|_| "Error happened while accessing store")?;
 
         let mut state = match app_state_mutex.lock() {
             Ok(s) => s,
@@ -133,11 +136,15 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
                     "Background task: Error acquiring mutex lock for AppState: {}",
                     e
                 );
-                return;
+                return Ok(());
             }
         };
 
-        match DiscordPresence::new(DiscordPresenceMode::default()) {
+        let mode = store
+            .get_discord_presence_mode()
+            .map_err(|_| "Couldn't get presence mode")?;
+
+        match DiscordPresence::new(mode) {
             Ok(presence) => {
                 state.presence = Some(presence);
             }
@@ -149,6 +156,8 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
                 state.presence = None;
             }
         }
+
+        std::result::Result::<(), String>::Ok(())
     });
 
     Ok(())

@@ -102,7 +102,7 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                     state.game = None;
 
                     if let Some(pres) = &mut state.presence {
-                        pres.clear()
+                        pres.reset()
                             .map_err(|_| "Error happened while clearing presence")?;
                     }
 

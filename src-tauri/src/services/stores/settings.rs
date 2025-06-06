@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, services::discord::DiscordPresenceMode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tauri::AppHandle;
@@ -112,6 +112,22 @@ impl SettingsStore {
 
     pub fn set_show_random_picker(&self, to: bool) -> Result<()> {
         self.store.set("show_random_picker", json!(to));
+
+        Ok(())
+    }
+
+    pub fn get_discord_presence_mode(&self) -> Result<DiscordPresenceMode> {
+        let v: DiscordPresenceMode = serde_json::from_value(
+            self.store
+                .get("discord_presence_mode")
+                .unwrap_or(json!(DiscordPresenceMode::default())),
+        )?;
+
+        Ok(v)
+    }
+
+    pub fn set_discord_presence_mode(&self, to: DiscordPresenceMode) -> Result<()> {
+        self.store.set("discord_presence_mode", json!(to));
 
         Ok(())
     }

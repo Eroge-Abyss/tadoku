@@ -92,18 +92,19 @@
   }
 
   async function resetSettings(): Promise<void> {
-    appState.resetThemeSettings();
-
-    selectedTheme = appState.themeSettings.theme;
-    customColor = appState.themeSettings.accentColor;
-    useCustomColor = appState.themeSettings.useCustomColor;
-    colorOptionsVisible = useCustomColor;
-
     try {
+      appState.resetThemeSettings();
+
+      selectedTheme = appState.themeSettings.theme;
+      customColor = appState.themeSettings.accentColor;
+      useCustomColor = appState.themeSettings.useCustomColor;
+      colorOptionsVisible = useCustomColor;
+
       appState.setShowRandomButton(true);
       appState.setDisablePresenceOnNsfw(true);
+      appState.setDiscordPresenceMode('All');
     } catch (error) {
-      console.error('Error resetting Discord presence status:', error);
+      console.error('Error resetting settings:', error);
     }
   }
 
@@ -247,7 +248,7 @@
         >
           <span class="switch-thumb"></span>
         </button>
-        <span class="switch-label">Show the random game button in home</span>
+        <span class="switch-label">Show random game button in Home page</span>
       </div>
     </div>
     <!--
@@ -392,7 +393,7 @@
   }
 
   .theme-item {
-    background: rgba(49, 49, 49, 0.5);
+    background-color: color-mix(in srgb, var(--main-background), white 3%);
     border-radius: 8px;
     padding: 1rem;
     cursor: pointer;
@@ -419,7 +420,7 @@
   .theme-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-    background: rgba(49, 49, 49, 0.6);
+    background-color: color-mix(in srgb, var(--main-background), white 5%);
   }
 
   .theme-item.active {
@@ -436,15 +437,15 @@
   }
 
   .preview-sidebar {
-    width: 20%;
+    width: 10%;
     height: 100%;
-    background-color: #1b1b1b;
+    background-color: var(--preview-accent);
   }
 
   .preview-content {
-    width: 80%;
+    width: 90%;
     height: 100%;
-    padding: 8px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;

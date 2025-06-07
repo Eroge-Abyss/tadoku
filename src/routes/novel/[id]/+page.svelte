@@ -1,7 +1,7 @@
 <script>
   import { convertFileSrc, invoke } from '@tauri-apps/api/core';
   import bbobHTML from '@bbob/html';
-  import presetHTML5 from '@bbob/preset-html5';
+  import html5Preset from '@bbob/preset-html5';
   import { fly, fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { appState } from '../../state.svelte';
@@ -12,6 +12,27 @@
   import ChangeProcess from '$lib/util/ChangeProcess.svelte';
 
   const novel = $derived(appState.loadGame(page.params.id));
+  const customHtml5Preset = html5Preset.extend((tags) => ({
+    ...tags,
+    url: (node, params) => {
+      const tag = tags.url(node, params, {});
+      // @ts-ignore
+      const href = tag.attrs?.href.startsWith('/')
+        ? `https://vndb.org${tag.attrs?.href}`
+        : tag.attrs?.href;
+      console.log(href);
+
+      return {
+        ...tag,
+        attrs: {
+          ...tag.attrs,
+          target: '_blank',
+          rel: 'noopener noreferer',
+          href,
+        },
+      };
+    },
+  }));
 
   if (!novel) {
     throw goto('/');
@@ -171,7 +192,7 @@
         <div class="novel-text">
           <h1>{novel.title}</h1>
           <p class="description">
-            {@html bbobHTML(novel.description, presetHTML5())}
+            {@html bbobHTML(novel.description, customHtml5Preset())}
           </p>
         </div>
       </div>

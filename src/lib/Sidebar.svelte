@@ -54,7 +54,6 @@
     height: 100vh;
     width: 85px;
     padding-bottom: 1rem;
-    background: #1b1b1b;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

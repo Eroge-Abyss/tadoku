@@ -393,7 +393,11 @@
   }
 
   .theme-item {
-    background-color: color-mix(in srgb, var(--main-background), white 3%);
+    background-color: color-mix(
+      in srgb,
+      var(--primary) 2.5%,
+      var(--main-background) 92%
+    );
     border-radius: 8px;
     padding: 1rem;
     cursor: pointer;

@@ -652,7 +652,6 @@
     font-weight: 600;
   }
 
-
   /* .progress-bars {
     display: flex;
     flex-direction: column;

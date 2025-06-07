@@ -1,5 +1,6 @@
 <script>
   import CloseIcon from '$lib/util/CloseIcon.svelte';
+  import Dialog from '$lib/util/Dialog.svelte';
   let {
     isOpen = $bindable(),
     onConfirm,
@@ -21,101 +22,50 @@
   }
 </script>
 
-<main>
-  <section id="modal" class:open={isOpen}>
-    <section class="modal__content">
-      <header>
-        <h5>{title}</h5>
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <span onclick={closeModal}>
-          <CloseIcon style="font-size: 24px;" />
-        </span>
-      </header>
-      <section class="main__content">
-        <p>{@html message}</p>
-        <div class="buttons">
-          <button onclick={onConfirm}>OK</button>
-          <button onclick={closeModal} style="background: #f7768e"
-            >Cancel</button
-          >
-        </div>
-      </section>
-    </section>
-  </section>
-</main>
+<Dialog show={isOpen} close={closeModal}>
+  {#snippet header()}
+    {title}
+  {/snippet}
+
+  <div class="confirm-dialog-content">
+    <p>{@html message}</p>
+    <div class="buttons">
+      <button onclick={handleConfirm}>OK</button>
+      <button onclick={closeModal} style="background: #f7768e">Cancel</button>
+    </div>
+  </div>
+</Dialog>
 
 <style>
-  #modal {
-    position: fixed;
-    height: 100%;
-    width: 100%;
-    z-index: 2;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  /* Styles specific to confirm dialog content */
+  .confirm-dialog-content {
     color: var(--main-text);
-    background: rgba(0, 0, 0, 0.6);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.2s ease-in-out;
-    border-radius: 5px;
-    &.open {
-      opacity: 1;
-      pointer-events: all;
+  }
 
-      & .modal__content {
-        transform: translate(0, 0) scale(1); /* Scale up */
-      }
-    }
+  .confirm-dialog-content p {
+    margin-bottom: 1rem; /* Add some space below the message */
+  }
 
-    & .modal__content {
-      background-color: var(--main-background);
-      border-radius: var(--big-radius);
-      padding: 1rem;
-      width: 50%;
-      display: flex;
-      flex-direction: column;
-      transform: translate(0, 100%) scale(0.8);
-      transition: all 0.2s ease-in-out;
-      & header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--main-text);
-        span {
-          color: #444;
-          cursor: pointer;
-          transition: color 0.2s ease-in-out;
-          &:hover {
-            color: var(--main-text);
-          }
-        }
-      }
-      & .main__content {
-        color: var(--main-text);
-        padding: 1rem;
-        & .buttons {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 1rem;
-          padding: 1rem;
-          & button {
-            border: 0;
-            background-color: #313131;
-            border-radius: var(--small-radius);
-            color: #fff;
-            width: 100%;
-            padding: 0.5rem;
-            font-size: 18px;
-            margin-top: 1rem;
-            cursor: pointer;
-          }
-        }
-      }
-    }
+  .confirm-dialog-content .buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .confirm-dialog-content .buttons button {
+    border: 0;
+    background-color: #313131;
+    border-radius: var(--small-radius);
+    color: #fff;
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 18px;
+    margin-top: 0; /* Remove margin-top as it's on the container now */
+    cursor: pointer;
+  }
+
+  .confirm-dialog-content .buttons button:hover {
+    background-color: #404040; /* Add a simple hover effect */
   }
 </style>

@@ -332,7 +332,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    background-color: #1b1b1b;
+    background-color: color-mix(in srgb, black 30%, var(--main-background) 80%);
     border-radius: var(--small-radius);
     margin-bottom: 5px;
     cursor: pointer;
@@ -341,7 +341,11 @@
   }
 
   .suggestion-item:hover {
-    background-color: #bb9af7;
+    background-color: color-mix(
+      in srgb,
+      var(--primary) 2.5%,
+      var(--main-mauve) 92%
+    );
 
     & .suggestion-id {
       color: #cfc9c2;
@@ -375,7 +379,7 @@
   .selected-suggestion {
     margin-top: 20px;
     padding: 10px;
-    background-color: #1b1b1b;
+    background-color: color-mix(in srgb, black 30%, var(--main-background) 80%);
     border-radius: var(--small-radius);
     color: #fff;
     display: flex;

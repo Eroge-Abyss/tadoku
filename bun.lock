@@ -4,6 +4,8 @@
     "": {
       "name": "seikou",
       "dependencies": {
+        "@bbob/html": "^4.2.0",
+        "@bbob/preset-html5": "^4.2.0",
         "@fontsource-variable/noto-sans-jp": "^5.1.1",
         "@fortawesome/fontawesome-free": "^6.7.2",
         "@sveltejs/enhanced-img": "^0.4.4",
@@ -32,6 +34,20 @@
   },
   "packages": {
     "@ampproject/remapping": ["@ampproject/remapping@2.3.0", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw=="],
+
+    "@bbob/core": ["@bbob/core@4.2.0", "", { "dependencies": { "@bbob/parser": "*", "@bbob/plugin-helper": "*", "@bbob/types": "*" } }, "sha512-i5VUIO6xx+TCrBE8plQF9KpW1z+0QcCh9GawCCWYG9KcZrEsyRy57my5/kem0a2lFxXjh0o+tgjQY9sCP5b3bw=="],
+
+    "@bbob/html": ["@bbob/html@4.2.0", "", { "dependencies": { "@bbob/core": "*", "@bbob/plugin-helper": "*", "@bbob/types": "*" } }, "sha512-mZG7MmE/YluH1/FNCr2Jv/Vz3Mq5stZ5tFAjBmYpVVN6Ndus4+FA84vKoHFdUHDiuU1p/e2/o/VUrwsWwLdoIA=="],
+
+    "@bbob/parser": ["@bbob/parser@4.2.0", "", { "dependencies": { "@bbob/plugin-helper": "*", "@bbob/types": "*" } }, "sha512-l8BppXjdQClrUiv+qIN0Oe6aS/vlH7CEduMreDaxYDadUPC0RMzxj9lXVjO0xTbFEVEIUJCGc53qnpiApLbx2g=="],
+
+    "@bbob/plugin-helper": ["@bbob/plugin-helper@4.2.0", "", { "dependencies": { "@bbob/types": "*" } }, "sha512-Uxs/UJROnkpcq5EJfz/8NCEYAcme8l6oAgMeWLX1nxWeieUhRgpY8BWQ9eQwUOXEKa0tsKVPnlmbUAjFhppVPw=="],
+
+    "@bbob/preset": ["@bbob/preset@4.2.0", "", { "dependencies": { "@bbob/plugin-helper": "*", "@bbob/types": "*" } }, "sha512-IA+kxlrRcYBXE634B8W6uU2DO7VvrxeOqWUzIDKV2CgzTMpmCG875ihGp+Q3T+QxGwzG5S0L4GdmCIULTbzC4A=="],
+
+    "@bbob/preset-html5": ["@bbob/preset-html5@4.2.0", "", { "dependencies": { "@bbob/plugin-helper": "*", "@bbob/preset": "*", "@bbob/types": "*" } }, "sha512-X2EIeb2vqTz/n34KWQXEL5IC0SuB6i2/ltRpEaMTyK7IoDEs0XGIWcqVpenb7Z2d4eNA3gTWhkoUUkKlZmfQRQ=="],
+
+    "@bbob/types": ["@bbob/types@4.2.0", "", {}, "sha512-bSCZnNg0VrPosBBUVkjBDYVKNEqwT0jTNuzvAuNrZkuILgUKtLYI9GHuT8rY4lZecCb7UqGDsHsYt0YJO36eJg=="],
 
     "@emnapi/runtime": ["@emnapi/runtime@1.3.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-kEBmG8KyqtxJZv+ygbEim+KCGtIq1fC22Ms3S4ziXmYKm8uyoLX0MHONVKwp+9opg390VaKRNt4a7A9NwmpNhw=="],
 

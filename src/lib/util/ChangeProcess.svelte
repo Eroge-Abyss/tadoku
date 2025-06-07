@@ -164,7 +164,6 @@
 
     &:focus {
       outline: none;
-      border-left: 3px solid var(--primary);
     }
   }
 
@@ -194,7 +193,7 @@
   }
 
   .dropdown-item:hover {
-    background: var(--main-mauve);
+    background: var(--secondary);
     color: white;
   }
 

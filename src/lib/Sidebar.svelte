@@ -54,7 +54,6 @@
     height: 100vh;
     width: 85px;
     padding-bottom: 1rem;
-    background: #1b1b1b;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -70,7 +69,7 @@
     z-index: 3;
     #sidebar__header {
       h1 {
-        color: var(--main-mauve); /* apply theme color to => 多 */
+        color: var(--secondary); /* apply theme color to => 多 */
         font-size: 50px;
         padding: 1rem;
       }

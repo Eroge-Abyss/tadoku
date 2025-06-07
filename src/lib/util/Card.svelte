@@ -120,7 +120,7 @@
     flex-direction: column;
     gap: 0.5rem;
     & .time {
-      color: var(--main-mauve);
+      color: var(--secondary);
       font-weight: bold;
     }
   }

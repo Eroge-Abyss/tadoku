@@ -540,7 +540,7 @@
           display: block;
           height: 5px;
           width: 100%;
-          background-color: var(--main-mauve);
+          background-color: var(--secondary);
           transform: scaleX(0);
           transform-origin: left;
           transition:

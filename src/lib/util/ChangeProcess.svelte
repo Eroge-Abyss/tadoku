@@ -193,7 +193,7 @@
   }
 
   .dropdown-item:hover {
-    background: var(--main-mauve);
+    background: var(--secondary);
     color: white;
   }
 

@@ -344,7 +344,7 @@
     background-color: color-mix(
       in srgb,
       var(--primary) 2.5%,
-      var(--main-mauve) 92%
+      var(--secondary) 92%
     );
 
     & .suggestion-id {

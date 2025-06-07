@@ -1,12 +1,9 @@
 :root {
   --main-background: #212121;
-  --main-mauve: #bb9af7;
   --main-text: #f3f3f3;
+  --secondary: #bb9af7;
   --secondary-text: #888;
-  --secondary: #1e1e1e;
-  --main-dark: #9b6fff;
   --accent: #2a2a2a;
-  --dark-handle: #444444; /* New variable for dark handle color */
   --small-radius: 4px;
   --big-radius: 12px;
 }
@@ -78,7 +75,7 @@ img {
 }
 
 .titlebar-button:hover {
-  background: var(--main-mauve);
+  background: var(--secondary);
   cursor: pointer;
 }
 
@@ -107,16 +104,16 @@ a:hover {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: var(--secondary);
+  background: var(--main-background);
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: var(--dark-handle);
+  background: var(--accent);
   border-radius: 4px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--main-dark);
+  background: var(--secondary);
 }

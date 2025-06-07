@@ -432,7 +432,7 @@ class AppState {
     document.documentElement.style.setProperty('--main-text', '#ffffff');
     document.documentElement.style.setProperty('--secondary-text', '#9ca3af');
     document.documentElement.style.setProperty(
-      '--main-mauve', // Note: This might be a specific theme variable, confirm usage.
+      '--secondary', // Note: This might be a specific theme variable, confirm usage.
       this.#themeSettings.useCustomColor
         ? this.#themeSettings.accentColor
         : theme.primary,

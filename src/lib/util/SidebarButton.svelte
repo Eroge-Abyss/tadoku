@@ -78,7 +78,7 @@
       width: 3px;
       opacity: 0;
       border-radius: 0px 8px 8px 0px;
-      background-color: var(--main-mauve);
+      background-color: var(--secondary);
       margin-right: 10px;
       transition: opacity 0.2s ease-in-out;
     }

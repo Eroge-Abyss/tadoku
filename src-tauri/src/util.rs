@@ -1,6 +1,6 @@
 use crate::scripts;
 #[cfg(windows)]
-use crate::services::games_store::GamesStore;
+use crate::services::stores::games::GamesStore;
 use std::{
     error::Error,
     fs,

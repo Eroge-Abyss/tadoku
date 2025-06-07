@@ -164,7 +164,6 @@
 
     &:focus {
       outline: none;
-      border-left: 3px solid var(--primary);
     }
   }
 

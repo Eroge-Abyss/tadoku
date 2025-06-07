@@ -1,40 +1,27 @@
 <script>
+  /** @typedef {import('$lib/types').VndbResult} VndbResult */
+
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
   import { appState } from '../routes/state.svelte';
-  import CloseIcon from '$lib/util/CloseIcon.svelte';
-  import Page from '../routes/+page.svelte';
+  import Dialog from '$lib/util/Dialog.svelte';
 
   const NSFW_RATE = 0.5;
 
   let showModal = $state(false);
-  let showProcessSelector = $state(false);
   let search = $state();
-  let processSearch = $state();
   let exe_path = $state();
+
+  /**
+   * @type {VndbResult[]}
+   */
   let results = $state.raw([]);
   let selectedVn = $state.raw();
   let showImage = $state(false);
   let charactersDownload = $state(false);
   let loading = $state(false);
 
-  function handleModalClick(e) {
-    if (e.target.classList.contains('modal')) {
-      closeModal();
-    }
-  }
-  function toggleImage() {
-    showImage = !showImage;
-  }
-
-  // State for tracking if the switch is active
-  let isActive = $state(false);
-
-  // Function to toggle the switch state
-  function toggleSwitch() {
-    isActive = !isActive;
-  }
-
+  // @ts-ignore
   async function updateSearch(e) {
     search = e.target.value;
     const data = await invoke('fetch_vn_info', { key: search });
@@ -49,10 +36,7 @@
     selectedVn = '';
   };
 
-  const closeProcessSelector = () => {
-    showProcessSelector = false;
-  };
-
+  // @ts-ignore
   const debounce = (v) => {
     let timer;
     clearTimeout(timer);
@@ -75,10 +59,7 @@
     exe_path = file;
   };
 
-  const pickProcess = async () => {
-    showProcessSelector = true;
-  };
-
+  // @ts-ignore
   const selectGame = (game) => {
     selectedVn = game;
     showImage = false;
@@ -86,6 +67,9 @@
     search = '';
   };
 
+  /**
+   * @param {VndbResult} vn
+   */
   const saveGame = async (vn) => {
     if (!vn || vn.id === undefined) {
       alert('Please select a game from the list.');
@@ -111,6 +95,7 @@
         is_nsfw: vn.image.sexual > NSFW_RATE,
         playtime: 0,
         characters: [],
+        last_played: null,
       };
 
       await appState.saveGame(vn.id, gameData, {
@@ -120,6 +105,7 @@
       closeModal();
     } catch (error) {
       console.error('Error saving game:', error);
+      // @ts-ignore
       alert(`Failed to save game: ${error.message || 'Unknown error'}`);
     } finally {
       loading = false;
@@ -127,125 +113,105 @@
   };
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <section>
   <button id="btn__add" onclick={openModal}> + </button>
-  <!--section class="modal process-selector" class:open={showProcessSelector}>
-      <div class="process-selector-content">
-         <span onclick={closeProcessSelector}>
-          <CloseIcon style="font-size: 24px;" />
-        </span>
-      // we will probably use this later
-    </div>
-  </section-->
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <section class="modal" class:open={showModal} onclick={handleModalClick}>
-    <section class="modal__content">
-      <header>
-        <h3 class="title">Add a game</h3>
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <span onclick={closeModal}>
-          <CloseIcon style="font-size: 24px;" />
-        </span>
-      </header>
-      <section class="game-form">
-        <div class="form-group">
-          <!-- No questions asked (about autocomplete). it just works -->
-          <input
-            type="text"
-            value={search}
-            autocomplete="one-time-code"
-            onkeyup={(e) => debounce(e)}
-            placeholder="Name or ID"
-          />
-        </div>
-        <div class="form-group characters">
-          <label for="characters" class="custom-checkbox">
-            <input
-              type="checkbox"
-              id="characters"
-              bind:checked={charactersDownload}
-            />
-            <span class="checkmark"></span>
-          </label>
-          <label for="characters">Include Characters</label>
-        </div>
-        <div id="suggestions">
-          {#each results as vn}
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div class="suggestion-item" onclick={() => selectGame(vn)}>
-              <div class="suggestion-image">
-                {#if vn?.image?.sexual < NSFW_RATE}
-                  <img src={vn?.image?.url} alt={vn?.title} />
-                {:else}
-                  <img src={vn?.image?.url} alt={vn?.title} class="blur" />
-                {/if}
-              </div>
-              <div class="suggestion-text">
-                <p class="suggestion-title">{vn?.title}</p>
-                <p class="suggestion-id">{vn?.id}</p>
-              </div>
-            </div>
-          {/each}
-        </div>
 
-        {#if selectedVn}
-          <div class="selected-suggestion">
-            {#if selectedVn.image.sexual < NSFW_RATE || showImage}
-              <img src={selectedVn.image.url} alt={selectedVn.title} />
-            {:else}
-              <img
-                src={selectedVn.image.url}
-                alt={selectedVn.title}
-                class="blur"
-              />
-            {/if}
+  <Dialog show={showModal} close={closeModal}>
+    {#snippet header()}
+      Add a game
+    {/snippet}
+
+    <section class="game-form">
+      <div class="form-group">
+        <!-- No questions asked (about autocomplete). it just works -->
+        <input
+          type="text"
+          value={search}
+          autocomplete="one-time-code"
+          onkeyup={(e) => debounce(e)}
+          placeholder="Name or ID"
+        />
+      </div>
+      <div class="form-group characters">
+        <label for="characters" class="custom-checkbox">
+          <input
+            type="checkbox"
+            id="characters"
+            bind:checked={charactersDownload}
+          />
+          <span class="checkmark"></span>
+        </label>
+        <label for="characters">Include Characters</label>
+      </div>
+      <div id="suggestions">
+        {#each results as vn}
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div class="suggestion-item" onclick={() => selectGame(vn)}>
+            <div class="suggestion-image">
+              {#if vn?.image?.sexual < NSFW_RATE}
+                <img src={vn?.image?.url} alt={vn?.title} />
+              {:else}
+                <img src={vn?.image?.url} alt={vn?.title} class="blur" />
+              {/if}
+            </div>
             <div class="suggestion-text">
-              <p class="selected-suggestion-title">
-                {selectedVn.title}
-              </p>
-              <p class="selected-suggestion-id">
-                {selectedVn.id}
-              </p>
+              <p class="suggestion-title">{vn?.title}</p>
+              <p class="suggestion-id">{vn?.id}</p>
             </div>
           </div>
-        {/if}
+        {/each}
+      </div>
 
-        <div class="info-container">
-          <span class="icon-info">
-            <i class="fa-solid fa-info-circle"></i>
-          </span>
-          <p class="note">
-            If you're using a launcher for this novel, please add its process
-            from the game details page.
-          </p>
-        </div>
-
-        <button onclick={pickFile}>Select Game Executable</button>
-        <button
-          disabled={loading}
-          class="save-button"
-          onclick={() => saveGame(selectedVn)}
-        >
-          {#if loading}
-            Saving...
+      {#if selectedVn}
+        <div class="selected-suggestion">
+          {#if selectedVn.image.sexual < NSFW_RATE || showImage}
+            <img src={selectedVn.image.url} alt={selectedVn.title} />
           {:else}
-            Save
+            <img
+              src={selectedVn.image.url}
+              alt={selectedVn.title}
+              class="blur"
+            />
           {/if}
-        </button>
-      </section>
+          <div class="suggestion-text">
+            <p class="selected-suggestion-title">
+              {selectedVn.title}
+            </p>
+            <p class="selected-suggestion-id">
+              {selectedVn.id}
+            </p>
+          </div>
+        </div>
+      {/if}
+
+      <div class="info-container">
+        <span class="icon-info">
+          <i class="fa-solid fa-info-circle"></i>
+        </span>
+        <p class="note">
+          If you're using a launcher for this novel, please add its process from
+          the game details page.
+        </p>
+      </div>
+
+      <button onclick={pickFile}>Select Game Executable</button>
+      <button
+        disabled={loading}
+        class="save-button"
+        onclick={() => saveGame(selectedVn)}
+      >
+        {#if loading}
+          Saving...
+        {:else}
+          Save
+        {/if}
+      </button>
     </section>
-  </section>
+  </Dialog>
 </section>
 
 <style>
-  .title {
-    padding-left: 15px;
-    padding-top: 10px;
-  }
   .note {
     font-size: 12px;
     color: var(--secondary-text);
@@ -300,110 +266,56 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
-  .modal {
-    position: fixed;
-    height: 100%;
+  .game-form {
+    margin: 1rem;
+  }
+  .game-form .form-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .game-form .form-group input[type='text'] {
+    height: 40px;
     width: 100%;
-    z-index: 2;
-    top: 0;
-    left: 0;
+    background-color: #313131;
+    border: 0;
+    border-radius: var(--small-radius);
+    padding: 0.5rem;
+    color: var(--main-text);
+    box-sizing: border-box;
+    grid-column: 1 / -1;
+    transition: border-color 0.2s ease;
+  }
+
+  .game-form .form-group input[type='text']:focus {
+    outline: none;
+  }
+
+  .game-form .form-group.characters {
     display: flex;
-    justify-content: center;
     align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .game-form .form-group.characters > * {
+    cursor: pointer;
+  }
+
+  .game-form button {
+    border: 0;
+    background-color: #313131;
+    border-radius: var(--small-radius);
     color: #fff;
-    background: rgba(0, 0, 0, 0.6);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.2s ease-in-out;
-    &.process-selector {
-      z-index: 3;
-    }
-    /* Start scaled down */
-    &.open {
-      opacity: 1;
-      pointer-events: all;
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 18px;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
 
-      & .modal__content {
-        transform: translate(0, 0) scale(1); /* Scale up */
-      }
-    }
-
-    & .modal__content {
-      background-color: var(--main-background);
-      padding: 1rem;
-      width: 500px;
-      border-radius: var(--big-radius);
-      display: flex;
-      flex-direction: column;
-      transform: translate(0, 100%) scale(0.8);
-      transition: all 0.2s ease-in-out;
-      & header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--main-text);
-        span {
-          color: #444;
-          cursor: pointer;
-          transition: color 0.2s ease-in-out;
-          &:hover {
-            color: var(--main-text);
-          }
-        }
-      }
-
-      & .game-form {
-        margin: 1rem;
-        & .form-group {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1rem;
-          & input[type='text'] {
-            height: 40px;
-            width: 100%;
-            background-color: #313131;
-            border: 0;
-            border-radius: var(--small-radius);
-            padding: 0.5rem;
-            color: var(--main-text);
-            box-sizing: border-box;
-            grid-column: 1 / -1;
-            transition: border-color 0.2s ease;
-
-            &:focus {
-              outline: none;
-            }
-          }
-
-          &.characters {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            & > * {
-              cursor: pointer;
-            }
-          }
-        }
-
-        & button {
-          border: 0;
-          background-color: #313131;
-          border-radius: var(--small-radius);
-          color: #fff;
-          width: 100%;
-          padding: 0.5rem;
-          font-size: 18px;
-          margin-top: 1rem;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-
-          &:hover {
-            background-color: #404040;
-          }
-        }
-      }
-    }
+  .game-form button:hover {
+    background-color: #404040;
   }
 
   #suggestions {
@@ -420,7 +332,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    background-color: #1b1b1b;
+    background-color: color-mix(in srgb, black 30%, var(--main-background) 80%);
     border-radius: var(--small-radius);
     margin-bottom: 5px;
     cursor: pointer;
@@ -429,7 +341,11 @@
   }
 
   .suggestion-item:hover {
-    background-color: #bb9af7;
+    background-color: color-mix(
+      in srgb,
+      var(--primary) 2.5%,
+      var(--secondary) 92%
+    );
 
     & .suggestion-id {
       color: #cfc9c2;
@@ -463,7 +379,7 @@
   .selected-suggestion {
     margin-top: 20px;
     padding: 10px;
-    background-color: #1b1b1b;
+    background-color: color-mix(in srgb, black 30%, var(--main-background) 80%);
     border-radius: var(--small-radius);
     color: #fff;
     display: flex;
@@ -497,29 +413,6 @@
         --primary-dark,
         color-mix(in srgb, var(--primary), #000 10%)
       ) !important;
-    }
-  }
-
-  .process-selector {
-    & .process-selector-content {
-      position: relative;
-      height: 100%;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      & span {
-        position: absolute;
-        top: 0;
-        right: 0;
-        margin: 2rem;
-        color: var(--secondary-text);
-        cursor: pointer;
-        transition: color 0.2s ease-in-out;
-        &:hover {
-          color: var(--main-text);
-        }
-      }
     }
   }
 

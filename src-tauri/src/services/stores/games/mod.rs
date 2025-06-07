@@ -1,63 +1,13 @@
-use std::{collections::HashMap, error::Error, fs, path::PathBuf, sync::Arc, time};
-
+mod character;
+mod game;
+use super::categories::Categories;
+use crate::prelude::*;
 use crate::util;
-use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, Wry};
+pub use character::Character;
+pub use game::Game;
+use std::{collections::HashMap, fs, path::PathBuf, time};
+use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
-
-type Store = Arc<tauri_plugin_store::Store<Wry>>;
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
-pub type Categories = Vec<String>;
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Game {
-    pub title: String,
-    pub description: String,
-    /// Is a local file path when loading games only, otherwise it's VNDB image URL
-    pub image_url: String,
-    pub exe_file_path: String,
-    pub process_file_path: String,
-    /// Play time in seconds
-    pub playtime: u32,
-    pub last_played: Option<u64>,
-    pub is_pinned: bool,
-    pub is_nsfw: bool,
-    pub icon_url: Option<String>,
-    pub categories: Categories,
-    // TODO: Make its own struct?
-    pub characters: Option<Vec<Character>>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Character {
-    pub id: String,
-    pub en_name: String,
-    pub og_name: Option<String>,
-    pub image_url: Option<String>,
-}
-
-pub struct CategoriesStore {
-    store: Store,
-}
-
-impl Default for Game {
-    fn default() -> Self {
-        Self {
-            title: String::new(),
-            description: String::new(),
-            image_url: String::new(),
-            exe_file_path: String::new(),
-            process_file_path: String::new(),
-            playtime: 0,
-            last_played: None,
-            is_pinned: false,
-            is_nsfw: false,
-            icon_url: None,
-            categories: Vec::new(),
-            characters: None,
-        }
-    }
-}
 
 pub type Games = HashMap<String, Game>;
 
@@ -158,7 +108,7 @@ impl GamesStore {
 
     pub fn update_playtime(&self, game_id: &str, playtime: u64) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
         let old_playtime = game["playtime"].as_u64().ok_or("Can't convert to u64")?;
 
         game["playtime"] = serde_json::json!(old_playtime + playtime);
@@ -172,9 +122,9 @@ impl GamesStore {
         Ok(())
     }
 
-    pub fn edit_exe(&self, game_id: &str, exe_path: &str) -> Result<()> {
+    pub fn update_exe_path(&self, game_id: &str, exe_path: &str) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
         game["exe_file_path"] = serde_json::json!(exe_path);
         self.store.set("gamesData", games_data);
@@ -182,9 +132,9 @@ impl GamesStore {
         Ok(())
     }
 
-    pub fn edit_process(&self, game_id: &str, process_path: &str) -> Result<()> {
+    pub fn update_process_path(&self, game_id: &str, process_path: &str) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
         game["process_file_path"] = serde_json::json!(process_path);
         self.store.set("gamesData", games_data);
@@ -194,7 +144,7 @@ impl GamesStore {
 
     pub fn set_categories(&self, game_id: &str, categories: Categories) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
         game["categories"] = serde_json::json!(categories);
         self.store.set("gamesData", games_data);
@@ -204,7 +154,7 @@ impl GamesStore {
 
     pub fn set_characters(&self, game_id: &str, characters: Vec<Character>) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
         game["characters"] = serde_json::json!(characters);
         self.store.set("gamesData", games_data);
@@ -214,7 +164,7 @@ impl GamesStore {
 
     pub fn update_last_played(&self, game_id: &str) -> Result<()> {
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(&game_id).ok_or("Couldn't find game")?;
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
         let start = time::SystemTime::now();
         let since_the_epoch = start
             .duration_since(time::UNIX_EPOCH)
@@ -222,33 +172,6 @@ impl GamesStore {
 
         game["last_played"] = since_the_epoch.as_secs().into();
         self.store.set("gamesData", games_data);
-
-        Ok(())
-    }
-}
-
-impl CategoriesStore {
-    /// Creates store or uses existing one
-    pub fn new(app_handle: &AppHandle) -> Result<Self> {
-        let store = app_handle.store("store.json")?;
-
-        Ok(Self { store })
-    }
-
-    fn get_store(&self) -> serde_json::Value {
-        self.store
-            .get("categories")
-            .unwrap_or_else(|| serde_json::json!([]))
-    }
-
-    /// Gets all categories
-    pub fn get_all(&self) -> Result<Categories> {
-        Ok(serde_json::from_value(self.get_store())?)
-    }
-
-    /// Sets categories array to the provided value
-    pub fn set(&self, categories: Categories) -> Result<()> {
-        self.store.set("categories", categories);
 
         Ok(())
     }

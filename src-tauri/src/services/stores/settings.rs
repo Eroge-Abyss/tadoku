@@ -1,11 +1,8 @@
+use crate::{prelude::*, services::discord::DiscordPresenceMode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::{error::Error, sync::Arc};
-use tauri::{AppHandle, Wry};
+use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
-
-type Store = Arc<tauri_plugin_store::Store<Wry>>;
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Serialize, Deserialize)]
 pub struct ThemeSettings {
@@ -76,16 +73,10 @@ impl SettingsStore {
         Ok(())
     }
 
-    pub fn toggle_presence_on_nsfw(&self) -> Result<bool> {
-        let old: bool = serde_json::from_value(
-            self.store
-                .get("disable_presence_on_nsfw")
-                .unwrap_or(json!(true)),
-        )?;
+    pub fn set_presence_on_nsfw(&self, to: bool) -> Result<()> {
+        self.store.set("disable_presence_on_nsfw", json!(to));
 
-        self.store.set("disable_presence_on_nsfw", !old);
-
-        Ok(!old)
+        Ok(())
     }
 
     // TODO: Refactor
@@ -121,6 +112,22 @@ impl SettingsStore {
 
     pub fn set_show_random_picker(&self, to: bool) -> Result<()> {
         self.store.set("show_random_picker", json!(to));
+
+        Ok(())
+    }
+
+    pub fn get_discord_presence_mode(&self) -> Result<DiscordPresenceMode> {
+        let v: DiscordPresenceMode = serde_json::from_value(
+            self.store
+                .get("discord_presence_mode")
+                .unwrap_or(json!(DiscordPresenceMode::default())),
+        )?;
+
+        Ok(v)
+    }
+
+    pub fn set_discord_presence_mode(&self, to: DiscordPresenceMode) -> Result<()> {
+        self.store.set("discord_presence_mode", json!(to));
 
         Ok(())
     }

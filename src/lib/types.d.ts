@@ -67,4 +67,16 @@ export interface Theme {
   background: string;
 }
 
+export interface VndbResult {
+  id: string;
+  title: string;
+  image: {
+    url: string;
+    sexual: number;
+  };
+  description: string | null;
+}
+
 export type SortOrder = 'title' | 'last_played' | 'playtime';
+
+export type DiscordPresenceMode = 'All' | 'None' | 'Menus';

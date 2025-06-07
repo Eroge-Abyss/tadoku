@@ -1,5 +1,7 @@
 <script>
   import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+  import bbobHTML from '@bbob/html';
+  import html5Preset from '@bbob/preset-html5';
   import { fly, fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { appState } from '../../state.svelte';
@@ -10,6 +12,27 @@
   import ChangeProcess from '$lib/util/ChangeProcess.svelte';
 
   const novel = $derived(appState.loadGame(page.params.id));
+  const customHtml5Preset = html5Preset.extend((tags) => ({
+    ...tags,
+    url: (node, params) => {
+      const tag = tags.url(node, params, {});
+      // @ts-ignore
+      const href = tag.attrs?.href.startsWith('/')
+        ? `https://vndb.org${tag.attrs?.href}`
+        : tag.attrs?.href;
+      console.log(href);
+
+      return {
+        ...tag,
+        attrs: {
+          ...tag.attrs,
+          target: '_blank',
+          rel: 'noopener noreferer',
+          href,
+        },
+      };
+    },
+  }));
 
   if (!novel) {
     throw goto('/');
@@ -168,7 +191,9 @@
         {/if}
         <div class="novel-text">
           <h1>{novel.title}</h1>
-          <p class="description">{novel.description}</p>
+          <p class="description">
+            {@html bbobHTML(novel.description, customHtml5Preset())}
+          </p>
         </div>
       </div>
       <div class="buttons">
@@ -339,24 +364,6 @@
 </div>
 
 <style>
-  /* TODO: FIX old CSS vars */
-
-  /* .back-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--primary);
-        text-decoration: none;
-        margin-bottom: 2rem;
-        font-size: 1rem;
-        font-weight: 500;
-        transition: color 0.2s;
-    }
-
-    .back-button:hover {
-        color: var(--primary-dark);
-    } */
-
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
@@ -446,7 +453,7 @@
           opacity 0.3s ease,
           transform 0.3s ease;
         &:hover {
-          color: var(--text-main);
+          color: var(--main-text);
         }
       }
       &.active {
@@ -554,7 +561,7 @@
           display: block;
           height: 5px;
           width: 100%;
-          background-color: var(--main-mauve);
+          background-color: var(--secondary);
           transform: scaleX(0);
           transform-origin: left;
           transition:
@@ -625,12 +632,12 @@
     }
   }
 
-  h2 {
+  /* h2 {
     color: var(--foreground);
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
     font-weight: 600;
-  }
+  } */
 
   .stats-grid {
     display: grid;
@@ -666,7 +673,7 @@
     font-weight: 600;
   }
 
-  .progress-bars {
+  /* .progress-bars {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -685,5 +692,5 @@
     font-size: 0.875rem;
     margin-bottom: 0.5rem;
     opacity: 0.7;
-  }
+  } */
 </style>

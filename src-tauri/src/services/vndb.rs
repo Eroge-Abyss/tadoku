@@ -40,7 +40,7 @@ pub struct CharacterImage {
     pub url: String,
 }
 
-pub struct Vndb {}
+pub struct Vndb;
 
 impl Vndb {
     pub async fn get_vn_info(key: &str) -> Result<Vec<VndbGame>, String> {
@@ -60,7 +60,7 @@ impl Vndb {
             .await
             .map_err(|_| {
                 // Idk if using clone is correct but, it should be dropped from stack anyway
-                // + function will return on only of of the errors
+                // + function will return on error
                 error_message.clone()
             })?;
 

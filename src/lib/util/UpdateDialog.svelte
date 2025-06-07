@@ -1,7 +1,7 @@
 <script lang="ts">
-  import CloseIcon from '$lib/util/CloseIcon.svelte';
   import { check, Update } from '@tauri-apps/plugin-updater';
   import { onMount } from 'svelte';
+  import Dialog from '$lib/util/Dialog.svelte';
 
   let loading = $state(false);
   let update = $state<Update | null>(null);
@@ -16,7 +16,7 @@
 
         update = maybeUpdate;
 
-        // AI suggesstion to fix model opening transition
+        // AI suggestion to fix model opening transition
         // it's because without the timeout, the browser does not have a chance
         // to render this component in `isOpen = false` state
         // so using the timeout makes `isOpen = true` in another execution cycle
@@ -57,126 +57,84 @@
 </script>
 
 {#if update && update.version}
-  <section class="modal" class:open={isOpen}>
-    <section class="modal__content">
-      <header>
-        <h3>Update Available</h3>
-        <span onclick={closeModal}>
-          <CloseIcon style="font-size: 24px;" />
-        </span>
-      </header>
-      <section class="update-form">
-        <div class="update-info">
-          <h4>Version {update.version} is available</h4>
+  <Dialog show={isOpen} close={closeModal}>
+    {#snippet header()}
+      Update Available
+    {/snippet}
 
-          {#if update.body}
-            <div class="update-notes">
-              <h5>What's new:</h5>
-              <p>{update.body}</p>
-            </div>
-          {/if}
+    <section class="update-form">
+      <div class="update-info">
+        <h4>Version {update.version} is available</h4>
 
-          <div class="info-container">
-            <span class="icon-info">
-              <i class="fa-solid fa-info-circle"></i>
-            </span>
-            <p class="note">
-              You can install the update now, or get prompted to install the
-              next time you start the application.
-            </p>
+        {#if update.body}
+          <div class="update-notes">
+            <h5>What's new:</h5>
+            <p>{update.body}</p>
           </div>
-        </div>
+        {/if}
 
-        <div class="btn-row">
-          <button
-            disabled={loading}
-            class="update-now-button"
-            onclick={installNow}
-          >
-            {#if loading}
-              Installing...
-            {:else}
-              Install Now
-            {/if}
-          </button>
-          <button onclick={installLater}>Install Later</button>
+        <div class="info-container">
+          <span class="icon-info">
+            <i class="fa-solid fa-info-circle"></i>
+          </span>
+          <p class="note">
+            You can install the update now, or get prompted to install the next
+            time you start the application.
+          </p>
         </div>
-      </section>
+      </div>
+
+      <div class="btn-row">
+        <button
+          disabled={loading}
+          class="update-now-button"
+          onclick={installNow}
+        >
+          {#if loading}
+            Installing...
+          {:else}
+            Install Now
+          {/if}
+        </button>
+        <button onclick={installLater}>Install Later</button>
+      </div>
     </section>
-  </section>
+  </Dialog>
 {/if}
 
 <style>
-  .modal {
-    position: fixed;
-    height: 100%;
-    width: 100%;
-    z-index: 3;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  .update-form {
+    margin: 1rem;
+  }
+
+  .update-form button {
+    border: 0;
+    background-color: #313131;
+    border-radius: var(--small-radius); /* Apply border-radius */
     color: #fff;
-    background: rgba(0, 0, 0, 0.6);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.2s ease-in-out;
-    /* Start scaled down */
-    &.open {
-      opacity: 1;
-      pointer-events: all;
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 18px;
+    margin-top: 1rem; /* Keep margin-top */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Keep transition */
+  }
 
-      & .modal__content {
-        transform: translate(0, 0) scale(1); /* Scale up */
-      }
-    }
-
-    & .modal__content {
-      background-color: var(--main-background);
-      padding: 1rem;
-      width: 500px;
-      display: flex;
-      flex-direction: column;
-      transform: translate(0, 100%) scale(0.8);
-      transition: all 0.2s ease-in-out;
-      & header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--main-text);
-        span {
-          color: #444;
-          cursor: pointer;
-          transition: color 0.2s ease-in-out;
-          &:hover {
-            color: var(--main-text);
-          }
-        }
-      }
-
-      & .update-form {
-        margin: 1rem;
-
-        & button {
-          border: 0;
-          background-color: #313131;
-          color: #fff;
-          width: 100%;
-          padding: 0.5rem;
-          font-size: 18px;
-          margin-top: 1rem;
-          cursor: pointer;
-        }
-      }
-    }
+  .update-form button:hover {
+    background-color: #404040; /* Match hover style */
   }
 
   .update-now-button {
-    background: #9ece6a !important;
+    background-color: var(--primary) !important; /* Use primary color */
     &[disabled] {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+    &:hover:not([disabled]) {
+      background: var(
+        --primary-dark,
+        color-mix(in srgb, var(--primary), #000 10%)
+      ) !important; /* Match hover style for primary button */
     }
   }
 

@@ -1,10 +1,11 @@
-use crate::util::{self, get_playtime};
+use super::stores::games::GamesStore;
+#[cfg(windows)]
+use crate::util::flush_playtime;
+use crate::util::get_playtime;
 use crate::AppState;
 use serde_json::json;
 use std::{sync::Mutex, thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager};
-
-use super::games_store::GamesStore;
 
 pub fn spawn_playtime_thread(app_handle: AppHandle) {
     tauri::async_runtime::spawn(async move {
@@ -43,7 +44,7 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                                 }
 
                                 if current_playtime % 60 == 0 {
-                                    util::flush_playtime(&app_handle, &game_id, 60)
+                                    flush_playtime(&app_handle, &game_id, 60)
                                         .map_err(|_| "Error happened while updating playtime")?;
                                 }
 
@@ -101,7 +102,7 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                     state.game = None;
 
                     if let Some(pres) = &mut state.presence {
-                        pres.clear()
+                        pres.reset()
                             .map_err(|_| "Error happened while clearing presence")?;
                     }
 

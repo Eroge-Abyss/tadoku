@@ -1,17 +1,17 @@
 <script>
   import { goto } from '$app/navigation';
-  import Button from '$lib/util/Button.svelte';
+  import SidebarButton from '$lib/util/SidebarButton.svelte';
 
   function handleClick() {
     goto('/settings');
   }
 </script>
 
-<Button onclick={handleClick}>
+<SidebarButton onclick={handleClick}>
   <span class="settings-icon">
     <i class="fas fa-cog"></i>
   </span>
-</Button>
+</SidebarButton>
 
 <style>
   .settings-icon {

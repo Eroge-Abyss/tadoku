@@ -1,5 +1,8 @@
-use crate::services::{discord::DiscordPresence, games_store::Game, settings_store::SettingsStore};
-use std::{error::Error, fs, sync::Mutex};
+use crate::prelude::Result;
+use crate::services::{
+    discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore,
+};
+use std::{fs, sync::Mutex};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
 use tauri_plugin_store::StoreExt;
@@ -22,7 +25,6 @@ pub struct AppState {
     pub presence: Option<DiscordPresence>,
     pub config: Config,
 }
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 // This script should be able to
 // 1. Get the store
@@ -103,7 +105,7 @@ pub fn create_images_folder(app_handle: &AppHandle) -> Result<()> {
 
 /// Initializes app state
 pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
-    let settings_store = SettingsStore::new(&app_handle)?;
+    let settings_store = SettingsStore::new(app_handle)?;
     let config = Config {
         disable_presence_on_nsfw: settings_store.get_presence_on_nsfw()?,
     };
@@ -119,11 +121,13 @@ pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
     Ok(())
 }
 
-pub fn initalize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
+pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
     let app_handle_clone = app_handle.clone();
 
     tauri::async_runtime::spawn(async move {
         let app_state_mutex = app_handle_clone.state::<Mutex<AppState>>();
+        let store = SettingsStore::new(&app_handle_clone)
+            .map_err(|_| "Error happened while accessing store")?;
 
         let mut state = match app_state_mutex.lock() {
             Ok(s) => s,
@@ -132,11 +136,15 @@ pub fn initalize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
                     "Background task: Error acquiring mutex lock for AppState: {}",
                     e
                 );
-                return;
+                return Ok(());
             }
         };
 
-        match DiscordPresence::new() {
+        let mode = store
+            .get_discord_presence_mode()
+            .map_err(|_| "Couldn't get presence mode")?;
+
+        match DiscordPresence::new(mode) {
             Ok(presence) => {
                 state.presence = Some(presence);
             }
@@ -148,6 +156,8 @@ pub fn initalize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
                 state.presence = None;
             }
         }
+
+        std::result::Result::<(), String>::Ok(())
     });
 
     Ok(())

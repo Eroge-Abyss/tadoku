@@ -1,5 +1,7 @@
 <script>
   import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+  import bbobHTML from '@bbob/html';
+  import presetHTML5 from '@bbob/preset-html5';
   import { fly, fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { appState } from '../../state.svelte';
@@ -168,7 +170,9 @@
         {/if}
         <div class="novel-text">
           <h1>{novel.title}</h1>
-          <p class="description">{novel.description}</p>
+          <p class="description">
+            {@html bbobHTML(novel.description, presetHTML5())}
+          </p>
         </div>
       </div>
       <div class="buttons">
@@ -428,7 +432,7 @@
           opacity 0.3s ease,
           transform 0.3s ease;
         &:hover {
-          color: var(--text-main);
+          color: var(--main-text);
         }
       }
       &.active {
@@ -647,6 +651,7 @@
     font-size: 1.25rem;
     font-weight: 600;
   }
+
 
   /* .progress-bars {
     display: flex;

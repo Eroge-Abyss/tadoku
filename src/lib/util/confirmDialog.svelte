@@ -56,7 +56,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    color: var(--text-main);
+    color: var(--main-text);
     background: rgba(0, 0, 0, 0.6);
     opacity: 0;
     pointer-events: none;

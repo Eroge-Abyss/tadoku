@@ -91,6 +91,15 @@ html {
   opacity: 1;
 }
 
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;

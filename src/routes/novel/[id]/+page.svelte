@@ -46,6 +46,9 @@
   const lastPlayedDate = $derived(
     novel.last_played ? new Date(novel.last_played * 1000) : null,
   );
+  const firstPlayedDate = $derived(
+    novel.first_played ? new Date(novel.first_played * 1000) : null,
+  );
 
   let playing = $state(false);
   let activeMenu = $state(false);
@@ -271,9 +274,23 @@
       <div class="tab-content">
         {#if selectedTab == 'progress'}
           <div class="stats-grid">
-            <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
+            <div
+              class="stat-item"
+              style="grid-column: span 2;"
+              in:fly={{ y: 20, duration: 500 }}
+            >
               <p class="stat-label">Time Played</p>
               <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
+            </div>
+            <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
+              <p class="stat-label">First Played</p>
+              <span class="stat-value">
+                {#if firstPlayedDate}
+                  {formatRelativeDate(firstPlayedDate)}
+                {:else}
+                  Never Played
+                {/if}
+              </span>
             </div>
             <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
               <p class="stat-label">Last Played</p>
@@ -641,7 +658,7 @@
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(1fr, 2);
     gap: 1.5rem;
     margin-bottom: 2rem;
   }

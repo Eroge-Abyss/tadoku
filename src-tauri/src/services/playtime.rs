@@ -95,6 +95,10 @@ pub fn spawn_playtime_thread(app_handle: AppHandle) {
                         .update_last_played(&game_id)
                         .map_err(|_| "Error happened while updating last played")?;
 
+                    store
+                        .set_first_played(&game_id)
+                        .map_err(|_| "Error happened while setting first played")?;
+
                     let state = app_handle.state::<Mutex<AppState>>();
                     let mut state = state
                         .lock()

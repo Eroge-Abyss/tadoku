@@ -22,8 +22,7 @@
   let loading = $state(false);
 
   // @ts-ignore
-  async function updateSearch(e) {
-    search = e.target.value;
+  async function updateSearch() {
     const data = await invoke('fetch_vn_info', { key: search });
     results = search ? data : [];
   }
@@ -41,7 +40,7 @@
     let timer;
     clearTimeout(timer);
     timer = setTimeout(() => {
-      updateSearch(v); // TODO: make this function generic
+      updateSearch(); // TODO: make this function generic
     }, 750);
   };
 
@@ -57,6 +56,12 @@
       ],
     });
     exe_path = file;
+
+    if (!search && !results.length && !selectedVn) {
+      const split = file?.split('/') || '';
+      search = split[split.length - 1].split('.exe')[0];
+      updateSearch();
+    }
   };
 
   // @ts-ignore
@@ -96,6 +101,7 @@
         playtime: 0,
         characters: [],
         last_played: null,
+        first_played: null,
       };
 
       await appState.saveGame(vn.id, gameData, {
@@ -126,7 +132,7 @@
         <!-- No questions asked (about autocomplete). it just works -->
         <input
           type="text"
-          value={search}
+          bind:value={search}
           autocomplete="one-time-code"
           onkeyup={(e) => debounce(e)}
           placeholder="Name or ID"

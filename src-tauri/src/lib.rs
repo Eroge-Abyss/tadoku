@@ -49,6 +49,8 @@ pub fn run() {
             commands::storage::set_show_random_picker,
             commands::storage::get_discord_presence_mode,
             commands::storage::set_discord_presence_mode,
+            commands::storage::get_playtime_mode,
+            commands::storage::set_playtime_mode,
             commands::storage::get_sort_order,
             commands::storage::set_sort_order,
             commands::storage::set_characters,

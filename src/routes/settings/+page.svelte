@@ -3,8 +3,12 @@
   import { appState } from '../state.svelte.js';
   import { getVersion } from '@tauri-apps/api/app';
   import { THEMES, COLOR_SWATCHES } from '../../themeConstants.js';
-  import type { DiscordPresenceMode, Theme } from '$lib/types';
-  import type { ColorSwatch } from '$lib/types';
+  import type {
+    ColorSwatch,
+    PlaytimeMode,
+    DiscordPresenceMode,
+    Theme,
+  } from '$lib/types';
 
   let appVersion = $state<string>();
   let selectedTheme = $state<string>(appState.themeSettings.theme);
@@ -17,6 +21,7 @@
   let selectedPresenceMode = $state<DiscordPresenceMode>(
     appState.discordPresenceMode,
   );
+  let playtimeMode = $state<PlaytimeMode>(appState.playtimeMode);
 
   $effect(() => {
     if (THEMES.length > 0) {
@@ -249,6 +254,18 @@
           <span class="switch-thumb"></span>
         </button>
         <span class="switch-label">Show random game button in Home page</span>
+      </div>
+
+      <div class="select-container">
+        <label for="playtime-mode">Playtime Recording Mode:</label>
+        <select
+          id="playtime-mode"
+          bind:value={playtimeMode}
+          onchange={() => appState.setPlaytimeMode(playtimeMode)}
+        >
+          <option value="classic">Classic</option>
+          <option value="ex_static">Pull Data from ExStatic</option>
+        </select>
       </div>
     </div>
     <!--

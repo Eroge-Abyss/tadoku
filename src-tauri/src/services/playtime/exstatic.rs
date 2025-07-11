@@ -29,6 +29,8 @@ impl ExStaticPlaytime {
 
         // If yes then update time as needed
         // If not then ignore
+        dbg!(&data.process_path);
+        dbg!(&util::get_pid_from_process_path(&data.process_path));
         if let (Some(game), Some(pid)) = (
             state.game.as_mut(),
             util::get_pid_from_process_path(&data.process_path),

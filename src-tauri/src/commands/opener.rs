@@ -1,5 +1,9 @@
 use crate::{
-    services::{discord::DiscordGameDetails, playtime, stores::games::GamesStore},
+    services::{
+        discord::DiscordGameDetails,
+        playtime,
+        stores::{games::GamesStore, settings::PlaytimeMode},
+    },
     util, AppState, GameState,
 };
 use serde::Serialize;
@@ -119,7 +123,14 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .map_err(|_| "Error setting presence".to_string())?;
             }
 
-            playtime::ClassicPlaytime::spawn(&app_handle);
+            match state.config.playtime_mode {
+                PlaytimeMode::Classic => {
+                    playtime::ClassicPlaytime::spawn(&app_handle);
+                }
+                PlaytimeMode::ExStatic => {
+                    playtime::ExStaticPlaytime::spawn(&app_handle);
+                }
+            }
 
             store
                 .set_first_played(&game_id)

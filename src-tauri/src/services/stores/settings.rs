@@ -21,12 +21,21 @@ impl Default for ThemeSettings {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum SortOrder {
     Playtime,
     LastPlayed,
+    #[default]
     Title,
+}
+
+#[derive(Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum PlaytimeMode {
+    #[default]
+    Classic,
+    ExStatic,
 }
 
 // #[derive(Serialize, Deserialize)]
@@ -91,8 +100,11 @@ impl SettingsStore {
     }
 
     pub fn get_sort_order(&self) -> Result<SortOrder> {
-        let v: SortOrder =
-            serde_json::from_value(self.store.get("sort_order").unwrap_or(json!("title")))?;
+        let v: SortOrder = serde_json::from_value(
+            self.store
+                .get("sort_order")
+                .unwrap_or(json!(SortOrder::default())),
+        )?;
 
         Ok(v)
     }
@@ -128,6 +140,22 @@ impl SettingsStore {
 
     pub fn set_discord_presence_mode(&self, to: DiscordPresenceMode) -> Result<()> {
         self.store.set("discord_presence_mode", json!(to));
+
+        Ok(())
+    }
+
+    pub fn get_playtime_mode(&self) -> Result<PlaytimeMode> {
+        let v: PlaytimeMode = serde_json::from_value(
+            self.store
+                .get("playtime_mode")
+                .unwrap_or(json!(PlaytimeMode::default())),
+        )?;
+
+        Ok(v)
+    }
+
+    pub fn set_playtime_mode(&self, to: PlaytimeMode) -> Result<()> {
+        self.store.set("playtime_mode", json!(to));
 
         Ok(())
     }

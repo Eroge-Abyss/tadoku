@@ -119,7 +119,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .map_err(|_| "Error setting presence".to_string())?;
             }
 
-            playtime::spawn_playtime_thread(app_handle.clone());
+            playtime::ClassicPlaytime::spawn(&app_handle);
 
             store
                 .set_first_played(&game_id)
@@ -127,7 +127,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
 
             app_handle
                 .emit("current_game", json!({"id": game_id, "status": "playing"}))
-                .expect("here");
+                .map_err(|_| "Error happened while emitting")?;
 
             Result::<(), String>::Ok(())
         });
@@ -169,7 +169,7 @@ pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
 #[tauri::command]
 pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
     let binding = app_handle.state::<Mutex<AppState>>();
-    let state = binding
+    let mut state = binding
         .lock()
         .map_err(|_| "Error acquiring mutex lock".to_string())?;
 
@@ -184,9 +184,16 @@ pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
                 process.wait();
             }
         }
-    }
 
-    app_handle.emit("current_game", json!(null)).expect("here");
+        state.game = None;
+
+        if let Some(pres) = &mut state.presence {
+            pres.reset()
+                .map_err(|_| "Error happened while clearing presence")?;
+        }
+
+        app_handle.emit("current_game", json!(null)).expect("here");
+    }
 
     Ok(())
 }

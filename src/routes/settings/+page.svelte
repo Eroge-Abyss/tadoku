@@ -257,7 +257,7 @@
       </div>
 
       <div class="select-container">
-        <label for="playtime-mode">Playtime Recording Mode:</label>
+        <label for="playtime-mode">Playtime Recording Mode (BETA):</label>
         <select
           id="playtime-mode"
           bind:value={playtimeMode}

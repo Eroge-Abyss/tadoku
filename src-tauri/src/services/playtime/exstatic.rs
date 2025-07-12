@@ -1,4 +1,4 @@
-use crate::{prelude::Result, util, AppState};
+use crate::{prelude::Result, services::stores::settings::PlaytimeMode, util, AppState};
 use futures_util::StreamExt;
 use serde::Deserialize;
 use std::sync::Mutex;
@@ -27,18 +27,19 @@ impl ExStaticPlaytime {
             .lock()
             .map_err(|_| "Error acquiring mutex lock".to_string())?;
 
-        // If yes then update time as needed
-        // If not then ignore
-        dbg!(&data.process_path);
-        dbg!(&util::get_pid_from_process_path(&data.process_path));
-        if let (Some(game), Some(pid)) = (
-            state.game.as_mut(),
-            util::get_pid_from_process_path(&data.process_path),
-        ) {
-            if pid.as_u32() == game.pid {
-                let time = data.time.round() as u64;
-                game.current_playtime += time;
-                util::flush_playtime(app_handle, &game.id, time)?;
+        // For simplicity, if setting is not enabled don't process
+        if matches!(&state.config.playtime_mode, PlaytimeMode::ExStatic) {
+            // If yes then update time as needed
+            // If not then ignore
+            if let (Some(game), Some(pid)) = (
+                state.game.as_mut(),
+                util::get_pid_from_process_path(&data.process_path),
+            ) {
+                if pid.as_u32() == game.pid {
+                    let time = data.time.round() as u64;
+                    game.current_playtime += time;
+                    util::flush_playtime(app_handle, &game.id, time)?;
+                }
             }
         }
 

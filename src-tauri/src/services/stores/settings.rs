@@ -30,7 +30,7 @@ pub enum SortOrder {
     Title,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum PlaytimeMode {
     #[default]

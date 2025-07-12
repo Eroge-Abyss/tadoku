@@ -1,9 +1,5 @@
 use crate::{
-    services::{
-        discord::DiscordGameDetails,
-        playtime,
-        stores::{games::GamesStore, settings::PlaytimeMode},
-    },
+    services::{discord::DiscordGameDetails, playtime, stores::games::GamesStore},
     util, AppState, GameState,
 };
 use serde::Serialize;
@@ -123,14 +119,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .map_err(|_| "Error setting presence".to_string())?;
             }
 
-            match state.config.playtime_mode {
-                PlaytimeMode::Classic => {
-                    playtime::ClassicPlaytime::spawn(&app_handle);
-                }
-                PlaytimeMode::ExStatic => {
-                    playtime::ExStaticPlaytime::spawn(&app_handle);
-                }
-            }
+            playtime::ClassicPlaytime::spawn(&app_handle);
 
             store
                 .set_first_played(&game_id)
@@ -180,7 +169,7 @@ pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
 #[tauri::command]
 pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
     let binding = app_handle.state::<Mutex<AppState>>();
-    let mut state = binding
+    let state = binding
         .lock()
         .map_err(|_| "Error acquiring mutex lock".to_string())?;
 
@@ -196,14 +185,14 @@ pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
             }
         }
 
-        state.game = None;
+        // state.game = None;
 
-        if let Some(pres) = &mut state.presence {
-            pres.reset()
-                .map_err(|_| "Error happened while clearing presence")?;
-        }
+        // if let Some(pres) = &mut state.presence {
+        //     pres.reset()
+        //         .map_err(|_| "Error happened while clearing presence")?;
+        // }
 
-        app_handle.emit("current_game", json!(null)).expect("here");
+        // app_handle.emit("current_game", json!(null)).expect("here");
     }
 
     Ok(())

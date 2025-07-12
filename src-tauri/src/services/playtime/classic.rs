@@ -1,10 +1,10 @@
 use super::super::stores::games::GamesStore;
 #[cfg(windows)]
 use crate::util::flush_playtime;
-use crate::AppState;
+use crate::{services::stores::settings::PlaytimeMode, AppState};
 use serde_json::json;
 use std::{sync::Mutex, thread, time::Duration};
-use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
+use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};
 use tauri::{AppHandle, Emitter, Manager};
 
 pub struct ClassicPlaytime;
@@ -18,7 +18,7 @@ impl ClassicPlaytime {
             );
 
             loop {
-                let (pid, game_id, current_playtime) = {
+                let (pid, game_id, current_playtime, playtime_mode) = {
                     let state = app_handle.state::<Mutex<AppState>>();
                     let mut state = state
                         .lock()
@@ -29,12 +29,15 @@ impl ClassicPlaytime {
                         game_state.pid,
                         game_state.id.clone(),
                         game_state.current_playtime,
+                        state.config.playtime_mode,
                     )
                 };
 
                 // Inline get_playtime logic
-                system.refresh_specifics(
-                    RefreshKind::nothing().with_processes(ProcessRefreshKind::everything()),
+                system.refresh_processes_specifics(
+                    ProcessesToUpdate::All,
+                    true,
+                    ProcessRefreshKind::everything(),
                 );
 
                 let process_playtime = system
@@ -43,6 +46,10 @@ impl ClassicPlaytime {
 
                 match process_playtime {
                     Some(_) => {
+                        if !matches!(playtime_mode, PlaytimeMode::Classic) {
+                            continue;
+                        }
+
                         #[cfg(windows)]
                         {
                             if let Ok(active_window) = x_win::get_active_window() {

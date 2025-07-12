@@ -362,6 +362,12 @@ dependencies = [
 
 [[package]]
 name = "base64"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
+
+[[package]]
+name = "base64"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
@@ -1838,7 +1844,7 @@ dependencies = [
  "fnv",
  "futures-core",
  "futures-sink",
- "http",
+ "http 1.2.0",
  "indexmap 2.7.1",
  "slab",
  "tokio",
@@ -1914,6 +1920,17 @@ dependencies = [
 
 [[package]]
 name = "http"
+version = "0.2.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "601cbb57e577e2f5ef5be8e7b83f0f63994f25aa94d673e54a92d5c516d101f1"
+dependencies = [
+ "bytes",
+ "fnv",
+ "itoa 1.0.14",
+]
+
+[[package]]
+name = "http"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f16ca2af56261c99fba8bac40a10251ce8188205a4c448fbb745a2e4daa76fea"
@@ -1930,7 +1947,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1efedce1fb8e6913f23e0c92de8e62cd5b772a67e7b3946df930a62566c93184"
 dependencies = [
  "bytes",
- "http",
+ "http 1.2.0",
 ]
 
 [[package]]
@@ -1941,7 +1958,7 @@ checksum = "793429d76616a256bcb62c2a2ec2bed781c8307e797e2598c50010f2bee2544f"
 dependencies = [
  "bytes",
  "futures-util",
- "http",
+ "http 1.2.0",
  "http-body",
  "pin-project-lite",
 ]
@@ -1968,7 +1985,7 @@ dependencies = [
  "futures-channel",
  "futures-util",
  "h2",
- "http",
+ "http 1.2.0",
  "http-body",
  "httparse",
  "itoa 1.0.14",
@@ -1985,7 +2002,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d191583f3da1305256f22463b9bb0471acad48a4e534a5218b9963e9c1f59b2"
 dependencies = [
  "futures-util",
- "http",
+ "http 1.2.0",
  "hyper",
  "hyper-util",
  "rustls",
@@ -2005,7 +2022,7 @@ dependencies = [
  "bytes",
  "futures-channel",
  "futures-util",
- "http",
+ "http 1.2.0",
  "http-body",
  "hyper",
  "pin-project-lite",
@@ -2301,6 +2318,17 @@ dependencies = [
  "hermit-abi 0.3.9",
  "libc",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "io-uring"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b86e202f00093dcba4275d4636b93ef9dd75d025ae560d2521b45ea28ab49013"
+dependencies = [
+ "bitflags 2.8.0",
+ "cfg-if",
+ "libc",
 ]
 
 [[package]]
@@ -4053,7 +4081,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 1.2.0",
  "http-body",
  "http-body-util",
  "hyper",
@@ -4477,6 +4505,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha-1"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5058ada175748e33390e40e872bd0fe59a19f265d0158daa551c5a88a76009c"
+dependencies = [
+ "cfg-if",
+ "cpufeatures",
+ "digest",
+]
+
+[[package]]
 name = "sha2"
 version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4802,9 +4841,10 @@ dependencies = [
 
 [[package]]
 name = "tadoku"
-version = "1.3.0"
+version = "1.4.0"
 dependencies = [
  "discord-rich-presence",
+ "futures-util",
  "lnk",
  "serde",
  "serde_json",
@@ -4819,6 +4859,9 @@ dependencies = [
  "tauri-plugin-shell",
  "tauri-plugin-store",
  "tauri-plugin-updater",
+ "tokio",
+ "tokio-tungstenite",
+ "tungstenite",
  "url",
  "windows-icons",
  "x-win",
@@ -4906,7 +4949,7 @@ dependencies = [
  "glob",
  "gtk",
  "heck 0.5.0",
- "http",
+ "http 1.2.0",
  "http-range",
  "jni",
  "libc",
@@ -5069,7 +5112,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a8137a106e0741fdd357366178fc6e0597abe7d20796f53f44171a1bcec1683"
 dependencies = [
  "data-url",
- "http",
+ "http 1.2.0",
  "regex",
  "reqwest",
  "schemars",
@@ -5168,7 +5211,7 @@ dependencies = [
  "dirs 6.0.0",
  "flate2",
  "futures-util",
- "http",
+ "http 1.2.0",
  "infer 0.19.0",
  "log",
  "minisign-verify",
@@ -5198,7 +5241,7 @@ checksum = "2274ef891ccc0a8d318deffa9d70053f947664d12d58b9c0d1ae5e89237e01f7"
 dependencies = [
  "dpi",
  "gtk",
- "http",
+ "http 1.2.0",
  "jni",
  "raw-window-handle",
  "serde",
@@ -5216,7 +5259,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3707b40711d3b9f6519150869e358ffbde7c57567fb9b5a8b51150606939b2a0"
 dependencies = [
  "gtk",
- "http",
+ "http 1.2.0",
  "jni",
  "log",
  "objc2 0.5.2",
@@ -5247,7 +5290,7 @@ dependencies = [
  "dunce",
  "glob",
  "html5ever",
- "http",
+ "http 1.2.0",
  "infer 0.16.0",
  "json-patch",
  "kuchikiki",
@@ -5422,16 +5465,19 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.43.0"
+version = "1.46.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d61fa4ffa3de412bfea335c6ecff681de2b609ba3c77ef3e00e521813a9ed9e"
+checksum = "0cc3a2344dafbe23a245241fe8b09735b521110d30fcefbbd5feb1797ca35d17"
 dependencies = [
  "backtrace",
  "bytes",
+ "io-uring",
  "libc",
  "mio",
+ "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
+ "slab",
  "socket2 0.5.8",
  "tokio-macros",
  "tracing",
@@ -5457,6 +5503,18 @@ checksum = "5f6d0975eaace0cf0fcadee4e4aaa5da15b5c079146f2cffb67c113be122bf37"
 dependencies = [
  "rustls",
  "tokio",
+]
+
+[[package]]
+name = "tokio-tungstenite"
+version = "0.17.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f714dd15bead90401d77e04243611caec13726c2408afd5b31901dfcdcb3b181"
+dependencies = [
+ "futures-util",
+ "log",
+ "tokio",
+ "tungstenite",
 ]
 
 [[package]]
@@ -5635,6 +5693,25 @@ name = "try-lock"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
+
+[[package]]
+name = "tungstenite"
+version = "0.17.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e27992fd6a8c29ee7eef28fc78349aa244134e10ad447ce3b9f0ac0ed0fa4ce0"
+dependencies = [
+ "base64 0.13.1",
+ "byteorder",
+ "bytes",
+ "http 0.2.12",
+ "httparse",
+ "log",
+ "rand 0.8.5",
+ "sha-1",
+ "thiserror 1.0.69",
+ "url",
+ "utf-8",
+]
 
 [[package]]
 name = "typeid"
@@ -6672,7 +6749,7 @@ dependencies = [
  "gdkx11",
  "gtk",
  "html5ever",
- "http",
+ "http 1.2.0",
  "javascriptcore-rs",
  "jni",
  "kuchikiki",

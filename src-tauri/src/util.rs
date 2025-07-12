@@ -1,5 +1,4 @@
 use crate::scripts;
-#[cfg(windows)]
 use crate::services::stores::games::GamesStore;
 use std::{
     error::Error,
@@ -25,17 +24,6 @@ pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
 
 pub fn construct_image_path(base_path: &Path, url: &str) -> Result<PathBuf, Box<dyn Error>> {
     Ok(base_path.join("images").join(extract_image(url)?))
-}
-
-/// Gets the playtime of the current game in seconds
-pub fn get_playtime(pid: u32) -> Option<u64> {
-    // Is this bad for performance? to create a system instance on each call
-    let s = System::new_with_specifics(
-        RefreshKind::nothing().with_processes(ProcessRefreshKind::everything()),
-    );
-
-    s.process(Pid::from(pid as usize))
-        .map(|process| process.run_time())
 }
 
 /// Gets the PID of a saved game's process file path
@@ -79,7 +67,6 @@ pub async fn save_image(app_handle: &AppHandle, image_url: &str) -> Result<Strin
     Ok(path.to_str().expect("Should not happen").to_owned())
 }
 
-#[cfg(windows)]
 /// Flushes playtime to disk
 pub fn flush_playtime(
     app_handle: &AppHandle,

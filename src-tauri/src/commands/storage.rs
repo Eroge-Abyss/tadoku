@@ -4,7 +4,7 @@ use crate::{
         stores::{
             categories::{Categories, CategoriesStore},
             games::{Character, Game, Games, GamesStore},
-            settings::{SettingsStore, SortOrder, ThemeSettings},
+            settings::{PlaytimeMode, SettingsStore, SortOrder, ThemeSettings},
         },
         vndb::Vndb,
     },
@@ -363,6 +363,30 @@ pub fn set_discord_presence_mode(
     if let Some(presence) = app_state.presence.as_mut() {
         presence.set_mode(to);
     };
+
+    Ok(())
+}
+
+/// Gets playtime mode
+#[tauri::command]
+pub fn get_playtime_mode(app_handle: AppHandle) -> Result<PlaytimeMode, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_playtime_mode()
+        .map_err(|_| "Couldn't get playtime mode")?)
+}
+
+/// Saves new playtime mode to disk
+#[tauri::command]
+pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_playtime_mode(to)
+        .map_err(|_| "Error happened while setting playtime mode")?;
 
     Ok(())
 }

@@ -47,6 +47,7 @@ impl ClassicPlaytime {
                 match process_playtime {
                     Some(_) => {
                         if !matches!(playtime_mode, PlaytimeMode::Classic) {
+                            thread::sleep(Duration::from_secs(1));
                             continue;
                         }
 

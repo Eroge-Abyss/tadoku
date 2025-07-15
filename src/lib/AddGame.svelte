@@ -58,8 +58,22 @@
     exe_path = file;
 
     if (!search && !results.length && !selectedVn) {
-      const split = file?.split('/') || '';
-      search = split[split.length - 1].split('.exe')[0];
+      // Split by both Windows and Unix path separators
+      const pathParts = file?.split(/[\\\/]/) || [];
+      if (pathParts.length >= 2) {
+        const fileName = pathParts[pathParts.length - 1];
+        const parentFolder = pathParts[pathParts.length - 2];
+        // Remove extension if it exists
+        const fileNameWithoutExt = fileName.includes('.')
+          ? fileName.split('.').slice(0, -1).join('.')
+          : fileName;
+        search = `${parentFolder} ${fileNameWithoutExt}`;
+      } else if (pathParts.length === 1) {
+        const fileName = pathParts[0];
+        search = fileName.includes('.')
+          ? fileName.split('.').slice(0, -1).join('.')
+          : fileName;
+      }
       updateSearch();
     }
   };

@@ -29,6 +29,7 @@ export interface Game {
   is_nsfw: boolean;
   icon_url: string | null;
   categories: string[];
+  notes: string;
   characters: {
     id: string;
     en_name: string;

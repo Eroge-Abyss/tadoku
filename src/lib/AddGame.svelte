@@ -5,6 +5,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { appState } from '../routes/state.svelte';
   import Dialog from '$lib/util/Dialog.svelte';
+  import { debounce } from './util/utils';
 
   const NSFW_RATE = 0.5;
 
@@ -33,15 +34,6 @@
     results = [];
     search = '';
     selectedVn = '';
-  };
-
-  // @ts-ignore
-  const debounce = (v) => {
-    let timer;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      updateSearch(); // TODO: make this function generic
-    }, 750);
   };
 
   const pickFile = async () => {
@@ -116,6 +108,7 @@
         characters: [],
         last_played: null,
         first_played: null,
+        notes: '',
       };
 
       await appState.saveGame(vn.id, gameData, {
@@ -148,7 +141,7 @@
           type="text"
           bind:value={search}
           autocomplete="one-time-code"
-          onkeyup={(e) => debounce(e)}
+          onkeyup={debounce(updateSearch)}
           placeholder="Name or ID"
         />
       </div>

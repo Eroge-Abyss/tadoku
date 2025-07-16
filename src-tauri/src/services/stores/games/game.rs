@@ -17,6 +17,7 @@ pub struct Game {
     pub is_pinned: bool,
     pub is_nsfw: bool,
     pub icon_url: Option<String>,
+    pub notes: String,
     pub categories: Categories,
     // TODO: Make its own struct?
     pub characters: Option<Vec<Character>>,

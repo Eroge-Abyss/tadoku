@@ -54,6 +54,7 @@ pub fn run() {
             commands::storage::get_sort_order,
             commands::storage::set_sort_order,
             commands::storage::set_characters,
+            commands::storage::set_game_notes,
             commands::opener::open_game,
             commands::opener::close_game,
             commands::opener::get_active_windows

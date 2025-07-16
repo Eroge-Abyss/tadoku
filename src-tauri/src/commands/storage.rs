@@ -156,6 +156,51 @@ pub fn update_process(
     Ok(())
 }
 
+/// Saves game notes to disk
+#[tauri::command]
+pub fn set_game_notes(app_handle: AppHandle, game_id: String, notes: String) -> Result<(), String> {
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_notes(&game_id, &notes)
+        .map_err(|_| "Error happened while setting notes")?;
+
+    Ok(())
+}
+
+/// Sets the characters of an already saved game
+#[tauri::command]
+pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+    let chars = Vndb::get_vn_characters(&game_id).await?;
+    let mut characters: Vec<Character> = Vec::new();
+
+    for char in chars {
+        let path = match char.image {
+            Some(p) => Some(
+                util::save_image(&app_handle, &p.url)
+                    .await
+                    .map_err(|_| "Error happened while saving image")?,
+            ),
+            None => None,
+        };
+
+        characters.push(Character {
+            id: char.id,
+            en_name: char.name,
+            og_name: char.original,
+            image_url: path,
+        });
+    }
+
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_characters(&game_id, characters)
+        .map_err(|_| "Error happened while saving characters")?;
+
+    Ok(())
+}
+
 /// Gets all categories as an array
 #[tauri::command]
 pub fn get_categories(app_handle: AppHandle) -> Result<Categories, String> {
@@ -247,39 +292,6 @@ pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> Result<(), S
     let mut app_state = binding.lock().map_err(|_| "Cannot acquire state lock")?;
 
     app_state.config.disable_presence_on_nsfw = to;
-
-    Ok(())
-}
-
-/// Sets the characters of an already saved game
-#[tauri::command]
-pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<(), String> {
-    let chars = Vndb::get_vn_characters(&game_id).await?;
-    let mut characters: Vec<Character> = Vec::new();
-
-    for char in chars {
-        let path = match char.image {
-            Some(p) => Some(
-                util::save_image(&app_handle, &p.url)
-                    .await
-                    .map_err(|_| "Error happened while saving image")?,
-            ),
-            None => None,
-        };
-
-        characters.push(Character {
-            id: char.id,
-            en_name: char.name,
-            og_name: char.original,
-            image_url: path,
-        });
-    }
-
-    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
-
-    store
-        .set_characters(&game_id, characters)
-        .map_err(|_| "Error happened while saving characters")?;
 
     Ok(())
 }

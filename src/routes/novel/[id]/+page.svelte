@@ -10,6 +10,7 @@
   import ConfirmDialog from '$lib/util/confirmDialog.svelte';
   import { openUrl } from '@tauri-apps/plugin-opener';
   import ChangeProcess from '$lib/util/ChangeProcess.svelte';
+  import { debounce } from '$lib/util/utils';
 
   const novel = $derived(appState.loadGame(page.params.id));
   const customHtml5Preset = html5Preset.extend((tags) => ({
@@ -64,6 +65,11 @@
       id: 'chars',
       visible: novel?.characters,
     },
+    {
+      label: 'Notes',
+      id: 'notes',
+      visible: true,
+    },
   ]);
 
   let processList = $state();
@@ -79,6 +85,7 @@
   };
 
   let selectedTab = $state(TABS[0].id);
+  let notes = $state(novel.notes);
 
   $effect(() => {
     if (appState.currentGame && appState.currentGame.id === novel.id) {
@@ -122,6 +129,8 @@
       await appState.deleteGame(novel.id);
       goto('/');
     },
+
+    setNotes: debounce(invoke.bind(null, 'set_game_notes'), 300),
   };
 
   /**
@@ -303,7 +312,7 @@
               </span>
             </div>
           </div>
-        {:else}
+        {:else if selectedTab == 'characters'}
           <div class="characters" in:fly={{ y: 20, duration: 300 }}>
             {#each novel.characters as character}
               <div
@@ -325,6 +334,14 @@
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
               </div>
             {/each}
+          </div>
+        {:else if selectedTab == 'notes'}
+          <div class="notes" in:fly={{ y: 20, duration: 300 }}>
+            <textarea
+              class="notes-textarea"
+              bind:value={notes}
+              oninput={() => gameActions.setNotes({ gameId: novel.id, notes })}
+            ></textarea>
           </div>
         {/if}
       </div>
@@ -685,9 +702,26 @@
   }
 
   .stat-value {
-    color: var(--foreground);
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 600;
+  }
+
+  .notes-textarea {
+    width: 100%;
+    height: 300px; /* Fixed height */
+    resize: none; /* Disable resizing */
+    padding: 10px;
+    background-color: var(--accent);
+    color: var(--main-text);
+    border: 1px solid var(--secondary); /* Using secondary for border */
+    border-radius: var(--small-radius);
+    font-size: 1.1rem;
+    outline: none; /* Remove default focus outline */
+  }
+
+  .notes-textarea:focus {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 2px rgba(187, 154, 247, 0.5); /* A subtle glow */
   }
 
   /* .progress-bars {

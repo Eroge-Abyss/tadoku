@@ -192,4 +192,14 @@ impl GamesStore {
 
         Ok(())
     }
+
+    pub fn set_notes(&self, game_id: &str, notes: &str) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
+
+        game["notes"] = serde_json::json!(notes);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
 }

@@ -62,7 +62,7 @@
     },
     {
       label: 'Characters',
-      id: 'chars',
+      id: 'characters',
       visible: novel?.characters,
     },
     {

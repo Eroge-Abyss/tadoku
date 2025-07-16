@@ -3,6 +3,9 @@
   import { onMount } from 'svelte';
   import Dialog from '$lib/util/Dialog.svelte';
 
+  const GITHUB_RELEASE_URL =
+    'https://github.com/Eroge-Abyss/tadoku/releases/latest';
+
   let loading = $state(false);
   let update = $state<Update | null>(null);
   let isOpen = $state(false);
@@ -69,7 +72,13 @@
         {#if update.body}
           <div class="update-notes">
             <h5>What's new:</h5>
-            <p>{update.body}</p>
+            <p>
+              Check <a
+                href={GITHUB_RELEASE_URL}
+                target="_blank"
+                rel="noopener noreferer">Release Notes</a
+              > for details.
+            </p>
           </div>
         {/if}
 

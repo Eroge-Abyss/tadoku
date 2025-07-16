@@ -4841,7 +4841,7 @@ dependencies = [
 
 [[package]]
 name = "tadoku"
-version = "1.4.1"
+version = "1.4.2"
 dependencies = [
  "discord-rich-presence",
  "futures-util",

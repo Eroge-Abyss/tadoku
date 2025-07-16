@@ -141,7 +141,7 @@
           type="text"
           bind:value={search}
           autocomplete="one-time-code"
-          onkeyup={() => debounce(updateSearch)}
+          onkeyup={debounce(updateSearch)}
           placeholder="Name or ID"
         />
       </div>

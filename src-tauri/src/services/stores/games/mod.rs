@@ -175,4 +175,31 @@ impl GamesStore {
 
         Ok(())
     }
+
+    pub fn set_first_played(&self, game_id: &str) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
+
+        if game["first_played"].as_u64().is_none() {
+            let start = time::SystemTime::now();
+            let since_the_epoch = start
+                .duration_since(time::UNIX_EPOCH)
+                .expect("Time went backwards");
+
+            game["first_played"] = since_the_epoch.as_secs().into();
+            self.store.set("gamesData", games_data);
+        }
+
+        Ok(())
+    }
+
+    pub fn set_notes(&self, game_id: &str, notes: &str) -> Result<()> {
+        let mut games_data = self.get_store();
+        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
+
+        game["notes"] = serde_json::json!(notes);
+        self.store.set("gamesData", games_data);
+
+        Ok(())
+    }
 }

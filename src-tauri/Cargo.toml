@@ -1,6 +1,6 @@
 [package]
 name = "tadoku"
-version = "1.3.0"
+version = "1.4.1"
 description = "A Visual Novel manager and stats tracker"
 authors = ["kofta999 <mostafaxxx555@gmail.com>", "rekka69", "applesx"]
 edition = "2021"
@@ -33,6 +33,10 @@ discord-rich-presence = "0.2.5"
 lnk = "0.5.1"
 tauri-plugin-prevent-default = "1.0.2"
 x-win = "3.0.0"
+tungstenite = "0.17"
+tokio-tungstenite = "*"
+tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"
 
 [target.'cfg(windows)'.dependencies]
 windows-icons = "0.1.1"

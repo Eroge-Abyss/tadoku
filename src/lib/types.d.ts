@@ -24,10 +24,12 @@ export interface Game {
   /** Play time in seconds. */
   playtime: number;
   last_played: number | null;
+  first_played: number | null;
   is_pinned: boolean;
   is_nsfw: boolean;
   icon_url: string | null;
   categories: string[];
+  notes: string;
   characters: {
     id: string;
     en_name: string;
@@ -80,3 +82,5 @@ export interface VndbResult {
 export type SortOrder = 'title' | 'last_played' | 'playtime';
 
 export type DiscordPresenceMode = 'All' | 'None' | 'Menus';
+
+export type PlaytimeMode = 'classic' | 'ex_static';

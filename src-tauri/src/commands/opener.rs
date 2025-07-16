@@ -1,5 +1,5 @@
 use crate::{
-    services::{discord::DiscordGameDetails, stores::games::GamesStore, playtime},
+    services::{discord::DiscordGameDetails, playtime, stores::games::GamesStore},
     util, AppState, GameState,
 };
 use serde::Serialize;
@@ -22,6 +22,28 @@ pub struct ActiveWindow {
     icon: String,
 }
 
+fn handle_open_lnk(exe_path: &mut PathBuf, args: &mut String) -> Result<(), String> {
+    let lnk = lnk::ShellLink::open(&exe_path).map_err(|_| "Error opening .lnk file")?;
+
+    let working_dir = lnk
+        .working_dir()
+        .as_ref()
+        .ok_or("Missing working directory in .lnk file")?;
+    let relative_path = lnk
+        .relative_path()
+        .as_ref()
+        .ok_or("Missing relative path in .lnk file")?;
+    *args = lnk
+        .arguments()
+        .as_ref()
+        .unwrap_or(&String::new())
+        .to_owned();
+    *exe_path = fs::canonicalize(PathBuf::from(working_dir).join(relative_path))
+        .map_err(|e| format!("Error resolving canonical path: {}", e))?;
+
+    Ok(())
+}
+
 /// Opens a game and sets its PID in local state
 #[tauri::command]
 pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
@@ -33,23 +55,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
         let mut args = String::new();
 
         if exe_path.extension().unwrap_or_default() == "lnk" {
-            let lnk = lnk::ShellLink::open(&exe_path).map_err(|_| "Error opening .lnk file")?;
-
-            let working_dir = lnk
-                .working_dir()
-                .as_ref()
-                .ok_or("Missing working directory in .lnk file")?;
-            let relative_path = lnk
-                .relative_path()
-                .as_ref()
-                .ok_or("Missing relative path in .lnk file")?;
-            args = lnk
-                .arguments()
-                .as_ref()
-                .unwrap_or(&String::new())
-                .to_owned();
-            exe_path = fs::canonicalize(PathBuf::from(working_dir).join(relative_path))
-                .map_err(|e| format!("Error resolving canonical path: {}", e))?;
+            handle_open_lnk(&mut exe_path, &mut args)?;
         }
 
         tauri::async_runtime::block_on(async {
@@ -113,11 +119,15 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 .map_err(|_| "Error setting presence".to_string())?;
             }
 
-            playtime::spawn_playtime_thread(app_handle.clone());
+            playtime::ClassicPlaytime::spawn(&app_handle);
+
+            store
+                .set_first_played(&game_id)
+                .map_err(|_| "Error happened while setting first played")?;
 
             app_handle
                 .emit("current_game", json!({"id": game_id, "status": "playing"}))
-                .expect("here");
+                .map_err(|_| "Error happened while emitting")?;
 
             Result::<(), String>::Ok(())
         });
@@ -174,9 +184,16 @@ pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
                 process.wait();
             }
         }
-    }
 
-    app_handle.emit("current_game", json!(null)).expect("here");
+        // state.game = None;
+
+        // if let Some(pres) = &mut state.presence {
+        //     pres.reset()
+        //         .map_err(|_| "Error happened while clearing presence")?;
+        // }
+
+        // app_handle.emit("current_game", json!(null)).expect("here");
+    }
 
     Ok(())
 }

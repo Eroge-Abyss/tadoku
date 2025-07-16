@@ -8,6 +8,7 @@ import { THEMES, DEFAULT_THEME_SETTINGS } from '../themeConstants.js';
  * @typedef {import('$lib/types').ThemeSettings} ThemeSettings
  * @typedef {import('$lib/types').SortOrder} SortOrder
  * @typedef {import('$lib/types').DiscordPresenceMode} DiscordPresenceMode
+ * @typedef {import('$lib/types').PlaytimeMode} PlaytimeMode
  */
 
 /**
@@ -59,6 +60,12 @@ class AppState {
   #discordPresenceMode = $state('All');
 
   /**
+   * The current playtime mode setting.
+   * @type {PlaytimeMode}
+   */
+  #playtimeMode = $state('classic');
+
+  /**
    * Creates an instance of AppState and loads initial settings.
    */
   constructor() {
@@ -67,6 +74,7 @@ class AppState {
     this.loadShowRandomButton();
     this.loadDisablePresenceOnNsfw();
     this.loadDiscordPresenceMode();
+    this.loadPlaytimeMode();
   }
 
   // --- Getters ---
@@ -93,6 +101,14 @@ class AppState {
    */
   get discordPresenceMode() {
     return this.#discordPresenceMode;
+  }
+
+  /**
+   * Gets the current playtime mode setting.
+   * @returns {PlaytimeMode} The current playtime mode.
+   */
+  get playtimeMode() {
+    return this.#playtimeMode;
   }
 
   /**
@@ -215,7 +231,19 @@ class AppState {
     try {
       this.#discordPresenceMode = await invoke('get_discord_presence_mode');
     } catch (error) {
-      console.error('Failed to load discord presence mode setting:', error);
+      console.error('Error loading Discord presence mode:', error);
+    }
+  }
+
+  /**
+   * Loads the playtime mode setting from the backend.
+   * @returns {Promise<void>}
+   */
+  async loadPlaytimeMode() {
+    try {
+      this.#playtimeMode = await invoke('get_playtime_mode');
+    } catch (error) {
+      console.error('Error loading playtime mode:', error);
     }
   }
 
@@ -538,6 +566,22 @@ class AppState {
       await invoke('set_discord_presence_mode', { to });
     } catch (error) {
       console.error('Failed to set discord presence mode setting:', error);
+      throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
+   * Sets the playtime mode and saves the setting to the backend.
+   *
+   * @param {PlaytimeMode} to - The desired playtime mode.
+   * @returns {Promise<void>}
+   */
+  async setPlaytimeMode(to) {
+    try {
+      this.#playtimeMode = to;
+      await invoke('set_playtime_mode', { to });
+    } catch (error) {
+      console.error('Error setting playtime mode:', error);
       throw error; // Re-throw to allow UI to handle
     }
   }

@@ -13,9 +13,11 @@ pub struct Game {
     /// Play time in seconds
     pub playtime: u32,
     pub last_played: Option<u64>,
+    pub first_played: Option<u64>,
     pub is_pinned: bool,
     pub is_nsfw: bool,
     pub icon_url: Option<String>,
+    pub notes: String,
     pub categories: Categories,
     // TODO: Make its own struct?
     pub characters: Option<Vec<Character>>,

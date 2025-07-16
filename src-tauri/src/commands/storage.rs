@@ -4,7 +4,7 @@ use crate::{
         stores::{
             categories::{Categories, CategoriesStore},
             games::{Character, Game, Games, GamesStore},
-            settings::{SettingsStore, SortOrder, ThemeSettings},
+            settings::{PlaytimeMode, SettingsStore, SortOrder, ThemeSettings},
         },
         vndb::Vndb,
     },
@@ -156,6 +156,51 @@ pub fn update_process(
     Ok(())
 }
 
+/// Saves game notes to disk
+#[tauri::command]
+pub fn set_game_notes(app_handle: AppHandle, game_id: String, notes: String) -> Result<(), String> {
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_notes(&game_id, &notes)
+        .map_err(|_| "Error happened while setting notes")?;
+
+    Ok(())
+}
+
+/// Sets the characters of an already saved game
+#[tauri::command]
+pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+    let chars = Vndb::get_vn_characters(&game_id).await?;
+    let mut characters: Vec<Character> = Vec::new();
+
+    for char in chars {
+        let path = match char.image {
+            Some(p) => Some(
+                util::save_image(&app_handle, &p.url)
+                    .await
+                    .map_err(|_| "Error happened while saving image")?,
+            ),
+            None => None,
+        };
+
+        characters.push(Character {
+            id: char.id,
+            en_name: char.name,
+            og_name: char.original,
+            image_url: path,
+        });
+    }
+
+    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_characters(&game_id, characters)
+        .map_err(|_| "Error happened while saving characters")?;
+
+    Ok(())
+}
+
 /// Gets all categories as an array
 #[tauri::command]
 pub fn get_categories(app_handle: AppHandle) -> Result<Categories, String> {
@@ -251,39 +296,6 @@ pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> Result<(), S
     Ok(())
 }
 
-/// Sets the characters of an already saved game
-#[tauri::command]
-pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<(), String> {
-    let chars = Vndb::get_vn_characters(&game_id).await?;
-    let mut characters: Vec<Character> = Vec::new();
-
-    for char in chars {
-        let path = match char.image {
-            Some(p) => Some(
-                util::save_image(&app_handle, &p.url)
-                    .await
-                    .map_err(|_| "Error happened while saving image")?,
-            ),
-            None => None,
-        };
-
-        characters.push(Character {
-            id: char.id,
-            en_name: char.name,
-            og_name: char.original,
-            image_url: path,
-        });
-    }
-
-    let store = GamesStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
-
-    store
-        .set_characters(&game_id, characters)
-        .map_err(|_| "Error happened while saving characters")?;
-
-    Ok(())
-}
-
 /// Gets sort order
 #[tauri::command]
 pub fn get_sort_order(app_handle: AppHandle) -> Result<SortOrder, String> {
@@ -363,6 +375,30 @@ pub fn set_discord_presence_mode(
     if let Some(presence) = app_state.presence.as_mut() {
         presence.set_mode(to);
     };
+
+    Ok(())
+}
+
+/// Gets playtime mode
+#[tauri::command]
+pub fn get_playtime_mode(app_handle: AppHandle) -> Result<PlaytimeMode, String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    Ok(store
+        .get_playtime_mode()
+        .map_err(|_| "Couldn't get playtime mode")?)
+}
+
+/// Saves new playtime mode to disk
+#[tauri::command]
+pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> Result<(), String> {
+    let store =
+        SettingsStore::new(&app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .set_playtime_mode(to)
+        .map_err(|_| "Error happened while setting playtime mode")?;
 
     Ok(())
 }

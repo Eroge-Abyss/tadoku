@@ -5,6 +5,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { appState } from '../routes/state.svelte';
   import Dialog from '$lib/util/Dialog.svelte';
+  import { debounce } from './util/utils';
 
   const NSFW_RATE = 0.5;
 
@@ -22,8 +23,7 @@
   let loading = $state(false);
 
   // @ts-ignore
-  async function updateSearch(e) {
-    search = e.target.value;
+  async function updateSearch() {
     const data = await invoke('fetch_vn_info', { key: search });
     results = search ? data : [];
   }
@@ -34,15 +34,6 @@
     results = [];
     search = '';
     selectedVn = '';
-  };
-
-  // @ts-ignore
-  const debounce = (v) => {
-    let timer;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      updateSearch(v); // TODO: make this function generic
-    }, 750);
   };
 
   const pickFile = async () => {
@@ -57,6 +48,26 @@
       ],
     });
     exe_path = file;
+
+    if (!search && !results.length && !selectedVn) {
+      // Split by both Windows and Unix path separators
+      const pathParts = file?.split(/[\\\/]/) || [];
+      if (pathParts.length >= 2) {
+        const fileName = pathParts[pathParts.length - 1];
+        const parentFolder = pathParts[pathParts.length - 2];
+        // Remove extension if it exists
+        const fileNameWithoutExt = fileName.includes('.')
+          ? fileName.split('.').slice(0, -1).join('.')
+          : fileName;
+        search = `${parentFolder} ${fileNameWithoutExt}`;
+      } else if (pathParts.length === 1) {
+        const fileName = pathParts[0];
+        search = fileName.includes('.')
+          ? fileName.split('.').slice(0, -1).join('.')
+          : fileName;
+      }
+      updateSearch();
+    }
   };
 
   // @ts-ignore
@@ -96,6 +107,8 @@
         playtime: 0,
         characters: [],
         last_played: null,
+        first_played: null,
+        notes: '',
       };
 
       await appState.saveGame(vn.id, gameData, {
@@ -126,9 +139,9 @@
         <!-- No questions asked (about autocomplete). it just works -->
         <input
           type="text"
-          value={search}
+          bind:value={search}
           autocomplete="one-time-code"
-          onkeyup={(e) => debounce(e)}
+          onkeyup={debounce(updateSearch)}
           placeholder="Name or ID"
         />
       </div>

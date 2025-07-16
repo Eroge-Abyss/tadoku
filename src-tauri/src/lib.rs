@@ -8,6 +8,7 @@ mod services;
 mod util;
 
 pub use scripts::{AppState, GameState};
+use services::playtime;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -25,6 +26,7 @@ pub fn run() {
             scripts::create_images_folder(app.app_handle())?;
             scripts::initialize_state(app.app_handle())?;
             scripts::initialize_discord(app.app_handle())?;
+            playtime::ExStaticPlaytime::spawn(app.app_handle());
 
             Ok(())
         })
@@ -47,9 +49,12 @@ pub fn run() {
             commands::storage::set_show_random_picker,
             commands::storage::get_discord_presence_mode,
             commands::storage::set_discord_presence_mode,
+            commands::storage::get_playtime_mode,
+            commands::storage::set_playtime_mode,
             commands::storage::get_sort_order,
             commands::storage::set_sort_order,
             commands::storage::set_characters,
+            commands::storage::set_game_notes,
             commands::opener::open_game,
             commands::opener::close_game,
             commands::opener::get_active_windows

@@ -1,4 +1,5 @@
 use crate::prelude::Result;
+use crate::services::stores::settings::PlaytimeMode;
 use crate::services::{
     discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore,
 };
@@ -17,6 +18,7 @@ pub struct GameState {
 #[derive(Default)]
 pub struct Config {
     pub disable_presence_on_nsfw: bool,
+    pub playtime_mode: PlaytimeMode,
 }
 
 #[derive(Default)]
@@ -108,6 +110,7 @@ pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
     let settings_store = SettingsStore::new(app_handle)?;
     let config = Config {
         disable_presence_on_nsfw: settings_store.get_presence_on_nsfw()?,
+        playtime_mode: settings_store.get_playtime_mode()?,
     };
 
     let state = AppState {

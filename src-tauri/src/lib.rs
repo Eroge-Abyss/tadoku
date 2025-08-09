@@ -16,7 +16,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Debug)
+                .level(log::LevelFilter::Info)
+                .level_for("tadoku_lib::commands", log::LevelFilter::Debug)
+                .max_file_size(100_000) // ~100KB
                 .build(),
         )
         .plugin(tauri_plugin_updater::Builder::new().build())

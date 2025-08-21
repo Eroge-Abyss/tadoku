@@ -54,7 +54,7 @@ Tadoku is a modern, blazing-fast Visual Novel (VN) tracker designed for Japanese
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/tadoku.git
+   git clone https://github.com/Eroge-Abyss/tadoku.git
    cd tadoku
    ```
 

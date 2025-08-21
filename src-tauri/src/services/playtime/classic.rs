@@ -1,5 +1,4 @@
 use super::super::stores::games::GamesStore;
-#[cfg(windows)]
 use crate::util::flush_playtime;
 use crate::{services::stores::settings::PlaytimeMode, AppState};
 use log::{debug, error, info, warn};
@@ -158,6 +157,13 @@ impl ClassicPlaytime {
                                     };
                                 game_state.current_playtime += 1;
                             }
+
+
+                            if current_playtime % 60 == 0 {
+                                flush_playtime(&app_handle, &game_id, 60)
+                                    .map_err(|_| "Error happened while updating playtime")?;
+                            }
+
                             if let Err(e) = app_handle.emit("playtime", current_playtime + 1) {
                                 error!("Error happened while emitting playtime: {}", e);
                             }

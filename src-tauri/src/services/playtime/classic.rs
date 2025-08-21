@@ -1,5 +1,4 @@
 use super::super::stores::games::GamesStore;
-#[cfg(windows)]
 use crate::util::flush_playtime;
 use crate::{services::stores::settings::PlaytimeMode, AppState};
 use serde_json::json;
@@ -101,6 +100,12 @@ impl ClassicPlaytime {
                                     state.game.as_mut().ok_or("Couldn't find the game")?;
                                 game_state.current_playtime += 1;
                             }
+
+                            if current_playtime % 60 == 0 {
+                                flush_playtime(&app_handle, &game_id, 60)
+                                    .map_err(|_| "Error happened while updating playtime")?;
+                            }
+
                             app_handle
                                 .emit("playtime", current_playtime + 1)
                                 .map_err(|_| "Error happened while emitting playtime")?;

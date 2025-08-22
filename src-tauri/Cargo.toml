@@ -37,6 +37,8 @@ tungstenite = "0.17"
 tokio-tungstenite = "*"
 tokio = { version = "1", features = ["full"] }
 futures-util = "0.3"
+tauri-plugin-log = "2"
+log = "0.4.27"
 
 [target.'cfg(windows)'.dependencies]
 windows-icons = "0.1.1"

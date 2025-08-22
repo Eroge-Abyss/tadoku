@@ -1,3 +1,4 @@
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tauri_plugin_http::reqwest;
@@ -44,6 +45,7 @@ pub struct Vndb;
 
 impl Vndb {
     pub async fn get_vn_info(key: &str) -> Result<Vec<VndbGame>, String> {
+        info!("Fetching game info for key: {}", key);
         let error_message = String::from("Error happened while fetching game");
 
         let request_data = json!({
@@ -62,18 +64,32 @@ impl Vndb {
                 // Idk if using clone is correct but, it should be dropped from stack anyway
                 // + function will return on error
                 error_message.clone()
+            })
+            .map_err(|_| {
+                error!("Error sending request to VNDB for key: {}", key);
+                error_message.clone()
             })?;
 
         if response.status() != 200 {
+            error!(
+                "VNDB returned status code: {} for key: {}",
+                response.status(),
+                key
+            );
             return Err(error_message);
         }
 
-        let json: VndbResponse<VndbGame> = response.json().await.map_err(|_| error_message)?;
+        let json: VndbResponse<VndbGame> = response.json().await.map_err(|_| {
+            error!("Error parsing VNDB response for key: {}", key);
+            error_message
+        })?;
 
+        debug!("Successfully fetched game info for key: {}", key);
         Ok(json.results)
     }
 
     pub async fn get_vn_characters(vn_id: &str) -> Result<Vec<VndbCharacter>, String> {
+        info!("Fetching characters for vn_id: {}", vn_id);
         let error_message = String::from("Error happened while fetching game");
 
         let request_data = json!({
@@ -92,17 +108,30 @@ impl Vndb {
                 // Idk if using clone is correct but, it should be dropped from stack anyway
                 // + function will return on only of of the errors
                 error_message.clone()
+            })
+            .map_err(|_| {
+                error!("Error sending request to VNDB for vn_id: {}", vn_id);
+                error_message.clone()
             })?;
 
         if response.status() != 200 {
+            error!(
+                "VNDB returned status code: {} for vn_id: {}",
+                response.status(),
+                vn_id
+            );
             return Err(error_message);
         }
 
         let json: VndbResponse<VndbCharacter> = response.json().await.map_err(|e| {
-            dbg!(e);
+            error!(
+                "Error parsing VNDB response for vn_id: {:?}, error: {:?}",
+                vn_id, e
+            );
             error_message
         })?;
 
+        debug!("Successfully fetched characters for vn_id: {}", vn_id);
         Ok(json.results)
     }
 }

@@ -1,6 +1,7 @@
 use super::super::stores::games::GamesStore;
 use crate::util::flush_playtime;
 use crate::{services::stores::settings::PlaytimeMode, AppState};
+use log::{debug, error, info, warn};
 use serde_json::json;
 use std::{sync::Mutex, thread, time::Duration};
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};
@@ -10,8 +11,10 @@ pub struct ClassicPlaytime;
 
 impl ClassicPlaytime {
     pub fn spawn(app_handle: &AppHandle) {
+        info!("Spawning classic playtime tracking task");
         let app_handle = app_handle.clone();
         tauri::async_runtime::spawn(async move {
+            debug!("Classic playtime task started");
             let mut system = System::new_with_specifics(
                 RefreshKind::nothing().with_processes(ProcessRefreshKind::everything()),
             );
@@ -19,10 +22,26 @@ impl ClassicPlaytime {
             loop {
                 let (pid, game_id, current_playtime, playtime_mode) = {
                     let state = app_handle.state::<Mutex<AppState>>();
-                    let mut state = state
-                        .lock()
-                        .map_err(|_| "Error happened while acquiring mutex lock")?;
-                    let game_state = state.game.as_mut().ok_or("Couldn't find the game")?;
+                    let mut state = match state.lock() {
+                        Ok(s) => s,
+                        Err(e) => {
+                            error!("Failed to acquire app state mutex lock: {}", e);
+                            return;
+                        }
+                    };
+
+                    let game_state = match state.game.as_mut().ok_or("Couldn't find the game") {
+                        Ok(g) => g,
+                        Err(e) => {
+                            warn!("No active game found: {}", e);
+                            return;
+                        }
+                    };
+
+                    debug!(
+                        "Current game details - PID: {}, Game ID: {}",
+                        game_state.pid, game_state.id
+                    );
 
                     (
                         game_state.pid,
@@ -41,27 +60,46 @@ impl ClassicPlaytime {
 
                 let process_playtime = system
                     .process(Pid::from(pid as usize))
-                    .map(|process| process.run_time());
+                    .map(|p| p.run_time());
 
                 match process_playtime {
                     Some(_) => {
                         if !matches!(playtime_mode, PlaytimeMode::Classic) {
+                            debug!("Playtime mode is not Classic, skipping iteration");
                             thread::sleep(Duration::from_secs(1));
                             continue;
                         }
+
+                        debug!("Playtime mode is Classic, proceeding with tracking");
 
                         #[cfg(windows)]
                         {
                             if let Ok(active_window) = x_win::get_active_window() {
                                 if active_window.id == pid {
-                                    // Should exec only if current window is active window
+                                    debug!("Game is active, incrementing playtime");
                                     {
                                         let state = app_handle.state::<Mutex<AppState>>();
-                                        let mut state = state.lock().map_err(|_| {
-                                            "Error happened while acquiring mutex lock"
-                                        })?;
-                                        let game_state =
-                                            state.game.as_mut().ok_or("Couldn't find the game")?;
+                                        let mut state = match state.lock() {
+                                            Ok(s) => s,
+                                            Err(e) => {
+                                                error!(
+                                                    "Failed to acquire app state mutex lock: {}",
+                                                    e
+                                                );
+                                                return;
+                                            }
+                                        };
+                                        let game_state = match state
+                                            .game
+                                            .as_mut()
+                                            .ok_or("Couldn't find the game")
+                                        {
+                                            Ok(g) => g,
+                                            Err(e) => {
+                                                warn!("No active game found: {}", e);
+                                                return;
+                                            }
+                                        };
                                         game_state.current_playtime += 1;
                                     }
 
@@ -76,16 +114,25 @@ impl ClassicPlaytime {
 
                                     // store
                                     //     .update_playtime(&game_id, FLUSH_DURATION.into())
-                                    //     .map_err(|_| "Error happened while setting new playtime")?;
+                                    debug!("Flushing playtime to store");
+                                    if let Err(e) = util::flush_playtime(&app_handle, &game_id, 60)
+                                    {
+                                        error!("Error happened while updating playtime: {}", e);
+                                    }
 
-                                    app_handle
-                                        .emit("playtime", current_playtime + 1)
-                                        .map_err(|_| "Error happened while emitting playtime")?;
+                                    if let Err(e) =
+                                        app_handle.emit("playtime", current_playtime + 1)
+                                    {
+                                        error!("Error happened while emitting playtime: {}", e);
+                                    }
                                 } else {
-                                    app_handle
-                                        .emit("playtime", "paused")
-                                        .map_err(|_| "Error happened while emitting playtime")?;
+                                    debug!("Game is not active, pausing playtime");
+                                    if let Err(e) = app_handle.emit("playtime", "paused") {
+                                        error!("Error happened while emitting playtime: {}", e);
+                                    }
                                 }
+                            } else {
+                                debug!("Failed to get active window");
                             }
                         }
 
@@ -93,58 +140,79 @@ impl ClassicPlaytime {
                         {
                             {
                                 let state = app_handle.state::<Mutex<AppState>>();
-                                let mut state = state
-                                    .lock()
-                                    .map_err(|_| "Error happened while acquiring mutex lock")?;
+                                let mut state = match state.lock() {
+                                    Ok(s) => s,
+                                    Err(e) => {
+                                        error!("Failed to acquire app state mutex lock: {}", e);
+                                        return;
+                                    }
+                                };
                                 let game_state =
-                                    state.game.as_mut().ok_or("Couldn't find the game")?;
+                                    match state.game.as_mut().ok_or("Couldn't find the game") {
+                                        Ok(g) => g,
+                                        Err(e) => {
+                                            warn!("No active game found: {}", e);
+                                            return;
+                                        }
+                                    };
                                 game_state.current_playtime += 1;
                             }
+
 
                             if current_playtime % 60 == 0 {
                                 flush_playtime(&app_handle, &game_id, 60)
                                     .map_err(|_| "Error happened while updating playtime")?;
                             }
 
-                            app_handle
-                                .emit("playtime", current_playtime + 1)
-                                .map_err(|_| "Error happened while emitting playtime")?;
+                            if let Err(e) = app_handle.emit("playtime", current_playtime + 1) {
+                                error!("Error happened while emitting playtime: {}", e);
+                            }
                         }
 
+                        debug!("Sleeping for 1 second");
                         thread::sleep(Duration::from_secs(1));
                     }
                     None => {
-                        // Inlined close logic
-                        let store = GamesStore::new(&app_handle)
-                            .map_err(|_| "Error happened while accessing store")?;
+                        info!("Game process not found, stopping playtime tracking");
+                        let store = match GamesStore::new(&app_handle) {
+                            Ok(s) => s,
+                            Err(e) => {
+                                error!("Error happened while accessing store: {}", e);
+                                return;
+                            }
+                        };
 
-                        store
-                            .update_playtime(&game_id, current_playtime % 60)
-                            .map_err(|_| "Error happened while setting new playtime")?;
+                        if let Err(e) = store.update_playtime(&game_id, current_playtime % 60) {
+                            error!("Error happened while setting new playtime: {}", e);
+                        }
 
-                        store
-                            .update_last_played(&game_id)
-                            .map_err(|_| "Error happened while updating last played")?;
+                        if let Err(e) = store.update_last_played(&game_id) {
+                            error!("Error happened while updating last played: {}", e);
+                        }
 
                         let state = app_handle.state::<Mutex<AppState>>();
-                        let mut state = state
-                            .lock()
-                            .map_err(|_| "Error happened while acquiring mutex lock")?;
+                        let mut state = match state.lock() {
+                            Ok(s) => s,
+                            Err(e) => {
+                                error!("Failed to acquire app state mutex lock: {}", e);
+                                return;
+                            }
+                        };
                         state.game = None;
 
                         if let Some(pres) = &mut state.presence {
-                            pres.reset()
-                                .map_err(|_| "Error happened while clearing presence")?;
+                            if let Err(e) = pres.reset() {
+                                error!("Error happened while clearing presence: {}", e);
+                            }
                         }
 
-                        app_handle.emit("current_game", json!(null)).expect("here");
-
+                        if let Err(e) = app_handle.emit("current_game", json!(null)) {
+                            error!("Error happened while emitting current_game event: {}", e);
+                        }
                         break;
                     }
                 }
             }
-
-            Result::<(), String>::Ok(())
         });
     }
 }

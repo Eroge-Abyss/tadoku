@@ -11,6 +11,7 @@
   import { openUrl } from '@tauri-apps/plugin-opener';
   import ChangeProcess from '$lib/util/ChangeProcess.svelte';
   import { debounce } from '$lib/util/utils';
+  import { platform } from '@tauri-apps/plugin-os';
 
   const novel = $derived(appState.loadGame(page.params.id));
   const customHtml5Preset = html5Preset.extend((tags) => ({
@@ -75,8 +76,25 @@
   let processList = $state();
   let processDialog = $state(false);
   const openProcessDialog = async () => {
-    processList = await invoke('get_active_windows');
-    processDialog = true;
+    if (platform() === 'linux') {
+      const newPath = await open({
+        multiple: false,
+        directory: false,
+        filters: [
+          {
+            name: 'Game exe or shortcut path',
+            extensions: ['exe', 'lnk', 'bat', 'sh'],
+          },
+        ],
+      });
+
+      if (newPath) {
+        await appState.updateGameProcessPath(novel.id, newPath);
+      }
+    } else {
+      processList = await invoke('get_active_windows');
+      processDialog = true;
+    }
   };
 
   let deleteDialog = $state(false);
@@ -115,7 +133,7 @@
         filters: [
           {
             name: 'Game exe or shortcut path',
-            extensions: ['exe', 'lnk', 'bat'],
+            extensions: ['exe', 'lnk', 'bat', 'sh'],
           },
         ],
       });
@@ -247,7 +265,7 @@
           <i
             onclick={() => invoke('set_characters', { gameId: novel.id })}
             class="fa-solid fa-user-plus"
-            title="Save game characters"
+            title="Download characters list"
           ></i>
           <i
             onclick={openDeleteDialog}

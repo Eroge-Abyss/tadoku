@@ -6,6 +6,7 @@
   import { appState } from '../routes/state.svelte';
   import Dialog from '$lib/util/Dialog.svelte';
   import { debounce } from './util/utils';
+  import { platform } from '@tauri-apps/plugin-os';
 
   const NSFW_RATE = 0.5;
 
@@ -43,7 +44,7 @@
       filters: [
         {
           name: 'Game exe or shortcut path',
-          extensions: ['exe', 'lnk', 'bat'],
+          extensions: ['exe', 'lnk', 'bat', 'sh'],
         },
       ],
     });
@@ -195,6 +196,19 @@
               {selectedVn.id}
             </p>
           </div>
+        </div>
+      {/if}
+
+      {#if platform() === 'linux'}
+        <div class="info-container">
+          <span class="icon-info">
+            <i class="fa-solid fa-info-circle"></i>
+          </span>
+          <p class="note">
+            If running via a script (e.g., Lutris), add the script as the
+            executable and the original EXE as a process path in game settings
+            if not detected.
+          </p>
         </div>
       {/if}
 

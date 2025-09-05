@@ -17,6 +17,7 @@ Tadoku is a modern, blazing-fast Visual Novel (VN) tracker designed for Japanese
 - **Character Tracking**: Optionally include character information for each Visual Novel.
 - **Cross-Platform**: Works on Windows, with basic Linux support (need to build from source).
 - **Discord Rich Presence**: Share your current reading activity on Discord.
+- **ExStatic Integration**: Can integrate with exStatic to provide more accurate playtime for Japanese learners
 <!-- not added yet - **Customizable**: Organize games with categories and tags. -->
 
 ---
@@ -26,18 +27,19 @@ Tadoku is a modern, blazing-fast Visual Novel (VN) tracker designed for Japanese
 <!-- Add your screenshots here -->
 
 ### Main Library View
+
 ![Screenshot 1](assets/main_library.png)
 
-
 ### Game Details Page
+
 ![Screenshot 2](assets/game_details.png)
 
-
 ### Add Game Modal
+
 ![Screenshot 3](assets/add_game.png)
 
-
 ### Characters Page
+
 ![Screenshot 4](assets/characters.png)
 
 ---
@@ -54,7 +56,7 @@ Tadoku is a modern, blazing-fast Visual Novel (VN) tracker designed for Japanese
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/tadoku.git
+   git clone https://github.com/Eroge-Abyss/tadoku.git
    cd tadoku
    ```
 
@@ -99,7 +101,12 @@ Tadoku is a modern, blazing-fast Visual Novel (VN) tracker designed for Japanese
    - If enabled, view character information for each Visual Novel.
 
 5. **Discord Integration**:
+
    - Tadoku updates your Discord status with the current game you're playing.
+
+6. **ExStatic Integration**:
+   - For exStatic support, change playtime recording mode in settings
+   - You need to use [this custom fork](https://github.com/kofta999/exSTATic) that provides Tadoku support
 
 ---
 
@@ -124,6 +131,13 @@ Contributions are welcome! If you'd like to contribute, please follow these step
 ## Support
 
 If you encounter any issues or have suggestions, please open an issue on the [GitHub repository](https://github.com/Eroge-Abyss/tadoku/issues).
+
+Preferably, you can also send logs located in:
+
+- Windows: `C:\Users\{your_username}\AppData\Local\tauri\logs`
+- Linux: `/home/{your_username}/.local/share/tauri/logs`
+
+For more details check [Tauri Docs](https://tauri.app/plugin/logging/#persisting-logs)
 
 ---
 

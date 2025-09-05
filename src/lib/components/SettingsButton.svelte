@@ -1,6 +1,6 @@
 <script>
   import { goto } from '$app/navigation';
-  import SidebarButton from '$lib/util/SidebarButton.svelte';
+  import SidebarButton from '$lib/components/SidebarButton.svelte';
 
   function handleClick() {
     goto('/settings');

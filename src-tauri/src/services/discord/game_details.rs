@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct DiscordGameDetails<'a> {
     pub id: &'a str,
     pub title: &'a str,

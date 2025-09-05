@@ -23,7 +23,9 @@
     "@tauri-apps/plugin-dialog": "~2",
     "@tauri-apps/plugin-fs": "~2",
     "@tauri-apps/plugin-http": "~2",
+    "@tauri-apps/plugin-log": "^2.6.0",
     "@tauri-apps/plugin-opener": "^2.2.6",
+    "@tauri-apps/plugin-os": "^2.3.1",
     "@tauri-apps/plugin-shell": "~2",
     "@tauri-apps/plugin-store": "~2",
     "@tauri-apps/plugin-updater": "^2.6.1"

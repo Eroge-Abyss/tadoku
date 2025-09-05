@@ -1,3 +1,4 @@
+use log::{error, info};
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -13,6 +14,14 @@ use services::playtime;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Info)
+                .level_for("tadoku_lib::commands", log::LevelFilter::Debug)
+                .max_file_size(100_000) // ~100KB
+                .build(),
+        )
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
@@ -22,11 +31,30 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(prevent_default())
         .setup(|app| {
-            scripts::setup_store(app.app_handle())?;
-            scripts::create_images_folder(app.app_handle())?;
-            scripts::initialize_state(app.app_handle())?;
-            scripts::initialize_discord(app.app_handle())?;
+            info!("Starting Tadoku application");
+
+            if let Err(e) = scripts::setup_store(app.app_handle()) {
+                error!("Failed to setup store: {}", e);
+                return Err(e);
+            }
+
+            if let Err(e) = scripts::create_images_folder(app.app_handle()) {
+                error!("Failed to create images folder: {}", e);
+                return Err(e);
+            }
+
+            if let Err(e) = scripts::initialize_state(app.app_handle()) {
+                error!("Failed to initialize state: {}", e);
+                return Err(e);
+            }
+
+            if let Err(e) = scripts::initialize_discord(app.app_handle()) {
+                error!("Failed to initialize Discord: {}", e);
+                return Err(Box::new(e));
+            }
+
             playtime::ExStaticPlaytime::spawn(app.app_handle());
+            info!("Tadoku application setup completed successfully");
 
             Ok(())
         })

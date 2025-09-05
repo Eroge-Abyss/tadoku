@@ -2,12 +2,12 @@
   import '@fontsource-variable/noto-sans-jp';
   import '@fortawesome/fontawesome-free/css/all.min.css';
   import '../app.css';
-  import Sidebar from '$lib/Sidebar.svelte';
+  import Sidebar from '$lib/components/Sidebar.svelte';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import { onMount } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
-  import { appState } from './state.svelte';
-  import UpdateDialog from '$lib/util/UpdateDialog.svelte';
+  import UpdateDialog from '$lib/components/UpdateDialog.svelte';
+  import { appState } from '$lib/state.svelte';
 
   // when using `"withGlobalTauri": true`, you may use
   // const { getCurrentWindow } = window.__TAURI__.window;

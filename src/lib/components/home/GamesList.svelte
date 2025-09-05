@@ -1,8 +1,8 @@
 <script>
-  import { fly, fade } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
   import { elasticOut } from 'svelte/easing';
-  import Card from './util/Card.svelte';
-  import SortOrderSelect from './util/SortOrderSelect.svelte';
+  import SortOrderSelect from '$lib/components/SortOrderSelect.svelte';
+  import Card from '$lib/components/Card.svelte';
 
   let { gamesList } = $props();
 </script>

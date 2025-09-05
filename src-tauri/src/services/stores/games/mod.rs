@@ -5,6 +5,7 @@ use crate::prelude::*;
 use crate::util;
 pub use character::Character;
 pub use game::Game;
+use log::{debug, info};
 use std::{collections::HashMap, fs, path::PathBuf, time};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
@@ -19,6 +20,7 @@ pub struct GamesStore {
 impl GamesStore {
     /// Creates store or uses existing one
     pub fn new(app_handle: &AppHandle) -> Result<Self> {
+        info!("Creating GamesStore");
         let store = app_handle.store("store.json")?;
         let base_app_path = app_handle.path().app_local_data_dir()?;
 
@@ -29,6 +31,7 @@ impl GamesStore {
     }
 
     fn get_store(&self) -> serde_json::Value {
+        debug!("Getting games from store");
         self.store
             .get("gamesData")
             .unwrap_or_else(|| serde_json::json!({}))
@@ -36,6 +39,7 @@ impl GamesStore {
 
     /// Gets all games in store (image_urls are Paths)
     pub fn get_all(&self) -> Result<Games> {
+        debug!("Getting all games");
         let mut games: Games = serde_json::from_value(self.get_store())?;
 
         for game in games.values_mut() {
@@ -49,6 +53,7 @@ impl GamesStore {
 
     /// Deletes a game from the store (also removes images from filesystem)
     pub fn delete(&self, game_id: &str) -> Result<()> {
+        info!("Deleting game with id: {}", game_id);
         let mut games: Games = serde_json::from_value(self.get_store())?;
 
         if let Some(removed_game) = games.remove(game_id) {
@@ -75,6 +80,7 @@ impl GamesStore {
 
     /// Saves a game to the store
     pub fn save(&self, game_id: String, game_data: Game) -> Result<()> {
+        info!("Saving game with id: {}", game_id);
         let mut games: Games = serde_json::from_value(self.get_store())?;
         games.insert(game_id, game_data);
 
@@ -87,6 +93,7 @@ impl GamesStore {
 
     /// Gets a game by id
     pub fn get(&self, game_id: &str) -> Option<Game> {
+        debug!("Getting game with id: {}", game_id);
         let games_data = self.get_store();
         let game = games_data.get(game_id)?;
 
@@ -95,6 +102,7 @@ impl GamesStore {
 
     /// Toggles a game's pinned state
     pub fn toggle_pin(&self, game_id: &str) -> Result<()> {
+        info!("Toggling pin for game with id: {}", game_id);
         let mut games_data = self.get_store();
         let game = games_data.get(game_id).ok_or("Couldn't find game")?;
         let mut game = serde_json::from_value::<Game>(game.clone())?;
@@ -107,6 +115,10 @@ impl GamesStore {
     }
 
     pub fn update_playtime(&self, game_id: &str, playtime: u64) -> Result<()> {
+        debug!(
+            "Updating playtime for game with id: {}, playtime: {}",
+            game_id, playtime
+        );
         let mut games_data = self.get_store();
         let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
         let old_playtime = game["playtime"].as_u64().ok_or("Can't convert to u64")?;
@@ -123,6 +135,10 @@ impl GamesStore {
     }
 
     pub fn update_exe_path(&self, game_id: &str, exe_path: &str) -> Result<()> {
+        info!(
+            "Updating exe path for game with id: {}, path: {}",
+            game_id, exe_path
+        );
         let mut games_data = self.get_store();
         let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
@@ -133,6 +149,10 @@ impl GamesStore {
     }
 
     pub fn update_process_path(&self, game_id: &str, process_path: &str) -> Result<()> {
+        info!(
+            "Updating process path for game with id: {}, path: {}",
+            game_id, process_path
+        );
         let mut games_data = self.get_store();
         let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
@@ -143,6 +163,10 @@ impl GamesStore {
     }
 
     pub fn set_categories(&self, game_id: &str, categories: Categories) -> Result<()> {
+        info!(
+            "Setting categories for game with id: {}, categories: {:?}",
+            game_id, categories
+        );
         let mut games_data = self.get_store();
         let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
@@ -153,6 +177,10 @@ impl GamesStore {
     }
 
     pub fn set_characters(&self, game_id: &str, characters: Vec<Character>) -> Result<()> {
+        info!(
+            "Setting characters for game with id: {}, characters: {:?}",
+            game_id, characters
+        );
         let mut games_data = self.get_store();
         let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
@@ -163,6 +191,7 @@ impl GamesStore {
     }
 
     pub fn update_last_played(&self, game_id: &str) -> Result<()> {
+        info!("Updating last played for game with id: {}", game_id);
         let mut games_data = self.get_store();
         let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
         let start = time::SystemTime::now();
@@ -177,6 +206,7 @@ impl GamesStore {
     }
 
     pub fn set_first_played(&self, game_id: &str) -> Result<()> {
+        info!("Setting first played for game with id: {}", game_id);
         let mut games_data = self.get_store();
         let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 
@@ -194,6 +224,10 @@ impl GamesStore {
     }
 
     pub fn set_notes(&self, game_id: &str, notes: &str) -> Result<()> {
+        info!(
+            "Setting notes for game with id: {}, notes: {}",
+            game_id, notes
+        );
         let mut games_data = self.get_store();
         let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
 

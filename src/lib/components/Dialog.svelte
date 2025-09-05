@@ -1,5 +1,5 @@
 <script>
-  import CloseIcon from '$lib/util/CloseIcon.svelte';
+  import CloseIcon from '$lib/components/CloseIcon.svelte';
   let { show, close, header, children } = $props(); // Prop to control visibility
 
   // @ts-ignore

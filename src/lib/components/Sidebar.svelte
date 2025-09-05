@@ -1,11 +1,11 @@
 <script>
-  import SidebarButton from '$lib/util/SidebarButton.svelte';
-  import AddGame from '$lib/AddGame.svelte';
+  import SidebarButton from '$lib/components/SidebarButton.svelte';
+  import AddGame from '$lib/components/home/AddGame.svelte';
   import { goto } from '$app/navigation';
-  import { appState } from '../routes/state.svelte';
   import { convertFileSrc, invoke } from '@tauri-apps/api/core';
-  import SquaresIcon from '$lib/util/SquaresIcon.svelte';
-  import SettingsButton from './util/SettingsButton.svelte';
+  import SquaresIcon from '$lib/components/SquaresIcon.svelte';
+  import { appState } from '$lib/state.svelte';
+  import SettingsButton from '$lib/components/SettingsButton.svelte';
 
   let pinnedGames = $derived.by(() =>
     Object.entries(appState.gamesList)

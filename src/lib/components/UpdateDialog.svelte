@@ -1,7 +1,7 @@
 <script lang="ts">
   import { check, Update } from '@tauri-apps/plugin-updater';
   import { onMount } from 'svelte';
-  import Dialog from '$lib/util/Dialog.svelte';
+  import Dialog from '$lib/components/Dialog.svelte';
 
   const GITHUB_RELEASE_URL =
     'https://github.com/Eroge-Abyss/tadoku/releases/latest';

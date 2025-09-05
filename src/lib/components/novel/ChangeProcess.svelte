@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Process } from '$lib/types';
-  import Dialog from '$lib/util/Dialog.svelte';
-  import { appState } from '../../routes/state.svelte';
+  import Dialog from '$lib/components/Dialog.svelte';
+  import { appState } from '$lib/state.svelte';
 
   let {
     isOpen = $bindable(),

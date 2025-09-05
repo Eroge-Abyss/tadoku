@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { appState } from '../state.svelte.js';
+  import { appState } from '$lib/state.svelte.js';
   import { getVersion } from '@tauri-apps/api/app';
   import { THEMES, COLOR_SWATCHES } from '../../themeConstants.js';
   import type {

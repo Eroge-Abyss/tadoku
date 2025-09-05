@@ -10,7 +10,7 @@
   import ConfirmDialog from '$lib/util/confirmDialog.svelte';
   import { openUrl } from '@tauri-apps/plugin-opener';
   import ChangeProcess from '$lib/util/ChangeProcess.svelte';
-  import { debounce } from '$lib/util/utils';
+  import { debounce, formatNotes } from '$lib/util/utils';
   import { platform } from '@tauri-apps/plugin-os';
 
   const novel = $derived(appState.loadGame(page.params.id));
@@ -54,6 +54,7 @@
 
   let playing = $state(false);
   let activeMenu = $state(false);
+  let editingNotes = $state(false);
 
   const TABS = $state.raw([
     {
@@ -104,6 +105,7 @@
 
   let selectedTab = $state(TABS[0].id);
   let notes = $state(novel.notes);
+  let originalNotes = novel.notes;
 
   $effect(() => {
     if (appState.currentGame && appState.currentGame.id === novel.id) {
@@ -355,11 +357,49 @@
           </div>
         {:else if selectedTab == 'notes'}
           <div class="notes" in:fly={{ y: 20, duration: 300 }}>
-            <textarea
-              class="notes-textarea"
-              bind:value={notes}
-              oninput={() => gameActions.setNotes({ gameId: novel.id, notes })}
-            ></textarea>
+            {#if editingNotes}
+              <textarea class="notes-div" bind:value={notes}></textarea>
+              <div class="notes-actions">
+                <button
+                  class="save-button"
+                  onclick={() => {
+                    gameActions.setNotes({
+                      gameId: novel.id,
+                      notes,
+                    });
+                    editingNotes = false;
+                  }}
+                  title="Save Notes"
+                >
+                  Save
+                </button>
+                <button
+                  class="cancel-button"
+                  onclick={() => {
+                    editingNotes = false;
+                    notes = originalNotes;
+                  }}
+                  title="Cancel Editing"
+                >
+                  Cancel
+                </button>
+              </div>
+            {:else}
+              <div class="notes-div">
+                {@html formatNotes(notes)}
+              </div>
+              <div class="notes-actions">
+                <button
+                  class="edit-notes-button"
+                  onclick={() => {
+                    editingNotes = true;
+                  }}
+                  title="Edit Notes"
+                >
+                  Edit Notes
+                </button>
+              </div>
+            {/if}
           </div>
         {/if}
       </div>
@@ -724,22 +764,84 @@
     font-weight: 600;
   }
 
-  .notes-textarea {
+  .notes-div {
     width: 100%;
     height: 300px; /* Fixed height */
     resize: none; /* Disable resizing */
     padding: 10px;
+    margin: 0; /* Reset default margins */
     background-color: var(--accent);
     color: var(--main-text);
     border: 1px solid var(--secondary); /* Using secondary for border */
     border-radius: var(--small-radius);
     font-size: 1.1rem;
     outline: none; /* Remove default focus outline */
+    overflow-x: auto; /* Enable horizontal scrolling for div */
+    overflow-y: auto; /* Enable vertical scrolling for div */
+    white-space: pre-wrap; /* Preserve whitespace and allow wrapping */
+    word-wrap: break-word; /* Break long words */
   }
 
-  .notes-textarea:focus {
+  .notes-div:focus {
     border-color: var(--secondary);
     box-shadow: 0 0 0 2px rgba(187, 154, 247, 0.5); /* A subtle glow */
+  }
+
+  textarea.notes-div {
+    font-family: inherit;
+    display: block;
+    box-sizing: border-box;
+    line-height: inherit;
+    white-space: pre-wrap; /* Allow wrapping in textarea */
+    word-wrap: break-word; /* Break long words */
+    overflow-wrap: break-word; /* Modern property for word breaking */
+  }
+
+  /* Button styles for save, cancel, and edit actions */
+  .save-button,
+  .cancel-button,
+  .edit-notes-button {
+    border: 0;
+    border-radius: var(--small-radius);
+    color: var(--main-text);
+    padding: 0.5rem 1rem;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .save-button {
+    background: var(--primary);
+    &:hover {
+      background: var(
+        --primary-dark,
+        color-mix(in srgb, var(--primary), #000 10%)
+      );
+    }
+  }
+
+  .cancel-button {
+    background: #555555;
+    &:hover {
+      background: #666666;
+    }
+  }
+
+  .edit-notes-button {
+    background: var(--secondary);
+    &:hover {
+      background: color-mix(in srgb, var(--secondary), #000 10%);
+    }
+  }
+
+  .notes-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: flex-start;
   }
 
   /* .progress-bars {

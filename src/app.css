@@ -35,6 +35,10 @@ img {
   -webkit-user-drag: none;
 }
 
+button {
+    font-family: inherit;
+}
+
 .container {
   color: var(--main-text);
   height: 100%;

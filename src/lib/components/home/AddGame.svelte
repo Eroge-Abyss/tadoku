@@ -3,10 +3,10 @@
 
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
-  import { appState } from '../routes/state.svelte';
-  import Dialog from '$lib/util/Dialog.svelte';
-  import { debounce } from './util/utils';
+  import Dialog from '$lib/components/Dialog.svelte';
   import { platform } from '@tauri-apps/plugin-os';
+  import { appState } from '$lib/state.svelte';
+  import { debounce } from '$lib/util';
 
   const NSFW_RATE = 0.5;
 

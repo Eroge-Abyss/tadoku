@@ -1,6 +1,5 @@
 <script>
-  import CloseIcon from '$lib/util/CloseIcon.svelte';
-  import Dialog from '$lib/util/Dialog.svelte';
+  import Dialog from '$lib/components/Dialog.svelte';
   let {
     isOpen = $bindable(),
     onConfirm,

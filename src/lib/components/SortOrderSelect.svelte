@@ -1,5 +1,5 @@
 <script>
-  import { appState } from '../../routes/state.svelte';
+  import { appState } from '$lib/state.svelte';
 
   // @ts-ignore
   async function handleSortOrderSelection(e) {

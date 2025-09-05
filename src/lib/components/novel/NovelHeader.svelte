@@ -1,11 +1,9 @@
-<script>
+<script lang="ts">
   import { convertFileSrc, invoke } from '@tauri-apps/api/core';
   import bbobHTML from '@bbob/html';
   import html5Preset from '@bbob/preset-html5';
   import { fly } from 'svelte/transition';
-  import { open } from '@tauri-apps/plugin-dialog';
   import { openUrl } from '@tauri-apps/plugin-opener';
-  import { platform } from '@tauri-apps/plugin-os';
 
   let {
     novel,
@@ -18,6 +16,23 @@
     onProcessDialog,
     onDeleteDialog,
   } = $props();
+
+  let menuToggleRef: HTMLButtonElement;
+  // svelte-ignore non_reactive_update
+  let secondaryMenuRef: HTMLDivElement;
+
+  // Function to handle clicks outside the menu
+  function handleClickOutside(event: any) {
+    if (
+      activeMenu &&
+      secondaryMenuRef &&
+      !secondaryMenuRef.contains(event.target) &&
+      menuToggleRef &&
+      !menuToggleRef.contains(event.target)
+    ) {
+      activeMenu = false;
+    }
+  }
 
   const customHtml5Preset = html5Preset.extend((tags) => ({
     ...tags,
@@ -40,6 +55,8 @@
     },
   }));
 </script>
+
+<svelte:window onclick={handleClickOutside} />
 
 <div class="header">
   <div class="novel-info" in:fly={{ x: 10, duration: 500 }}>
@@ -65,52 +82,85 @@
       </p>
     </div>
   </div>
-  <div class="buttons">
-    {#if playing}
-      <button onclick={onStopGame} class="playing">Close</button>
-    {:else}
-      <button onclick={onStartGame}>Start</button>
-    {/if}
-    <i
-      class="fa-solid fa-ellipsis fa-xl"
-      onclick={() => (activeMenu = !activeMenu)}
-      class:active={activeMenu}
-    ></i>
-    <div class="menu" class:active={activeMenu}>
-      <i
+  <div class="action-buttons">
+    <div class="primary-actions">
+      {#if playing}
+        <button onclick={onStopGame} class="primary-button playing">
+          <i class="fa-solid fa-stop"></i>
+          Close Game
+        </button>
+      {:else}
+        <button onclick={onStartGame} class="primary-button">
+          <i class="fa-solid fa-play"></i>
+          Start Game
+        </button>
+      {/if}
+
+      <button
         onclick={onTogglePin}
-        class={[
-          'fa-solid',
-          novel.is_pinned ? 'fa-thumbtack-slash' : 'fa-thumbtack',
-        ]}
-        title="Toggle pinned"
-      ></i>
-      <i
-        onclick={onEditExe}
-        class="fa-regular fa-pen-to-square"
-        title="Edit exe path"
-      ></i>
-      <i
-        onclick={onProcessDialog}
-        class="fa-solid fa-folder-tree"
-        title="Change game process path"
-      ></i>
-      <i
-        onclick={() => openUrl(`https://vndb.org/${novel.id}`)}
-        class="fa-solid fa-arrow-up-right-from-square"
-        title="Open in VNDB"
-      ></i>
-      <i
-        onclick={() => invoke('set_characters', { gameId: novel.id })}
-        class="fa-solid fa-user-plus"
-        title="Download characters list"
-      ></i>
-      <i
-        onclick={onDeleteDialog}
-        class="fa-regular fa-trash-can"
-        style="color:  #f7768e;"
-        title="Delete game"
-      ></i>
+        class="action-button"
+        class:pinned={novel.is_pinned}
+      >
+        <i
+          class={novel.is_pinned
+            ? 'fa-solid fa-thumbtack-slash'
+            : 'fa-solid fa-thumbtack'}
+        ></i>
+        {novel.is_pinned ? 'Unpin' : 'Pin'}
+      </button>
+
+      <div class="more-actions-container">
+        <button
+          onclick={() => (activeMenu = !activeMenu)}
+          class="menu-toggle"
+          class:active={activeMenu}
+          bind:this={menuToggleRef}
+        >
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+          More
+        </button>
+
+        {#if activeMenu}
+          <div
+            class="secondary-menu"
+            in:fly={{ y: -10, duration: 200 }}
+            bind:this={secondaryMenuRef}
+          >
+            <button onclick={onEditExe} class="menu-item">
+              <i class="fa-regular fa-pen-to-square"></i>
+              Edit Executable Path
+            </button>
+
+            <button onclick={onProcessDialog} class="menu-item">
+              <i class="fa-solid fa-folder-tree"></i>
+              Change Process Path
+            </button>
+
+            <button
+              onclick={() => openUrl(`https://vndb.org/${novel.id}`)}
+              class="menu-item"
+            >
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              Open in VNDB
+            </button>
+
+            <button
+              onclick={() => invoke('set_characters', { gameId: novel.id })}
+              class="menu-item"
+            >
+              <i class="fa-solid fa-user-plus"></i>
+              Download Characters
+            </button>
+
+            <div class="menu-divider"></div>
+
+            <button onclick={onDeleteDialog} class="menu-item danger">
+              <i class="fa-regular fa-trash-can"></i>
+              Delete Game
+            </button>
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 </div>
@@ -168,98 +218,165 @@
     max-height: 200px;
   }
 
-  .buttons,
-  .buttons .menu {
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .primary-actions {
     display: flex;
     gap: 1rem;
     align-items: center;
-    margin-top: 1rem;
+  }
 
-    & .menu {
-      margin-top: 0;
-      opacity: 0;
-      transform: translateX(-20px);
-      transition:
-        opacity 0.3s ease,
-        transform 0.3s ease;
-      pointer-events: none;
-      & i {
-        opacity: 0;
-        transform: translateY(-10px);
-        transition:
-          opacity 0.3s ease,
-          transform 0.3s ease;
-        &:hover {
-          color: var(--main-text);
-        }
-      }
-      &.active {
-        transform: translateX(0);
-        z-index: 0;
-        opacity: 1;
-        & i {
-          opacity: 1;
-          transform: translateY(0);
-          pointer-events: auto;
-          &:nth-child(1) {
-            transition-delay: 0.1s;
-          }
-          &:nth-child(2) {
-            transition-delay: 0.2s;
-          }
-          &:nth-child(3) {
-            transition-delay: 0.3s;
-          }
-          &:nth-child(4) {
-            transition-delay: 0.4s;
-          }
-          &:nth-child(5) {
-            transition-delay: 0.5s;
-          }
-          &:nth-child(6) {
-            transition-delay: 0.6s;
-          }
-        }
-      }
-    }
-    i {
-      color: #464545;
-      transition: all 0.2s ease-in-out;
-      cursor: pointer;
-      &.active {
-        color: var(--main-text);
-        transform: rotate(90deg);
-      }
-    }
+  .more-actions-container {
+    position: relative; /* Establish new positioning context */
+  }
 
-    & button {
-      border: 0;
-      border-radius: var(--small-radius);
-      color: var(--main-text);
-      background-color: #313131;
-      width: 200px;
-      padding: 0.5rem;
-      font-size: 18px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
+  .primary-button {
+    border: 0;
+    border-radius: var(--small-radius);
+    color: var(--main-text);
+    background: var(--primary);
+    padding: 0.75rem 1.5rem;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 140px;
+    justify-content: center;
+  }
 
-      &:first-child {
-        background: var(--primary);
+  .primary-button:hover {
+    background: var(
+      --primary-dark,
+      color-mix(in srgb, var(--primary), #000 10%)
+    );
+  }
 
-        &:hover {
-          background: var(
-            --primary-dark,
-            color-mix(in srgb, var(--primary), #000 10%)
-          );
-        }
+  .primary-button.playing {
+    background: rgb(224, 90, 90);
+  }
 
-        &.playing {
-          background: rgb(224, 90, 90);
-          &:hover {
-            background: color-mix(in srgb, var(--primary), rgb(244, 65, 98));
-          }
-        }
-      }
-    }
+  .primary-button.playing:hover {
+    background: color-mix(in srgb, rgb(224, 90, 90), #000 10%);
+  }
+
+  .action-button {
+    border: 0;
+    border-radius: var(--small-radius);
+    color: var(--main-text);
+    background: var(--accent);
+    padding: 0.5rem 1rem;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .action-button:hover {
+    background: color-mix(in srgb, var(--accent), var(--main-text) 10%);
+  }
+
+  .action-button.pinned {
+    background: var(--secondary);
+  }
+
+  .action-button.pinned:hover {
+    background: color-mix(in srgb, var(--secondary), #000 10%);
+  }
+
+  .menu-toggle {
+    border: 0;
+    border-radius: var(--small-radius);
+    color: var(--main-text);
+    background: var(--accent);
+    padding: 0.5rem 1rem;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .menu-toggle:hover {
+    background: color-mix(in srgb, var(--accent), var(--main-text) 10%);
+  }
+
+  .menu-toggle.active {
+    background: var(--secondary);
+  }
+
+  .secondary-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--main-background);
+    border: 1px solid var(--accent);
+    border-radius: var(--small-radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: 0.5rem;
+    min-width: 220px;
+    z-index: 1;
+    margin-top: 0.5rem;
+  }
+
+  .menu-item {
+    width: 100%;
+    border: 0;
+    border-radius: var(--small-radius);
+    color: var(--main-text);
+    background: transparent;
+    padding: 0.75rem 1rem;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: left;
+  }
+
+  .menu-item:hover {
+    background: var(--accent);
+  }
+
+  .menu-item.danger {
+    color: #f7768e;
+  }
+
+  .menu-item.danger:hover {
+    background: rgba(247, 118, 142, 0.1);
+  }
+
+  .menu-divider {
+    height: 1px;
+    background: var(--accent);
+    margin: 0.5rem 0;
+  }
+
+  .action-button i,
+  .menu-toggle i {
+    font-size: 12px;
+  }
+
+  .primary-button i {
+    font-size: 14px;
+  }
+
+  .menu-item i {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
   }
 </style>

@@ -153,10 +153,23 @@
   const handleStartEdit = () => {
     editingNotes = true;
   };
+
+  // @ts-ignore
+  function handleMenuClick(e) {
+    // Check if the click occurred directly on the modal backdrop
+    if (e.target?.classList.contains('secondary-menu')) {
+      activeMenu = false;
+    }
+  }
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="container">
-  <div class="content" in:fade={{ duration: 100 }}>
+  <div
+    class="content"
+    in:fade={{ duration: 100 }}
+    onmousedown={handleMenuClick}
+  >
     <NovelHeader
       {novel}
       {playing}

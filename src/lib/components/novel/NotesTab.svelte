@@ -16,14 +16,14 @@
     <textarea class="notes-div" bind:value={notes}></textarea>
     <div class="notes-actions">
       <button class="save-button" onclick={onSaveNotes} title="Save Notes">
-        Save
+        <i class="fa-solid fa-save"></i> Save
       </button>
       <button
         class="cancel-button"
         onclick={onCancelEdit}
         title="Cancel Editing"
       >
-        Cancel
+        <i class="fa-solid fa-xmark"></i> Cancel
       </button>
     </div>
   {:else}
@@ -36,7 +36,7 @@
         onclick={onStartEdit}
         title="Edit Notes"
       >
-        Edit Notes
+        <i class="fa-regular fa-pen-to-square"></i> Edit Notes
       </button>
     </div>
   {/if}
@@ -83,9 +83,9 @@
     border-radius: var(--small-radius);
     color: var(--main-text);
     padding: 0.5rem 1rem;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -103,11 +103,11 @@
   }
 
   .cancel-button {
-    background: #555555;
+    background: var(--accent);
   }
 
   .cancel-button:hover {
-    background: #666666;
+    background: color-mix(in srgb, var(--accent), var(--main-text) 10%);
   }
 
   .edit-notes-button {

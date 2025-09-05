@@ -241,7 +241,7 @@
     color: var(--main-text);
     background: var(--primary);
     padding: 0.75rem 1.5rem;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -273,7 +273,7 @@
     color: var(--main-text);
     background: var(--accent);
     padding: 0.5rem 1rem;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: inline-flex;
@@ -300,7 +300,7 @@
     color: var(--main-text);
     background: var(--accent);
     padding: 0.5rem 1rem;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: inline-flex;

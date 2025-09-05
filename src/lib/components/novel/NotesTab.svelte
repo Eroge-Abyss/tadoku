@@ -83,7 +83,7 @@
     border-radius: var(--small-radius);
     color: var(--main-text);
     padding: 0.5rem 1rem;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: inline-flex;

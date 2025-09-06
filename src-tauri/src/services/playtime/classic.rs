@@ -109,16 +109,6 @@ impl ClassicPlaytime {
                                         }
                                     }
 
-                                    // let store = GamesStore::new(&app_handle)
-                                    //     .map_err(|_| "Error happened while accessing store")?;
-
-                                    // store
-                                    //     .update_playtime(&game_id, FLUSH_DURATION.into())
-                                    debug!("Flushing playtime to store");
-                                    if let Err(e) = flush_playtime(&app_handle, &game_id, 60) {
-                                        error!("Error happened while updating playtime: {}", e);
-                                    }
-
                                     if let Err(e) =
                                         app_handle.emit("playtime", current_playtime + 1)
                                     {

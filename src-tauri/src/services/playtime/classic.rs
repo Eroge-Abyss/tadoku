@@ -1,8 +1,6 @@
 use super::super::stores::games::GamesStore;
-use crate::util::flush_playtime;
 use crate::{services::stores::settings::PlaytimeMode, AppState};
 use log::{debug, error, info, warn};
-use serde_json::json;
 use std::{sync::Mutex, thread, time::Duration};
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};
 use tauri::{AppHandle, Emitter, Manager};
@@ -18,6 +16,13 @@ impl ClassicPlaytime {
             let mut system = System::new_with_specifics(
                 RefreshKind::nothing().with_processes(ProcessRefreshKind::everything()),
             );
+            let store = match GamesStore::new(&app_handle) {
+                Ok(s) => s,
+                Err(e) => {
+                    error!("Error happened while accessing store: {}", e);
+                    return;
+                }
+            };
 
             loop {
                 let (pid, game_id, current_playtime, playtime_mode) = {
@@ -51,7 +56,6 @@ impl ClassicPlaytime {
                     )
                 };
 
-                // Inline get_playtime logic
                 system.refresh_processes_specifics(
                     ProcessesToUpdate::All,
                     true,
@@ -64,9 +68,11 @@ impl ClassicPlaytime {
 
                 match process_playtime {
                     Some(_) => {
+                        debug!("Sleeping for 1 second");
+                        thread::sleep(Duration::from_secs(1));
+
                         if !matches!(playtime_mode, PlaytimeMode::Classic) {
                             debug!("Playtime mode is not Classic, skipping iteration");
-                            thread::sleep(Duration::from_secs(1));
                             continue;
                         }
 
@@ -75,109 +81,56 @@ impl ClassicPlaytime {
                         #[cfg(windows)]
                         {
                             if let Ok(active_window) = x_win::get_active_window() {
-                                if active_window.id == pid {
-                                    debug!("Game is active, incrementing playtime");
-                                    {
-                                        let state = app_handle.state::<Mutex<AppState>>();
-                                        let mut state = match state.lock() {
-                                            Ok(s) => s,
-                                            Err(e) => {
-                                                error!(
-                                                    "Failed to acquire app state mutex lock: {}",
-                                                    e
-                                                );
-                                                return;
-                                            }
-                                        };
-                                        let game_state = match state
-                                            .game
-                                            .as_mut()
-                                            .ok_or("Couldn't find the game")
-                                        {
-                                            Ok(g) => g,
-                                            Err(e) => {
-                                                warn!("No active game found: {}", e);
-                                                return;
-                                            }
-                                        };
-                                        game_state.current_playtime += 1;
-                                    }
-
-                                    if current_playtime % 60 == 0 {
-                                        if let Err(e) = flush_playtime(&app_handle, &game_id, 60) {
-                                            error!("Error happened while updating playtime: {}", e);
-                                        }
-
-                                        if let Err(e) = app_handle.emit("flushed_playtime", ()) {
-                                            error!("Error happened while emitting flushed playtime: {}", e);
-                                        }
-                                    }
-
-                                    if let Err(e) =
-                                        app_handle.emit("playtime", current_playtime + 1)
-                                    {
-                                        error!("Error happened while emitting playtime: {}", e);
-                                    }
-                                } else {
+                                if active_window.id != pid {
                                     debug!("Game is not active, pausing playtime");
-                                    if let Err(e) = app_handle.emit("playtime", "paused") {
-                                        error!("Error happened while emitting playtime: {}", e);
-                                    }
+                                    continue;
+                                    // if let Err(e) = app_handle.emit("playtime", "paused") {
+                                    //     error!("Error happened while emitting playtime: {}", e);
+                                    // }
                                 }
                             } else {
                                 debug!("Failed to get active window");
+                                continue;
                             }
                         }
 
-                        #[cfg(not(windows))]
+                        debug!("Game is active, incrementing playtime");
                         {
-                            {
-                                let state = app_handle.state::<Mutex<AppState>>();
-                                let mut state = match state.lock() {
-                                    Ok(s) => s,
+                            let state = app_handle.state::<Mutex<AppState>>();
+                            let mut state = match state.lock() {
+                                Ok(s) => s,
+                                Err(e) => {
+                                    error!("Failed to acquire app state mutex lock: {}", e);
+                                    return;
+                                }
+                            };
+                            let game_state =
+                                match state.game.as_mut().ok_or("Couldn't find the game") {
+                                    Ok(g) => g,
                                     Err(e) => {
-                                        error!("Failed to acquire app state mutex lock: {}", e);
+                                        warn!("No active game found: {}", e);
                                         return;
                                     }
                                 };
-                                let game_state =
-                                    match state.game.as_mut().ok_or("Couldn't find the game") {
-                                        Ok(g) => g,
-                                        Err(e) => {
-                                            warn!("No active game found: {}", e);
-                                            return;
-                                        }
-                                    };
-                                game_state.current_playtime += 1;
+                            game_state.current_playtime += 1;
+                        }
+
+                        if current_playtime % 60 == 0 {
+                            if let Err(e) = store.update_playtime(&game_id, 60) {
+                                error!("Error happened while updating playtime: {}", e);
                             }
 
-                            if current_playtime % 60 == 0 {
-                                if let Err(e) = flush_playtime(&app_handle, &game_id, 60) {
-                                    error!("Error happened while updating playtime: {}", e);
-                                }
-
-                                if let Err(e) = app_handle.emit("flushed_playtime", ()) {
-                                    error!("Error happened while emitting flushed playtime: {}", e);
-                                }
-                            }
-
-                            if let Err(e) = app_handle.emit("playtime", current_playtime + 1) {
-                                error!("Error happened while emitting playtime: {}", e);
+                            if let Err(e) = app_handle.emit("flushed_playtime", ()) {
+                                error!("Error happened while emitting flushed playtime: {}", e);
                             }
                         }
 
-                        debug!("Sleeping for 1 second");
-                        thread::sleep(Duration::from_secs(1));
+                        // if let Err(e) = app_handle.emit("playtime", current_playtime + 1) {
+                        //     error!("Error happened while emitting playtime: {}", e);
+                        // }
                     }
                     None => {
                         info!("Game process not found, stopping playtime tracking");
-                        let store = match GamesStore::new(&app_handle) {
-                            Ok(s) => s,
-                            Err(e) => {
-                                error!("Error happened while accessing store: {}", e);
-                                return;
-                            }
-                        };
 
                         if let Err(e) = store.update_playtime(&game_id, current_playtime % 60) {
                             error!("Error happened while setting new playtime: {}", e);
@@ -203,9 +156,9 @@ impl ClassicPlaytime {
                             }
                         }
 
-                        if let Err(e) = app_handle.emit("current_game", json!(null)) {
-                            error!("Error happened while emitting current_game event: {}", e);
-                        }
+                        // if let Err(e) = app_handle.emit("current_game", json!(null)) {
+                        //     error!("Error happened while emitting current_game event: {}", e);
+                        // }
                         break;
                     }
                 }

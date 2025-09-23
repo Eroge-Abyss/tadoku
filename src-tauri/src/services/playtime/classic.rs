@@ -156,9 +156,9 @@ impl ClassicPlaytime {
                             }
                         }
 
-                        // if let Err(e) = app_handle.emit("current_game", json!(null)) {
-                        //     error!("Error happened while emitting current_game event: {}", e);
-                        // }
+                        if let Err(e) = app_handle.emit("current_game", serde_json::json!(null)) {
+                            error!("Error happened while emitting current_game event: {}", e);
+                        }
                         break;
                     }
                 }

@@ -1,16 +1,8 @@
 <script>
   import GamesList from '$lib/components/home/GamesList.svelte';
-  // import { listen } from '@tauri-apps/api/event';
   import { onMount } from 'svelte';
   import { appState } from '$lib/state.svelte';
-  // import { invoke } from '@tauri-apps/api/core';
   import { goto } from '$app/navigation';
-  // let playtime = 0;
-
-  // listen('playtime', (e) => {
-  //   playtime = e.payload;
-  //   console.log({ playtime });
-  // });
 
   onMount(async () => {
     appState.loadGames();
@@ -31,7 +23,11 @@
   </div> -->
   <GamesList gamesList={appState.gamesList} />
   {#if appState.showRandomButton}
-    <button class="fa-dice-shake" onclick={getRandomGame}>
+    <button
+      class="fa-dice-shake"
+      onclick={getRandomGame}
+      aria-label="random-game-button"
+    >
       <i class="fa-solid fa-dice"></i>
     </button>
   {/if}

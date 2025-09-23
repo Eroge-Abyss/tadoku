@@ -422,8 +422,6 @@ class AppState {
         ...settings,
       };
 
-      // console.log(this.#themeSettings); // Removed this console log as part of cleanup
-
       await invoke('set_theme_settings', {
         themeSettings: {
           accent_color: this.#themeSettings.accentColor,

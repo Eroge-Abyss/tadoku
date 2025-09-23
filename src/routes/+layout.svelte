@@ -28,8 +28,6 @@
 
   onMount(() => {
     listen('current_game', (e) => {
-      console.log(e.payload);
-
       appState.currentGame = e.payload;
       appState.loadGames();
     });

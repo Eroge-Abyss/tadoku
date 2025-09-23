@@ -8,12 +8,12 @@
   import { listen } from '@tauri-apps/api/event';
   import UpdateDialog from '$lib/components/UpdateDialog.svelte';
   import { appState } from '$lib/state.svelte';
+  import { app } from '@tauri-apps/api';
 
   // when using `"withGlobalTauri": true`, you may use
   // const { getCurrentWindow } = window.__TAURI__.window;
 
   const { children } = $props();
-
   const appWindow = getCurrentWindow();
 
   document
@@ -32,6 +32,10 @@
 
       appState.currentGame = e.payload;
       appState.loadGames();
+    });
+
+    listen('flushed_playtime', () => {
+      appState.refreshGamesList();
     });
 
     //listen('playtime', (e) => console.log(e.payload));

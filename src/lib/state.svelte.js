@@ -66,20 +66,15 @@ class AppState {
   #playtimeMode = $state('classic');
 
   /**
-   * Creates an instance of AppState.
+   * Creates an instance of AppState and loads initial settings.
    */
-  constructor() {}
-
-  /**
-   * Loads initial settings.
-   */
-  async initialize() {
-    await this.loadThemeSettings();
-    await this.loadSortOrder();
-    await this.loadShowRandomButton();
-    await this.loadDisablePresenceOnNsfw();
-    await this.loadDiscordPresenceMode();
-    await this.loadPlaytimeMode();
+  constructor() {
+    this.loadThemeSettings();
+    this.loadSortOrder();
+    this.loadShowRandomButton();
+    this.loadDisablePresenceOnNsfw();
+    this.loadDiscordPresenceMode();
+    this.loadPlaytimeMode();
   }
 
   // --- Getters ---
@@ -166,6 +161,7 @@ class AppState {
    * @returns {Promise<void>}
    */
   async loadGames() {
+    await this.loadSortOrder();
     await this.refreshGamesList();
   }
 
@@ -636,6 +632,4 @@ class AppState {
   }
 }
 
-const appState = new AppState();
-await appState.initialize();
-export { appState };
+export const appState = new AppState();

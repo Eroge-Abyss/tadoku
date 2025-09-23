@@ -13,12 +13,18 @@ use services::playtime;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let default_log_level = if util::is_debug_mode() {
+        log::LevelFilter::Debug
+    } else {
+        log::LevelFilter::Info
+    };
+
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Info)
-                .level_for("tadoku_lib::commands", log::LevelFilter::Debug)
+                .filter(|metadata| metadata.target().starts_with("tadoku_lib"))
+                .level(default_log_level)
                 .max_file_size(100_000) // ~100KB
                 .build(),
         )

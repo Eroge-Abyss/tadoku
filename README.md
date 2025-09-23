@@ -306,6 +306,34 @@ Logs are stored in:
 
 For detailed logging information, see the [Tauri Logging Documentation](https://tauri.app/plugin/logging/#persisting-logs).
 
+### Debug Mode
+
+For advanced debugging or to enable more verbose logging in release builds, you can activate debug mode using an environment variable.
+
+Set the `TADOKU_DEBUG` environment variable to `1` or `true` before launching the application.
+
+- **Linux/macOS:**
+  ```bash
+  TADOKU_DEBUG=1 ./path/to/tadoku
+  ```
+  Or to enable for your current shell session:
+  ```bash
+  export TADOKU_DEBUG=1
+  ./path/to/tadoku
+  ```
+- **Windows (Command Prompt):**
+  ```cmd
+  set TADOKU_DEBUG=1
+  ./path/to/tadoku.exe
+  ```
+- **Windows (PowerShell):**
+  ```powershell
+  $env:TADOKU_DEBUG="1"
+  ./path/to/tadoku.exe
+  ```
+
+Remember to unset the environment variable if you no longer need debug mode (e.g., `unset TADOKU_DEBUG` on Linux/macOS or `set TADOKU_DEBUG=` on Windows CMD).
+
 ---
 
 ## Screenshots

@@ -34,6 +34,13 @@
     }
   }
 
+  function withMenuClose<T extends (...args: any[]) => any>(fn: T): T {
+    return ((...args: Parameters<T>): ReturnType<T> => {
+      activeMenu = false;
+      return fn(...args);
+    }) as T;
+  }
+
   const customHtml5Preset = html5Preset.extend((tags) => ({
     ...tags,
     url: (node, params) => {
@@ -126,18 +133,20 @@
             in:fly={{ y: -10, duration: 200 }}
             bind:this={secondaryMenuRef}
           >
-            <button onclick={onEditExe} class="menu-item">
+            <button onclick={withMenuClose(onEditExe)} class="menu-item">
               <i class="fa-regular fa-pen-to-square"></i>
               Edit Executable Path
             </button>
 
-            <button onclick={onProcessDialog} class="menu-item">
+            <button onclick={withMenuClose(onProcessDialog)} class="menu-item">
               <i class="fa-solid fa-folder-tree"></i>
               Change Process Path
             </button>
 
             <button
-              onclick={() => openUrl(`https://vndb.org/${novel.id}`)}
+              onclick={withMenuClose(() =>
+                openUrl(`https://vndb.org/${novel.id}`),
+              )}
               class="menu-item"
             >
               <i class="fa-solid fa-arrow-up-right-from-square"></i>
@@ -145,7 +154,9 @@
             </button>
 
             <button
-              onclick={() => invoke('set_characters', { gameId: novel.id })}
+              onclick={withMenuClose(() =>
+                invoke('set_characters', { gameId: novel.id }),
+              )}
               class="menu-item"
             >
               <i class="fa-solid fa-user-plus"></i>
@@ -154,7 +165,10 @@
 
             <div class="menu-divider"></div>
 
-            <button onclick={onDeleteDialog} class="menu-item danger">
+            <button
+              onclick={withMenuClose(onDeleteDialog)}
+              class="menu-item danger"
+            >
               <i class="fa-regular fa-trash-can"></i>
               Delete Game
             </button>

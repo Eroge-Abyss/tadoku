@@ -29,7 +29,7 @@
   onMount(() => {
     listen('current_game', (e) => {
       appState.currentGame = e.payload;
-      appState.loadGames();
+      appState.refreshGamesList();
     });
 
     listen('flushed_playtime', () => {

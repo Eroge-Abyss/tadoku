@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import '@fontsource-variable/noto-sans-jp';
   import '@fortawesome/fontawesome-free/css/all.min.css';
   import '../app.css';
@@ -7,14 +7,15 @@
   import { onMount } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
   import UpdateDialog from '$lib/components/UpdateDialog.svelte';
-  import { appState } from '$lib/state.svelte';
-  import { app } from '@tauri-apps/api';
+  import { appState, type CurrentGame } from '$lib/state.svelte';
+  import { type Event } from '@tauri-apps/api/event';
 
   // when using `"withGlobalTauri": true`, you may use
   // const { getCurrentWindow } = window.__TAURI__.window;
 
   const { children } = $props();
   const appWindow = getCurrentWindow();
+  let refreshInterval: number;
 
   document
     .getElementById('titlebar-minimize')
@@ -27,12 +28,16 @@
     ?.addEventListener('click', () => appWindow.close());
 
   onMount(() => {
-    listen('current_game', (e) => {
+    listen('current_game', (e: Event<CurrentGame | null>) => {
       appState.currentGame = e.payload;
-      appState.refreshGamesList();
-    });
+      clearInterval(refreshInterval);
 
-    listen('flushed_playtime', () => {
+      if (e.payload != null) {
+        refreshInterval = setInterval(async () => {
+          await appState.refreshGamesList();
+        }, 60_000);
+      }
+
       appState.refreshGamesList();
     });
 

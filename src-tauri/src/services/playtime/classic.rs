@@ -119,10 +119,6 @@ impl ClassicPlaytime {
                             if let Err(e) = store.update_playtime(&game_id, 60) {
                                 error!("Error happened while updating playtime: {}", e);
                             }
-
-                            if let Err(e) = app_handle.emit("flushed_playtime", ()) {
-                                error!("Error happened while emitting flushed playtime: {}", e);
-                            }
                         }
 
                         // if let Err(e) = app_handle.emit("playtime", current_playtime + 1) {

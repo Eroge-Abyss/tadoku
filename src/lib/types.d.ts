@@ -23,6 +23,8 @@ export interface Game {
   process_file_path: string;
   /** Play time in seconds. */
   playtime: number;
+  today_playtime: number;
+  last_play_date: string;
   last_played: number | null;
   first_played: number | null;
   is_pinned: boolean;

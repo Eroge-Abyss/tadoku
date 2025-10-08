@@ -4,6 +4,7 @@ use super::categories::Categories;
 use crate::prelude::*;
 use crate::util;
 pub use character::Character;
+use chrono::Local;
 pub use game::Game;
 use log::{debug, info};
 use std::{collections::HashMap, fs, path::PathBuf, time};
@@ -120,10 +121,21 @@ impl GamesStore {
             game_id, playtime
         );
         let mut games_data = self.get_store();
-        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
-        let old_playtime = game["playtime"].as_u64().ok_or("Can't convert to u64")?;
+        let game_value = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
+        let mut game: Game = serde_json::from_value(game_value.clone())?;
 
-        game["playtime"] = serde_json::json!(old_playtime + playtime);
+        game.playtime += playtime;
+
+        let current_date = Local::now().format("%Y-%m-%d").to_string();
+
+        if game.last_play_date.is_none() || game.last_play_date.as_ref().unwrap() != &current_date {
+            game.today_playtime = playtime;
+            game.last_play_date = Some(current_date.clone());
+        } else {
+            game.today_playtime += playtime;
+        }
+
+        *game_value = serde_json::to_value(game)?;
         self.store.set("gamesData", games_data);
         // Note
         // store.set() saves into an internal AppState

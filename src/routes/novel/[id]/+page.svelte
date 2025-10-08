@@ -24,6 +24,12 @@
   // Derived values
   const hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
   const minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
+  const todayHoursPlayed = $derived(
+    Math.floor((novel.today_playtime || 0) / 3600),
+  );
+  const todayMinutesPlayed = $derived(
+    Math.floor(((novel.today_playtime || 0) % 3600) / 60),
+  );
   const lastPlayedDate = $derived(
     novel.last_played ? new Date(novel.last_played * 1000) : null,
   );
@@ -200,6 +206,8 @@
       tabs={TABS}
       {hoursPlayed}
       {minutesPlayed}
+      {todayHoursPlayed}
+      {todayMinutesPlayed}
       {firstPlayedDate}
       {lastPlayedDate}
       bind:notes

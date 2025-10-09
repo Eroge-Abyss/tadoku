@@ -4,6 +4,8 @@
   let {
     hoursPlayed,
     minutesPlayed,
+    todayHoursPlayed,
+    todayMinutesPlayed,
     firstPlayedDate,
     lastPlayedDate,
     formatRelativeDate,
@@ -11,13 +13,13 @@
 </script>
 
 <div class="stats-grid">
-  <div
-    class="stat-item"
-    style="grid-column: span 2;"
-    in:fly={{ y: 20, duration: 500 }}
-  >
+  <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
     <p class="stat-label">Time Played</p>
     <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
+  </div>
+  <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
+    <p class="stat-label">Time Played Today</p>
+    <span class="stat-value">{todayHoursPlayed}h {todayMinutesPlayed}m</span>
   </div>
   <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
     <p class="stat-label">First Played</p>
@@ -44,7 +46,7 @@
 <style>
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(1fr, 2);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
     margin-bottom: 2rem;
   }

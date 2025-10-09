@@ -115,7 +115,7 @@ impl ClassicPlaytime {
                             game_state.current_playtime += 1;
                         }
 
-                        if current_playtime % 60 == 0 {
+                        if current_playtime != 0 && current_playtime % 60 == 0 {
                             if let Err(e) = store.update_playtime(&game_id, 60) {
                                 error!("Error happened while updating playtime: {}", e);
                             }

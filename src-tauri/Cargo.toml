@@ -40,6 +40,7 @@ futures-util = "0.3"
 tauri-plugin-log = "2"
 log = "0.4.27"
 tauri-plugin-os = "2"
+chrono = "0.4.42"
 
 [target.'cfg(windows)'.dependencies]
 windows-icons = "0.1.1"

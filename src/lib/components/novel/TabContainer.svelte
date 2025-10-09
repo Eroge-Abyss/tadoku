@@ -11,6 +11,8 @@
     tabs,
     hoursPlayed,
     minutesPlayed,
+    todayHoursPlayed,
+    todayMinutesPlayed,
     firstPlayedDate,
     lastPlayedDate,
     notes = $bindable(),
@@ -37,6 +39,8 @@
       <ProgressOverview
         {hoursPlayed}
         {minutesPlayed}
+        {todayHoursPlayed}
+        {todayMinutesPlayed}
         {firstPlayedDate}
         {lastPlayedDate}
         {formatRelativeDate}

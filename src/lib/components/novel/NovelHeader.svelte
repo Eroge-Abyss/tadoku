@@ -3,7 +3,8 @@
   import bbobHTML from '@bbob/html';
   import html5Preset from '@bbob/preset-html5';
   import { fly } from 'svelte/transition';
-  import { openUrl } from '@tauri-apps/plugin-opener';
+  import { revealItemInDir, openUrl } from '@tauri-apps/plugin-opener';
+  import type { Novel } from '$lib/types';
 
   let {
     novel,
@@ -15,7 +16,7 @@
     onEditExe,
     onProcessDialog,
     onDeleteDialog,
-  } = $props();
+  }: { novel: Novel; [key: string]: any } = $props();
 
   let menuToggleRef: HTMLButtonElement;
   // svelte-ignore non_reactive_update
@@ -141,6 +142,16 @@
             <button onclick={withMenuClose(onProcessDialog)} class="menu-item">
               <i class="fa-solid fa-folder-tree"></i>
               Change Process Path
+            </button>
+
+            <button
+              onclick={withMenuClose(() =>
+                revealItemInDir(novel.exe_file_path),
+              )}
+              class="menu-item"
+            >
+              <i class="fa-solid fa-folder-open"></i>
+              Open Game Directory
             </button>
 
             <button

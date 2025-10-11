@@ -304,6 +304,8 @@ Logs are stored in:
 - **Windows**: `C:\Users\{username}\AppData\Local\tauri\logs`
 - **Linux**: `/home/{username}/.local/share/tauri/logs`
 
+**Easy Access**: You can quickly open the logs directory by using the "Open Logs Directory" button in the App Settings section of the application settings.
+
 For detailed logging information, see the [Tauri Logging Documentation](https://tauri.app/plugin/logging/#persisting-logs).
 
 ### Debug Mode

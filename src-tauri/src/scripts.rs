@@ -1,5 +1,6 @@
 use crate::prelude::Result;
 use crate::services::stores::settings::PlaytimeMode;
+use crate::services::vndb::{Vndb, VndbAltTitleGame, VNDB_MAX_PAGE_SIZE};
 use crate::services::{
     discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore,
 };
@@ -70,6 +71,7 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
 
     let mut updated_games = 0;
     let mut updated_fields = 0;
+    let mut missing_alt_title_ids: Vec<String> = vec![];
 
     for (game_id, game) in games.iter_mut() {
         debug!("Checking game schema for: {}", game_id);
@@ -79,10 +81,24 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
         })?;
 
         let mut game_updated = false;
+
+        let alt_title = game.get("alt_title");
+        if alt_title.is_none()
+            || (alt_title.is_some() && alt_title.expect("Should not happen, already checked") == "")
+        {
+            missing_alt_title_ids.push(game_id.clone());
+            game_updated = true;
+        }
+
         for (k, v) in default_game {
             if game.get(k).is_none() {
                 debug!("Adding missing field '{}' to game {}", k, game_id);
-                game.insert(k.clone(), v.clone());
+                if k == "alt_title" {
+                    game.insert(k.clone(), "".into());
+                } else {
+                    game.insert(k.clone(), v.clone());
+                }
+
                 game_updated = true;
                 updated_fields += 1;
             }
@@ -107,6 +123,12 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
                 }
             }
         }
+    }
+
+    if !missing_alt_title_ids.is_empty() {
+        tauri::async_runtime::block_on(async {
+            let _ = add_missing_alt_titles(games, &missing_alt_title_ids).await;
+        });
     }
 
     let games = serde_json::to_value(games).map_err(|e| {
@@ -263,5 +285,37 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
     });
 
     info!("Discord initialization task spawned");
+    Ok(())
+}
+
+/// Adds missing alt title for provided VN IDs
+pub async fn add_missing_alt_titles(
+    games: &mut serde_json::Map<String, serde_json::Value>,
+    ids: &Vec<String>,
+) -> Result<()> {
+    info!(
+        "Attempting to add missing alt titles for {} games",
+        ids.len()
+    );
+    let mut games_with_title: Vec<VndbAltTitleGame> = vec![];
+
+    let total_ids = ids.len();
+    let fetch_iterations = (total_ids + VNDB_MAX_PAGE_SIZE - 1) / VNDB_MAX_PAGE_SIZE;
+
+    for i in 0..fetch_iterations {
+        let start = i * VNDB_MAX_PAGE_SIZE;
+        let end = std::cmp::min(start + VNDB_MAX_PAGE_SIZE, total_ids);
+        let current_ids_slice = &ids[start..end];
+        let games_chunk = Vndb::get_vns_alt_title(current_ids_slice).await?;
+        games_with_title.extend(games_chunk);
+    }
+
+    for game_title in games_with_title {
+        let game = games.get_mut(&game_title.id).expect("Should be there");
+        debug!("Updating alt_title for game ID: {}", game_title.id);
+        game["alt_title"] = game_title.alttitle.into();
+    }
+
+    info!("Successfully added missing alt titles.");
     Ok(())
 }

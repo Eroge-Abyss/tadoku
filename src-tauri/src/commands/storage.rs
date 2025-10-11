@@ -650,3 +650,40 @@ pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> Result<(), 
     info!("Successfully set playtime mode");
     Ok(())
 }
+
+#[tauri::command]
+pub fn get_use_jp_for_title_time(app_handle: AppHandle) -> Result<bool, String> {
+    info!("Getting use_jp_for_title_time setting");
+    let store = SettingsStore::new(&app_handle).map_err(|e| {
+        error!("Failed to create settings store: {:?}", e);
+        e.to_string()
+    })?;
+
+    let setting = store.get_use_jp_for_title_time().map_err(|e| {
+        error!("Failed to get use_jp_for_title_time setting: {:?}", e);
+        e.to_string()
+    })?;
+
+    info!(
+        "Successfully got use_jp_for_title_time setting: {}",
+        setting
+    );
+    Ok(setting)
+}
+
+#[tauri::command]
+pub fn set_use_jp_for_title_time(app_handle: AppHandle, to: bool) -> Result<(), String> {
+    info!("Setting use_jp_for_title_time to: {}", to);
+    let store = SettingsStore::new(&app_handle).map_err(|e| {
+        error!("Failed to create settings store: {:?}", e);
+        e.to_string()
+    })?;
+
+    store.set_use_jp_for_title_time(to).map_err(|e| {
+        error!("Failed to set use_jp_for_title_time: {:?}", e);
+        e.to_string()
+    })?;
+
+    info!("Successfully set use_jp_for_title_time to: {}", to);
+    Ok(())
+}

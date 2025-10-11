@@ -27,6 +27,9 @@ jobs:
       - name: install frontend dependencies
         run: bun install
 
+      - name: Type Check
+        run: bun run typecheck
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

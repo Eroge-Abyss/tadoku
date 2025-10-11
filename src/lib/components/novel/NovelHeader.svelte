@@ -5,6 +5,7 @@
   import { fly } from 'svelte/transition';
   import { revealItemInDir, openUrl } from '@tauri-apps/plugin-opener';
   import type { Novel } from '$lib/types';
+  import { appState } from '$lib/state.svelte';
 
   let {
     novel,
@@ -84,7 +85,12 @@
       />
     {/if}
     <div class="novel-text">
-      <h1>{novel.title}</h1>
+      {#if appState.useJpForTitleTime && novel.alt_title}
+        <h1>{novel.alt_title}</h1>
+        <p class="alt-title">{novel.title}</p>
+      {:else}
+        <h1>{novel.title}</h1>
+      {/if}
       <p class="description">
         {@html bbobHTML(novel.description, customHtml5Preset())}
       </p>
@@ -227,9 +233,18 @@
 
   h1 {
     color: var(--foreground);
-    margin: 0 0 0.5rem 0;
+    margin: 0;
     font-size: 2.5rem;
     font-weight: 700;
+  }
+
+  .alt-title {
+    color: var(--main-text);
+    margin: 0.25rem 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    font-style: italic;
+    opacity: 0.8;
   }
 
   .description {

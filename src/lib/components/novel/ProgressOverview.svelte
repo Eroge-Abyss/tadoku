@@ -1,4 +1,5 @@
 <script>
+  import { formatTime } from '$lib/util';
   import { fly } from 'svelte/transition';
 
   let {
@@ -15,11 +16,13 @@
 <div class="stats-grid">
   <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
     <p class="stat-label">Time Played</p>
-    <span class="stat-value">{hoursPlayed}h {minutesPlayed}m</span>
+    <span class="stat-value">{formatTime(hoursPlayed, minutesPlayed)}</span>
   </div>
   <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
     <p class="stat-label">Time Played Today</p>
-    <span class="stat-value">{todayHoursPlayed}h {todayMinutesPlayed}m</span>
+    <span class="stat-value"
+      >{formatTime(todayHoursPlayed, todayMinutesPlayed)}</span
+    >
   </div>
   <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
     <p class="stat-label">First Played</p>

@@ -1,6 +1,7 @@
 <script>
   import { convertFileSrc } from '@tauri-apps/api/core';
   import { goto } from '$app/navigation';
+  import { formatTime } from '$lib/util';
   const { id, title, image, playtime, isNsfw } = $props();
 
   const hoursPlayed = $derived(Math.floor(playtime / 3600));
@@ -13,11 +14,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <section onclick={() => goto(`/novel/${id}`)} class="card">
   <div class="card-image">
-    {#if isNsfw}
-      <img src={image_url} alt={title} class="blur" />
-    {:else}
-      <img src={image_url} alt={title} />
-    {/if}
+    <img src={image_url} alt={title} class:blur={isNsfw} />
     <!-- <span class="category">{category}</span> -->
   </div>
   <div class="card-content">
@@ -30,7 +27,9 @@
                 ></div>
             </div-->
       <!-- <span class="progress-text">{progress.completion}% Complete</span> -->
-      <p class="time">{hoursPlayed}時{minutesPlayed}分</p>
+      <p class="time">
+        {formatTime(hoursPlayed, minutesPlayed)}
+      </p>
     </div>
   </div>
 </section>

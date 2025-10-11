@@ -5011,7 +5011,7 @@ dependencies = [
 
 [[package]]
 name = "tadoku"
-version = "1.5.7"
+version = "1.6.0"
 dependencies = [
  "chrono",
  "discord-rich-presence",

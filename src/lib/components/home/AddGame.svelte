@@ -97,6 +97,7 @@
     try {
       const gameData = {
         title: vn.title,
+        alt_title: vn.alttitle,
         description: vn.description || 'No Description',
         exe_file_path: exe_path,
         process_file_path: exe_path,

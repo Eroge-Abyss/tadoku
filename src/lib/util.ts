@@ -1,3 +1,5 @@
+import { appState } from './state.svelte';
+
 export const debounce = (callback: Function, wait = 750) => {
   let timeout: ReturnType<typeof setTimeout>;
 
@@ -20,7 +22,6 @@ export const formatNotes = (text: string): string => {
   });
 };
 
-// Utility functions
 export function formatRelativeDate(date: Date): string {
   const now = new Date();
 
@@ -59,5 +60,13 @@ export function formatRelativeDate(date: Date): string {
     }).format(date);
 
     return `${dateFormat} at ${time}`;
+  }
+}
+
+export function formatTime(hours: number, minutes: number): string {
+  if (appState.useJpForTitleTime) {
+    return `${hours}時${minutes}分`;
+  } else {
+    return `${hours}h ${minutes}m`;
   }
 }

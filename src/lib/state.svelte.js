@@ -66,6 +66,12 @@ class AppState {
   #playtimeMode = $state('classic');
 
   /**
+   * Whether to use Japanese for title and time display.
+   * @type {boolean}
+   */
+  #useJpForTitleTime = $state(false);
+
+  /**
    * Creates an instance of AppState and loads initial settings.
    */
   constructor() {
@@ -75,6 +81,7 @@ class AppState {
     this.loadDisablePresenceOnNsfw();
     this.loadDiscordPresenceMode();
     this.loadPlaytimeMode();
+    this.loadUseJpForTitleTime();
   }
 
   // --- Getters ---
@@ -120,6 +127,14 @@ class AppState {
   }
 
   /**
+   * Gets whether to use Japanese for title time display.
+   * @returns {boolean}
+   */
+  get useJpForTitleTime() {
+    return this.#useJpForTitleTime;
+  }
+
+  /**
    * Gets the list of games.
    * @returns {Record<string, Game>}
    */
@@ -162,6 +177,7 @@ class AppState {
    */
   async loadGames() {
     await this.loadSortOrder();
+    await this.loadUseJpForTitleTime();
     await this.refreshGamesList();
   }
 
@@ -257,6 +273,18 @@ class AppState {
       this.#showRandomButton = await invoke('get_show_random_picker');
     } catch (error) {
       console.error('Failed to load show random button setting:', error);
+    }
+  }
+
+  /**
+   * Loads the use JP for title time setting from the backend.
+   * @returns {Promise<void>}
+   */
+  async loadUseJpForTitleTime() {
+    try {
+      this.#useJpForTitleTime = await invoke('get_use_jp_for_title_time');
+    } catch (error) {
+      console.error('Failed to load use JP for title time setting:', error);
     }
   }
 
@@ -565,6 +593,22 @@ class AppState {
       await invoke('set_discord_presence_mode', { to });
     } catch (error) {
       console.error('Failed to set discord presence mode setting:', error);
+      throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
+   * Sets the use JP for title time setting and saves it to the backend.
+   *
+   * @param {boolean} to - Whether to use Japanese for title time.
+   * @returns {Promise<void>}
+   */
+  async setUseJpForTitleTime(to) {
+    try {
+      this.#useJpForTitleTime = to;
+      await invoke('set_use_jp_for_title_time', { to });
+    } catch (error) {
+      console.error('Error setting use JP for title time:', error);
       throw error; // Re-throw to allow UI to handle
     }
   }

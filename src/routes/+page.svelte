@@ -5,7 +5,7 @@
   import { goto } from '$app/navigation';
 
   onMount(async () => {
-    appState.loadGames();
+    await appState.loadGames();
   });
 
   const getRandomGame = () => {

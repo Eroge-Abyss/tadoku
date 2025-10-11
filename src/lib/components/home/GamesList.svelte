@@ -3,6 +3,7 @@
   import { elasticOut } from 'svelte/easing';
   import SortOrderSelect from '$lib/components/SortOrderSelect.svelte';
   import Card from '$lib/components/Card.svelte';
+  import { appState } from '$lib/state.svelte';
 
   let { gamesList } = $props();
 </script>
@@ -26,7 +27,9 @@
           {id}
           image={game.image_url}
           isNsfw={game.is_nsfw}
-          title={game.title}
+          title={appState.useJpForTitleTime && game.alt_title
+            ? game.alt_title
+            : game.title}
           playtime={game.playtime}
         />
       </div>

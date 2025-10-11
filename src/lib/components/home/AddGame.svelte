@@ -106,6 +106,8 @@
         is_pinned: false,
         is_nsfw: vn.image.sexual > NSFW_RATE,
         playtime: 0,
+        today_playtime: 0,
+        last_play_date: null,
         characters: [],
         last_played: null,
         first_played: null,

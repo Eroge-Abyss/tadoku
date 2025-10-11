@@ -24,7 +24,7 @@ export interface Game {
   /** Play time in seconds. */
   playtime: number;
   today_playtime: number;
-  last_play_date: string;
+  last_play_date: string | null;
   last_played: number | null;
   first_played: number | null;
   is_pinned: boolean;

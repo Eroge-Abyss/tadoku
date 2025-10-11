@@ -16,6 +16,7 @@ type ColorSwatch = {
 
 export interface Game {
   title: string;
+  alt_title: string | null;
   description: string;
   /** Is a local file path when loading games only, otherwise it's VNDB image URL.*/
   image_url: string;
@@ -74,6 +75,7 @@ export interface Theme {
 export interface VndbResult {
   id: string;
   title: string;
+  alttitle: string | null;
   image: {
     url: string;
     sexual: number;

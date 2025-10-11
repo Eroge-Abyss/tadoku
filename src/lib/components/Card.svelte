@@ -1,7 +1,6 @@
 <script>
   import { convertFileSrc } from '@tauri-apps/api/core';
   import { goto } from '$app/navigation';
-  import { appState } from '$lib/state.svelte';
   import { formatTime } from '$lib/util';
   const { id, title, image, playtime, isNsfw } = $props();
 

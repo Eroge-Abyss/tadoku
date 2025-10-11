@@ -44,8 +44,8 @@ pub struct CharacterImage {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct VndbAltTitleGame {
-    id: String,
-    alttitle: Option<String>,
+    pub id: String,
+    pub alttitle: Option<String>,
 }
 
 pub struct Vndb;

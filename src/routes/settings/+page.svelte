@@ -161,10 +161,7 @@
           </div>
         {/each}
       </div>
-    </div>
 
-    <div class="settings-section">
-      <h2>Custom Accent Color</h2>
       <div class="custom-color-section">
         <div class="switch-container">
           <!-- svelte-ignore a11y_consider_explicit_label -->

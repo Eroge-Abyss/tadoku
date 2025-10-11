@@ -9,6 +9,8 @@
     DiscordPresenceMode,
     Theme,
   } from '$lib/types';
+  import { appLogDir } from '@tauri-apps/api/path';
+  import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
   let appVersion = $state<string>();
   let selectedTheme = $state<string>(appState.themeSettings.theme);
@@ -110,6 +112,15 @@
       appState.setDiscordPresenceMode('All');
     } catch (error) {
       console.error('Error resetting settings:', error);
+    }
+  }
+
+  async function openLogsDirectory(): Promise<void> {
+    try {
+      const logsDir = await appLogDir();
+      await revealItemInDir(logsDir);
+    } catch (error) {
+      console.error('Error opening logs directory:', error);
     }
   }
 
@@ -277,6 +288,17 @@
           <option value="classic">Classic</option>
           <option value="ex_static">Pull Data from ExStatic</option>
         </select>
+      </div>
+
+      <div class="switch-container">
+        <button
+          class="reset-button"
+          style="background-color: var(--primary);"
+          onclick={openLogsDirectory}
+        >
+          <i class="fa-solid fa-folder-open"></i>
+          Open Logs Directory
+        </button>
       </div>
     </div>
     <!--

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Game {
     pub title: String,
+    pub alt_title: Option<String>,
     pub description: String,
     /// Is a local file path when loading games only, otherwise it's VNDB image URL
     pub image_url: String,

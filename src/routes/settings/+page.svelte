@@ -9,6 +9,8 @@
     DiscordPresenceMode,
     Theme,
   } from '$lib/types';
+  import { appLogDir } from '@tauri-apps/api/path';
+  import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
   let appVersion = $state<string>();
   let selectedTheme = $state<string>(appState.themeSettings.theme);
@@ -113,6 +115,15 @@
     }
   }
 
+  async function openLogsDirectory(): Promise<void> {
+    try {
+      const logsDir = await appLogDir();
+      await revealItemInDir(logsDir);
+    } catch (error) {
+      console.error('Error opening logs directory:', error);
+    }
+  }
+
   function handleThemeSelection(e: MouseEvent): void {
     const themeItem = (e.target as HTMLElement).closest('.theme-item');
     if (themeItem) {
@@ -161,10 +172,7 @@
           </div>
         {/each}
       </div>
-    </div>
 
-    <div class="settings-section">
-      <h2>Custom Accent Color</h2>
       <div class="custom-color-section">
         <div class="switch-container">
           <!-- svelte-ignore a11y_consider_explicit_label -->
@@ -280,6 +288,17 @@
           <option value="classic">Classic</option>
           <option value="ex_static">Pull Data from ExStatic</option>
         </select>
+      </div>
+
+      <div class="switch-container">
+        <button
+          class="reset-button"
+          style="background-color: var(--primary);"
+          onclick={openLogsDirectory}
+        >
+          <i class="fa-solid fa-folder-open"></i>
+          Open Logs Directory
+        </button>
       </div>
     </div>
     <!--

@@ -1,6 +1,6 @@
 use crate::prelude::Result;
 use crate::services::stores::settings::PlaytimeMode;
-use crate::services::vndb::Vndb;
+use crate::services::vndb::{Vndb, VndbAltTitleGame, VNDB_MAX_PAGE_SIZE};
 use crate::services::{
     discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore,
 };
@@ -82,7 +82,10 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
 
         let mut game_updated = false;
 
-        if game.get("alt_title").is_none() {
+        let alt_title = game.get("alt_title");
+        if alt_title.is_none()
+            || (alt_title.is_some() && alt_title.expect("Should not happen, already checked") == "")
+        {
             missing_alt_title_ids.push(game_id.clone());
             game_updated = true;
         }
@@ -90,7 +93,12 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
         for (k, v) in default_game {
             if game.get(k).is_none() {
                 debug!("Adding missing field '{}' to game {}", k, game_id);
-                game.insert(k.clone(), v.clone());
+                if k == "alt_title" {
+                    game.insert(k.clone(), "".into());
+                } else {
+                    game.insert(k.clone(), v.clone());
+                }
+
                 game_updated = true;
                 updated_fields += 1;
             }
@@ -289,7 +297,18 @@ pub async fn add_missing_alt_titles(
         "Attempting to add missing alt titles for {} games",
         ids.len()
     );
-    let games_with_title = Vndb::get_vns_alt_title(ids).await?;
+    let mut games_with_title: Vec<VndbAltTitleGame> = vec![];
+
+    let total_ids = ids.len();
+    let fetch_iterations = (total_ids + VNDB_MAX_PAGE_SIZE - 1) / VNDB_MAX_PAGE_SIZE;
+
+    for i in 0..fetch_iterations {
+        let start = i * VNDB_MAX_PAGE_SIZE;
+        let end = std::cmp::min(start + VNDB_MAX_PAGE_SIZE, total_ids);
+        let current_ids_slice = &ids[start..end];
+        let games_chunk = Vndb::get_vns_alt_title(current_ids_slice).await?;
+        games_with_title.extend(games_chunk);
+    }
 
     for game_title in games_with_title {
         let game = games.get_mut(&game_title.id).expect("Should be there");

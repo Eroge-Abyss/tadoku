@@ -5,6 +5,7 @@ use tauri_plugin_http::reqwest;
 
 // POST Request
 const VNDB_URL: &str = "https://api.vndb.org/kana";
+pub const VNDB_MAX_PAGE_SIZE: usize = 50;
 
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
@@ -142,7 +143,7 @@ impl Vndb {
         Ok(json.results)
     }
 
-    pub async fn get_vns_alt_title(ids: &Vec<String>) -> Result<Vec<VndbAltTitleGame>, String> {
+    pub async fn get_vns_alt_title(ids: &[String]) -> Result<Vec<VndbAltTitleGame>, String> {
         let error_message = String::from("Error happened while fetching game");
 
         let id_filters: Vec<serde_json::Value> =
@@ -153,7 +154,8 @@ impl Vndb {
 
         let request_data = json!({
             "filters": filters,
-            "fields": "id, alttitle"
+            "fields": "id, alttitle",
+            "results": VNDB_MAX_PAGE_SIZE
         });
 
         debug!("Fetching alt titles for IDs: {:?}", ids);
@@ -183,6 +185,7 @@ impl Vndb {
         })?;
 
         debug!("Successfully fetched alt titles for IDs: {:?}", ids);
+
         Ok(json.results)
     }
 }

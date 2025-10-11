@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
 
-      - name: install Rust stable
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
       - name: Rust cache
@@ -24,11 +24,11 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: install frontend dependencies
+      - name: Install frontend dependencies
         run: bun install
 
-      - name: Type Check
-        run: bun run typecheck
+      - name: Check frontend code
+        run: bun run check 
 
       - uses: tauri-apps/tauri-action@v0
         env:

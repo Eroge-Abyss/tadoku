@@ -17,6 +17,7 @@ struct VndbResponse<T> {
 pub struct VndbGame {
     id: String,
     title: String,
+    alttitle: Option<String>,
     image: GameImage,
     // String, possibly null, may contain formatting codes.
     description: Option<String>,
@@ -41,6 +42,12 @@ pub struct CharacterImage {
     pub url: String,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct VndbAltTitleGame {
+    id: String,
+    alttitle: Option<String>,
+}
+
 pub struct Vndb;
 
 impl Vndb {
@@ -50,7 +57,7 @@ impl Vndb {
 
         let request_data = json!({
             "filters": ["search", "=", key],
-            "fields": "id, title, image.url, image.sexual, description",
+            "fields": "id, title, alttitle, image.url, image.sexual, description",
             "sort": "searchrank",
         });
 
@@ -132,6 +139,50 @@ impl Vndb {
         })?;
 
         debug!("Successfully fetched characters for vn_id: {}", vn_id);
+        Ok(json.results)
+    }
+
+    pub async fn get_vns_alt_title(ids: &Vec<String>) -> Result<Vec<VndbAltTitleGame>, String> {
+        let error_message = String::from("Error happened while fetching game");
+
+        let id_filters: Vec<serde_json::Value> =
+            ids.iter().map(|id| json!(["id", "=", id])).collect();
+
+        let mut filters = vec![json!("or")];
+        filters.extend(id_filters);
+
+        let request_data = json!({
+            "filters": filters,
+            "fields": "id, alttitle"
+        });
+
+        debug!("Fetching alt titles for IDs: {:?}", ids);
+        let client = reqwest::Client::new();
+        let response = client
+            .post(format!("{}/{}", VNDB_URL, "vn"))
+            .json(&request_data)
+            .send()
+            .await
+            .map_err(|_| {
+                // Idk if using clone is correct but, it should be dropped from stack anyway
+                // + function will return on error
+                error_message.clone()
+            })
+            .map_err(|_| {
+                error!("Error sending request to VNDB for ids: {:?}", ids);
+                error_message.clone()
+            })?;
+
+        if response.status() != 200 {
+            return Err(error_message);
+        }
+
+        let json: VndbResponse<VndbAltTitleGame> = response.json().await.map_err(|_| {
+            error!("Error parsing VNDB response for ids: {:?}", ids);
+            error_message
+        })?;
+
+        debug!("Successfully fetched alt titles for IDs: {:?}", ids);
         Ok(json.results)
     }
 }

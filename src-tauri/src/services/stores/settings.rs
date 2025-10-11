@@ -39,22 +39,6 @@ pub enum PlaytimeMode {
     ExStatic,
 }
 
-// #[derive(Serialize, Deserialize)]
-// struct Settings {
-//     theme_settings: ThemeSettings,
-//     disable_presence_on_nsfw: bool,
-//     sort_order: SortOrder
-// }
-
-// impl Default for Settings {
-//     fn default() -> Self {
-//         Self {
-//             disable_presence_on_nsfw: true,
-//             ..Default::default()
-//         }
-//     }
-// }
-
 pub struct SettingsStore {
     store: Store,
 }
@@ -170,6 +154,24 @@ impl SettingsStore {
     pub fn set_playtime_mode(&self, to: PlaytimeMode) -> Result<()> {
         info!("Setting playtime_mode to: {:?}", to);
         self.store.set("playtime_mode", json!(to));
+
+        Ok(())
+    }
+
+    pub fn get_use_jp_for_title_time(&self) -> Result<bool> {
+        debug!("Getting use_jp_for_title_time");
+        let v: bool = serde_json::from_value(
+            self.store
+                .get("use_jp_for_title_time")
+                .unwrap_or(json!(false)),
+        )?;
+
+        Ok(v)
+    }
+
+    pub fn set_use_jp_for_title_time(&self, to: bool) -> Result<()> {
+        info!("Setting use_jp_for_title_time to: {}", to);
+        self.store.set("use_jp_for_title_time", json!(to));
 
         Ok(())
     }

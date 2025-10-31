@@ -171,6 +171,35 @@
             in:fly={{ y: -10, duration: 200 }}
             bind:this={secondaryMenuRef}
           >
+            <div class="menu-item-with-submenu">
+              <button
+                onclick={() => (showStatusMenu = !showStatusMenu)}
+                class="menu-item"
+              >
+                <i class="fa-solid fa-tags"></i>
+                Status
+                <i class="fa-solid fa-chevron-right chevron"></i>
+              </button>
+
+              {#if showStatusMenu}
+                <div
+                  class="status-submenu secondary-menu"
+                  in:fly={{ x: 10, duration: 200 }}
+                  bind:this={statusMenuRef}
+                >
+                  <StatusSelector
+                    categories={novel.categories}
+                    {toggleStatus}
+                    clearStatuses={withMenuClose(() =>
+                      appState.setGameCategories(novel.id, []),
+                    )}
+                  />
+                </div>
+              {/if}
+            </div>
+
+            <div class="menu-divider"></div>
+
             <button onclick={withMenuClose(onEditExe)} class="menu-item">
               <i class="fa-regular fa-pen-to-square"></i>
               Edit Executable Path
@@ -210,35 +239,6 @@
               <i class="fa-solid fa-user-plus"></i>
               Download Characters
             </button>
-
-            <div class="menu-divider"></div>
-
-            <div class="menu-item-with-submenu">
-              <button
-                onclick={() => (showStatusMenu = !showStatusMenu)}
-                class="menu-item"
-              >
-                <i class="fa-solid fa-tags"></i>
-                Status
-                <i class="fa-solid fa-chevron-right chevron"></i>
-              </button>
-
-              {#if showStatusMenu}
-                <div
-                  class="status-submenu secondary-menu"
-                  in:fly={{ x: 10, duration: 200 }}
-                  bind:this={statusMenuRef}
-                >
-                  <StatusSelector
-                    categories={novel.categories}
-                    {toggleStatus}
-                    clearStatuses={withMenuClose(() =>
-                      appState.setGameCategories(novel.id, []),
-                    )}
-                  />
-                </div>
-              {/if}
-            </div>
 
             <div class="menu-divider"></div>
 

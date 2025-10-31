@@ -1,6 +1,11 @@
 <script lang="ts">
   import { GAME_STATUSES } from '$lib/constants';
-  let { categories, toggleStatus, clearStatuses } = $props();
+  let {
+    categories,
+    toggleStatus,
+    clearStatuses,
+    showUncategorized = false,
+  } = $props();
   import Checkbox from './Checkbox.svelte';
 </script>
 
@@ -14,6 +19,16 @@
     />
   </label>
 {/each}
+{#if showUncategorized}
+  <label class="menu-item status-checkbox-label">
+    Uncategorized
+    <Checkbox
+      id="checkbox-Uncategorized"
+      checked={categories?.includes('Uncategorized')}
+      onchange={() => toggleStatus('Uncategorized')}
+    />
+  </label>
+{/if}
 {#if categories && categories.length > 0}
   <div class="menu-divider"></div>
   <button onclick={clearStatuses} class="menu-item danger">

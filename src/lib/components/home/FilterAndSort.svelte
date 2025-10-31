@@ -75,8 +75,6 @@
     await appState.setSortOrder(sortOption);
   }
 
-  async function setStatuses(statuses: string[]) {}
-
   function withMenuClose<T extends (...args: any[]) => any>(fn: T): T {
     return ((...args: Parameters<T>): ReturnType<T> => {
       showSortMenu = false; // Close only the sort menu on selection
@@ -168,6 +166,7 @@
               categories={appState.selectedCategories}
               {toggleStatus}
               clearStatuses={clearAllStatuses}
+              showUncategorized
             />
           </div>
         {/if}

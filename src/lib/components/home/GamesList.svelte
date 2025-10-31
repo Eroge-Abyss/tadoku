@@ -20,6 +20,13 @@
           filtered[id] = game;
         }
       });
+
+      if (
+        game.categories.length === 0 &&
+        appState.selectedCategories.includes('Uncategorized')
+      ) {
+        filtered[id] = game;
+      }
     }
     return filtered;
   });

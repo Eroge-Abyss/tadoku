@@ -324,9 +324,6 @@
     gap: 0.5rem;
     margin-top: 1rem;
   }
-  .game-form .form-group.characters > * {
-    cursor: pointer;
-  }
 
   .game-form button {
     border: 0;

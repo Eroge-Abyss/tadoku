@@ -7,6 +7,7 @@
   import { platform } from '@tauri-apps/plugin-os';
   import { appState } from '$lib/state.svelte';
   import { debounce } from '$lib/util';
+  import Checkbox from '$lib/components/Checkbox.svelte';
 
   const NSFW_RATE = 0.5;
 
@@ -150,15 +151,11 @@
         />
       </div>
       <div class="form-group characters">
-        <label for="characters" class="custom-checkbox">
-          <input
-            type="checkbox"
-            id="characters"
-            bind:checked={charactersDownload}
-          />
-          <span class="checkmark"></span>
-        </label>
-        <label for="characters">Include Characters</label>
+        <Checkbox
+          id="characters"
+          label="Include Characters"
+          bind:checked={charactersDownload}
+        />
       </div>
       <div id="suggestions">
         {#each results as vn}
@@ -327,9 +324,6 @@
     gap: 0.5rem;
     margin-top: 1rem;
   }
-  .game-form .form-group.characters > * {
-    cursor: pointer;
-  }
 
   .game-form button {
     border: 0;
@@ -446,7 +440,11 @@
     }
   }
 
-  /* Style for the custom checkbox */
+  /*
+    The following styles were for the old custom checkbox and are no longer needed
+    since we are using the Checkbox.svelte component.
+  */
+  /*
   .custom-checkbox {
     position: relative;
     display: inline-block;
@@ -496,4 +494,5 @@
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
   }
+  */
 </style>

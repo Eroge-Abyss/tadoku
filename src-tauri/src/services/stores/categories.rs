@@ -38,4 +38,22 @@ impl CategoriesStore {
 
         Ok(())
     }
+
+    /// Gets all selected categories
+    pub fn get_selected(&self) -> Result<Categories> {
+        debug!("Getting all selected categories");
+        Ok(serde_json::from_value(
+            self.store
+                .get("selected_categories")
+                .unwrap_or_else(|| serde_json::json!([])),
+        )?)
+    }
+
+    /// Sets selected categories array to the provided value
+    pub fn set_selected(&self, categories: Categories) -> Result<()> {
+        info!("Setting selected categories to: {:?}", categories);
+        self.store.set("selected_categories", categories);
+
+        Ok(())
+    }
 }

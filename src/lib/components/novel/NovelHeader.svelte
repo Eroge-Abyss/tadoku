@@ -6,6 +6,15 @@
   import { revealItemInDir, openUrl } from '@tauri-apps/plugin-opener';
   import type { Novel } from '$lib/types';
   import { appState } from '$lib/state.svelte';
+  import StatusSelector from '../StatusSelector.svelte';
+
+  async function toggleStatus(status: string) {
+    const currentStatuses = novel.categories || [];
+    const newStatuses = currentStatuses.includes(status)
+      ? currentStatuses.filter((s) => s !== status)
+      : [...currentStatuses, status];
+    await appState.setGameCategories(novel.id, newStatuses);
+  }
 
   let {
     novel,
@@ -22,9 +31,13 @@
   let menuToggleRef: HTMLButtonElement;
   // svelte-ignore non_reactive_update
   let secondaryMenuRef: HTMLDivElement;
+  // svelte-ignore non_reactive_update
+  let statusMenuRef: HTMLDivElement;
+  let showStatusMenu = $state(false);
 
-  // Function to handle clicks outside the menu
+  // Function to handle clicks outside the menu and submenu
   function handleClickOutside(event: any) {
+    // Close primary menu if click is outside it
     if (
       activeMenu &&
       secondaryMenuRef &&
@@ -33,12 +46,30 @@
       !menuToggleRef.contains(event.target)
     ) {
       activeMenu = false;
+      showStatusMenu = false; // Also close status menu if primary closes
+    }
+
+    // Close status submenu if click is outside it AND the main secondary menu,
+    // but only if the main menu is still active (implies click was *inside* main menu but outside status submenu)
+    if (
+      showStatusMenu &&
+      statusMenuRef &&
+      !statusMenuRef.contains(event.target)
+    ) {
+      // We need to ensure the click wasn't on the "Status" button itself
+      const statusToggleButton = secondaryMenuRef.querySelector(
+        '.menu-item-with-submenu > .menu-item',
+      );
+      if (statusToggleButton && !statusToggleButton.contains(event.target)) {
+        showStatusMenu = false;
+      }
     }
   }
 
   function withMenuClose<T extends (...args: any[]) => any>(fn: T): T {
     return ((...args: Parameters<T>): ReturnType<T> => {
       activeMenu = false;
+      showStatusMenu = false; // Close status menu too
       return fn(...args);
     }) as T;
   }
@@ -140,6 +171,35 @@
             in:fly={{ y: -10, duration: 200 }}
             bind:this={secondaryMenuRef}
           >
+            <div class="menu-item-with-submenu">
+              <button
+                onclick={() => (showStatusMenu = !showStatusMenu)}
+                class="menu-item"
+              >
+                <i class="fa-solid fa-tags"></i>
+                Status
+                <i class="fa-solid fa-chevron-right chevron"></i>
+              </button>
+
+              {#if showStatusMenu}
+                <div
+                  class="status-submenu secondary-menu"
+                  in:fly={{ x: 10, duration: 200 }}
+                  bind:this={statusMenuRef}
+                >
+                  <StatusSelector
+                    categories={novel.categories}
+                    {toggleStatus}
+                    clearStatuses={withMenuClose(() =>
+                      appState.setGameCategories(novel.id, []),
+                    )}
+                  />
+                </div>
+              {/if}
+            </div>
+
+            <div class="menu-divider"></div>
+
             <button onclick={withMenuClose(onEditExe)} class="menu-item">
               <i class="fa-regular fa-pen-to-square"></i>
               Edit Executable Path
@@ -418,5 +478,28 @@
     font-size: 14px;
     width: 16px;
     text-align: center;
+  }
+
+  /* New styles for status submenu */
+  .menu-item-with-submenu {
+    position: relative;
+  }
+
+  .status-submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin-top: 0;
+    margin-left: 0.5rem;
+    min-width: 180px;
+    z-index: 2;
+  }
+
+  .menu-item-with-submenu .menu-item {
+    justify-content: space-between; /* To push chevron to the right */
+  }
+
+  .chevron {
+    margin-left: auto; /* Push chevron to the right */
   }
 </style>

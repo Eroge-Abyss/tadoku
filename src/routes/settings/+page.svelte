@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { appState } from '$lib/state.svelte.js';
   import { getVersion } from '@tauri-apps/api/app';
-  import { THEMES, COLOR_SWATCHES } from '../../themeConstants.js';
+  import { THEMES, COLOR_SWATCHES } from '$lib/constants';
   import type {
     ColorSwatch,
     PlaytimeMode,

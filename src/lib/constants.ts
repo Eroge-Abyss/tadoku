@@ -1,13 +1,9 @@
-/**
- * @typedef {import('$lib/types').Theme} Theme
- *  @typedef {import('$lib/types').ThemeSettings} ThemeSettings
- */
+import type { Theme, ThemeSettings } from '$lib/types';
 
 /**
  * Theme options
- * @type {Array<Theme>}
  */
-export const THEMES = [
+export const THEMES: Theme[] = [
   {
     id: 'default',
     name: 'Default',
@@ -47,7 +43,6 @@ export const THEMES = [
 
 /**
  * Color swatches for custom accent colors
- * @type {string[]}
  */
 export const COLOR_SWATCHES = [
   '#3b82f6', // Blue
@@ -62,10 +57,17 @@ export const COLOR_SWATCHES = [
 
 /**
  * Default theme settings for application
- * @type {ThemeSettings}
  */
-export const DEFAULT_THEME_SETTINGS = {
+export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
   theme: 'default',
   accentColor: '#2a2a2a',
   useCustomColor: false,
 };
+
+export const GAME_STATUSES = [
+  'Completed',
+  'Playing',
+  'Planned',
+  'Dropped',
+  'On Hold',
+];

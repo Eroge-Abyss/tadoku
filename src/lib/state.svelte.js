@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { THEMES, DEFAULT_THEME_SETTINGS } from '../themeConstants.js';
+import { THEMES, DEFAULT_THEME_SETTINGS } from './constants.js';
 /**
  * @typedef {import('$lib/types').Game} Game
  * @typedef {import('$lib/types').Novel} Novel

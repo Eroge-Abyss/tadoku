@@ -72,6 +72,12 @@ class AppState {
   #useJpForTitleTime = $state(false);
 
   /**
+   * The currently selected filter categories for the games list.
+   * @type {string[]}
+   */
+  #selectedCategories = $state([]);
+
+  /**
    * Creates an instance of AppState and loads initial settings.
    */
   constructor() {
@@ -82,6 +88,7 @@ class AppState {
     this.loadDiscordPresenceMode();
     this.loadPlaytimeMode();
     this.loadUseJpForTitleTime();
+    this.loadSelectedCategories();
   }
 
   // --- Getters ---
@@ -158,6 +165,14 @@ class AppState {
     return this.#sortOrder;
   }
 
+  /**
+   * Gets the currently selected filter categories for the games list.
+   * @returns {string[]}
+   */
+  get selectedCategories() {
+    return this.#selectedCategories;
+  }
+
   // --- Setters ---
 
   /**
@@ -166,6 +181,19 @@ class AppState {
    */
   set currentGame(game) {
     this.#currentGame = game;
+  }
+
+  /**
+   * Sets the selected categories and saves the setting to the backend.
+   *
+   * @param {string[]} to - The new selected categories.
+   */
+  set selectedCategories(to) {
+    this.#selectedCategories = to;
+    invoke('set_selected_categories', { categories: to }).catch((error) => {
+      console.error('Error setting selected categories:', error);
+      throw error; // Re-throw to allow UI to handle
+    });
   }
 
   // --- Initialization / Loading Methods ---
@@ -285,6 +313,18 @@ class AppState {
       this.#useJpForTitleTime = await invoke('get_use_jp_for_title_time');
     } catch (error) {
       console.error('Failed to load use JP for title time setting:', error);
+    }
+  }
+
+  /**
+   * Loads the sort order from the backend.
+   * @returns {Promise<void>}
+   */
+  async loadSelectedCategories() {
+    try {
+      this.#selectedCategories = await invoke('get_selected_categories');
+    } catch (error) {
+      console.error('Failed to load selected categories:', error);
     }
   }
 

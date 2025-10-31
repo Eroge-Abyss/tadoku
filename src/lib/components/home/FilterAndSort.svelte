@@ -1,14 +1,8 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
-  import StatusSelector from './StatusSelector.svelte';
+  import StatusSelector from '$lib/components/StatusSelector.svelte';
   import { appState } from '$lib/state.svelte';
   import type { SortOrder } from '$lib/types';
-
-  let {
-    selectedCategories = $bindable(),
-  }: {
-    selectedCategories: string[];
-  } = $props();
 
   let menuToggleRef: HTMLButtonElement;
   // svelte-ignore non_reactive_update
@@ -19,15 +13,17 @@
   let currentSortOption = $state(appState.sortOrder || 'title');
 
   function toggleStatus(status: string) {
-    if (selectedCategories.includes(status)) {
-      selectedCategories = selectedCategories.filter((s) => s !== status);
+    if (appState.selectedCategories.includes(status)) {
+      appState.selectedCategories = appState.selectedCategories.filter(
+        (s) => s !== status,
+      );
     } else {
-      selectedCategories = [...selectedCategories, status];
+      appState.selectedCategories = [...appState.selectedCategories, status];
     }
   }
 
   function clearAllStatuses() {
-    selectedCategories = [];
+    appState.selectedCategories = [];
   }
 
   function handleClickOutside(event: any) {
@@ -169,7 +165,7 @@
             in:fly={{ x: 10, duration: 200 }}
           >
             <StatusSelector
-              categories={selectedCategories}
+              categories={appState.selectedCategories}
               {toggleStatus}
               clearStatuses={clearAllStatuses}
             />

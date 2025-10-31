@@ -4,20 +4,19 @@
   import Card from '$lib/components/Card.svelte';
   import { appState } from '$lib/state.svelte';
   import type { Game } from '$lib/types';
-  import FilterAndSort from '../FilterAndSort.svelte';
+  import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
 
   let { gamesList }: { gamesList: Record<string, Game> } = $props();
-  let selectedStatuses = $state<string[]>([]);
 
   let filteredGamesList = $derived.by(() => {
-    if (selectedStatuses.length === 0) {
+    if (appState.selectedCategories.length === 0) {
       return gamesList;
     }
     const filtered: Record<string, Game> = {};
     for (const id in gamesList) {
       const game = gamesList[id];
       game.categories.forEach((status) => {
-        if (selectedStatuses.includes(status)) {
+        if (appState.selectedCategories.includes(status)) {
           filtered[id] = game;
         }
       });
@@ -29,7 +28,7 @@
 <div class="container">
   <div class="header">
     <h1>Visual Novels</h1>
-    <FilterAndSort bind:selectedCategories={selectedStatuses} />
+    <FilterAndSort />
   </div>
   <div class="grid">
     {#each Object.entries(filteredGamesList) as [id, game]}

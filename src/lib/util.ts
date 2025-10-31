@@ -65,7 +65,7 @@ export function formatRelativeDate(date: Date): string {
 
 export function formatTime(hours: number, minutes: number): string {
   if (appState.useJpForTitleTime) {
-    return `${hours}時${minutes}分`;
+    return `${hours}時間${minutes}分`;
   } else {
     return `${hours}h ${minutes}m`;
   }

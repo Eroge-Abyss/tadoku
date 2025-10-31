@@ -370,6 +370,49 @@ pub fn set_categories(app_handle: AppHandle, categories: Categories) -> Result<(
     Ok(())
 }
 
+/// Gets all categories as an array
+#[tauri::command]
+pub fn get_selected_categories(app_handle: AppHandle) -> Result<Categories, String> {
+    debug!("Getting all selected categories");
+    let store = CategoriesStore::new(&app_handle).map_err(|e| {
+        error!("Error accessing categories store: {:?}", e);
+        "Error happened while accessing store"
+    })?;
+
+    let categories = store.get_selected().map_err(|e| {
+        error!("Error loading categories: {:?}", e);
+        "Couldn't get categories"
+    })?;
+
+    debug!(
+        "Successfully loaded {} selected categories",
+        categories.len()
+    );
+    Ok(categories)
+}
+
+/// Sets categories from an array
+#[tauri::command]
+pub fn set_selected_categories(
+    app_handle: AppHandle,
+    categories: Categories,
+) -> Result<(), String> {
+    info!("Setting {} selected categories", categories.len());
+    let store = CategoriesStore::new(&app_handle).map_err(|e| {
+        error!("Error accessing categories store: {:?}", e);
+        "Error happened while accessing store"
+    })?;
+
+    let categories_len = categories.len();
+    store.set_selected(categories).map_err(|e| {
+        error!("Error setting categories: {:?}", e);
+        "Error happened while setting categories"
+    })?;
+
+    info!("Successfully set {} selected categories", categories_len);
+    Ok(())
+}
+
 /// Sets categories of a game from an array
 #[tauri::command]
 pub fn set_game_categories(

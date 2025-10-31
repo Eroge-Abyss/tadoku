@@ -1,20 +1,44 @@
-<script>
+<script lang="ts">
   import { fly } from 'svelte/transition';
   import { elasticOut } from 'svelte/easing';
-  import SortOrderSelect from '$lib/components/SortOrderSelect.svelte';
   import Card from '$lib/components/Card.svelte';
   import { appState } from '$lib/state.svelte';
+  import type { Game } from '$lib/types';
+  import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
 
-  let { gamesList } = $props();
+  let { gamesList }: { gamesList: Record<string, Game> } = $props();
+
+  let filteredGamesList = $derived.by(() => {
+    if (appState.selectedCategories.length === 0) {
+      return gamesList;
+    }
+    const filtered: Record<string, Game> = {};
+    for (const id in gamesList) {
+      const game = gamesList[id];
+      game.categories.forEach((status) => {
+        if (appState.selectedCategories.includes(status)) {
+          filtered[id] = game;
+        }
+      });
+
+      if (
+        game.categories.length === 0 &&
+        appState.selectedCategories.includes('Uncategorized')
+      ) {
+        filtered[id] = game;
+      }
+    }
+    return filtered;
+  });
 </script>
 
 <div class="container">
   <div class="header">
     <h1>Visual Novels</h1>
-    <SortOrderSelect />
+    <FilterAndSort />
   </div>
   <div class="grid">
-    {#each Object.entries(gamesList) as [id, game]}
+    {#each Object.entries(filteredGamesList) as [id, game]}
       <div
         in:fly={{
           y: 50,

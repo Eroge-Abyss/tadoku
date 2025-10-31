@@ -75,6 +75,8 @@ pub fn run() {
             commands::storage::update_process,
             commands::storage::get_categories,
             commands::storage::set_categories,
+            commands::storage::get_selected_categories,
+            commands::storage::set_selected_categories,
             commands::storage::get_theme_settings,
             commands::storage::set_theme_settings,
             commands::storage::get_nsfw_presence_status,

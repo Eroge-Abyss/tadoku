@@ -224,7 +224,7 @@ pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
             .map(|window| {
                 debug!("Processing window: {} ({})", window.title, window.info.path);
                 ActiveWindow {
-                    icon: x_win::get_window_icon(window).map(|i| i.data),
+                    icon: x_win::get_window_icon(window).map(|i| i.data).ok(),
                     title: window.title.clone(),
                     exe_path: window.info.path.clone(),
                 }

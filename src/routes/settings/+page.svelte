@@ -66,10 +66,10 @@
 
   function toggleCustomColor(): void {
     if (useCustomColor) {
-      colorOptionsVisible = false;
+      useCustomColor = false;
+      appState.updateThemeSettings({ useCustomColor: false });
       setTimeout(() => {
-        useCustomColor = false;
-        appState.updateThemeSettings({ useCustomColor: false });
+        colorOptionsVisible = false;
       }, 300);
     } else {
       useCustomColor = true;
@@ -619,7 +619,7 @@
     position: relative;
     width: 44px;
     height: 24px;
-    background-color: rgba(68, 68, 68, 0.7);
+    background-color: color-mix(in srgb, var(--accent), white 10%);
     border-radius: 12px;
     padding: 0;
     border: 1.5px solid rgba(255, 255, 255, 0.15);
@@ -631,7 +631,7 @@
   }
 
   .switch:hover {
-    background-color: rgba(68, 68, 68, 0.8);
+    background-color: color-mix(in srgb, var(--accent), white 15%);
     border-color: rgba(255, 255, 255, 0.2);
   }
 

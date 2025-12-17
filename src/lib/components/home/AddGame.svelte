@@ -141,55 +141,61 @@
     {/snippet}
 
     <section class="game-form">
-      <div class="form-group">
-        <!-- No questions asked (about autocomplete). it just works -->
-        <input
-          type="text"
-          bind:value={search}
-          autocomplete="one-time-code"
-          onkeyup={debounce(updateSearch)}
-          placeholder="Name or ID"
-        />
-      </div>
-      <div class="form-group characters">
-        <Checkbox
-          id="characters"
-          label="Include Characters"
-          bind:checked={charactersDownload}
-        />
-      </div>
-      <div id="suggestions">
-        {#each results as vn}
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div class="suggestion-item" onclick={() => selectGame(vn)}>
-            <div class="suggestion-image">
-              {#if vn?.image?.sexual < NSFW_RATE}
-                <img src={vn?.image?.url} alt={vn?.title} />
-              {:else}
-                <img src={vn?.image?.url} alt={vn?.title} class="blur" />
-              {/if}
-            </div>
-            <div class="suggestion-text">
-              <p class="suggestion-title">{vn?.title}</p>
-              <p class="suggestion-id">{vn?.id}</p>
-            </div>
+      <div class="search-dropdown">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="text"
+            bind:value={search}
+            autocomplete="one-time-code"
+            onkeyup={debounce(updateSearch)}
+            placeholder="Search by name or ID..."
+          />
+        </div>
+
+        {#if results.length > 0}
+          <div id="suggestions">
+            {#each results as vn}
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
+              <div class="suggestion-item" onclick={() => selectGame(vn)}>
+                <div class="suggestion-image">
+                  {#if vn?.image?.sexual < NSFW_RATE}
+                    <img src={vn?.image?.url} alt={vn?.title} />
+                  {:else}
+                    <img src={vn?.image?.url} alt={vn?.title} class="blur" />
+                  {/if}
+                </div>
+                <div class="suggestion-content">
+                  <p class="suggestion-title">{vn?.title}</p>
+                  <p class="suggestion-id">{vn?.id}</p>
+                </div>
+              </div>
+            {/each}
           </div>
-        {/each}
+        {:else if search && results.length === 0}
+          <div class="empty-state">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <p>No games found</p>
+            <span>Try a different search term or ID</span>
+          </div>
+        {/if}
       </div>
 
       {#if selectedVn}
         <div class="selected-suggestion">
-          {#if selectedVn.image.sexual < NSFW_RATE || showImage}
-            <img src={selectedVn.image.url} alt={selectedVn.title} />
-          {:else}
-            <img
-              src={selectedVn.image.url}
-              alt={selectedVn.title}
-              class="blur"
-            />
-          {/if}
-          <div class="suggestion-text">
+          <div class="selected-image">
+            {#if selectedVn.image.sexual < NSFW_RATE || showImage}
+              <img src={selectedVn.image.url} alt={selectedVn.title} />
+            {:else}
+              <img
+                src={selectedVn.image.url}
+                alt={selectedVn.title}
+                class="blur"
+              />
+            {/if}
+          </div>
+          <div class="selected-content">
             <p class="selected-suggestion-title">
               {selectedVn.title}
             </p>
@@ -199,6 +205,14 @@
           </div>
         </div>
       {/if}
+
+      <div class="form-group characters">
+        <Checkbox
+          id="characters"
+          label="Include Characters"
+          bind:checked={charactersDownload}
+        />
+      </div>
 
       {#if platform() === 'linux'}
         <InfoNote>
@@ -271,26 +285,53 @@
   .game-form {
     margin: 1rem;
   }
+
+  .search-dropdown {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .search-input-wrapper {
+    position: relative;
+  }
+
   .game-form .form-group {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  .game-form .form-group input[type='text'] {
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #888;
+    pointer-events: none;
+  }
+
+  .search-dropdown input[type='text'] {
     height: 40px;
     width: 100%;
     background-color: #313131;
-    border: 0;
+    border: 1px solid transparent;
     border-radius: var(--small-radius);
-    padding: 0.5rem;
+    padding: 12px 12px 12px 40px;
     color: var(--main-text);
     box-sizing: border-box;
-    grid-column: 1 / -1;
-    transition: border-color 0.2s ease;
+    font-size: 15px;
+    transition: all 0.2s ease;
   }
 
-  .game-form .form-group input[type='text']:focus {
+  .search-dropdown input[type='text']::placeholder {
+    color: #888;
+  }
+
+  .search-dropdown input[type='text']:focus {
     outline: none;
+    border-color: var(--primary);
+    background: #373737;
   }
 
   .game-form .form-group.characters {
@@ -318,88 +359,153 @@
   }
 
   #suggestions {
-    margin-top: 10px;
-    /* max-width: 400px; */
-    max-height: 200px;
-    overflow-y: scroll;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    max-height: 280px;
+    overflow-y: auto;
     overflow-x: hidden;
+    border-radius: var(--small-radius);
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.2s ease;
+    z-index: 1000;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Custom scrollbar */
+  #suggestions::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  #suggestions::-webkit-scrollbar-track {
+    background: #2a2a2a;
+    border-radius: var(--small-radius);
+  }
+
+  #suggestions::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 4px;
+  }
+
+  #suggestions::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
   }
 
   /* Suggestion Item Styling */
   .suggestion-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    background-color: color-mix(in srgb, black 30%, var(--main-background) 80%);
-    border-radius: var(--small-radius);
-    margin-bottom: 5px;
+    padding: 12px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.15s ease;
     color: var(--main-text);
+    gap: 12px;
   }
 
   .suggestion-item:hover {
-    background-color: color-mix(
-      in srgb,
-      var(--primary) 2.5%,
-      var(--secondary) 92%
-    );
+    background: var(--secondary);
+    padding-left: 16px;
+  }
 
-    & .suggestion-id {
-      color: #cfc9c2;
-    }
+  .suggestion-item:not(:last-child) {
+    border-bottom: 1px solid #333;
   }
 
   /* Suggestion Text Styling */
-  .suggestion-text {
+  .suggestion-content {
     flex: 1;
-    padding: 1rem;
+    min-width: 0;
   }
 
   .suggestion-title {
-    font-size: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--main-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
   }
 
   .suggestion-id {
-    font-size: 14px;
-    color: #aaa;
+    font-size: 12px;
+    color: #888;
   }
 
   /* Suggestion Image Styling */
-  .suggestion-image img,
-  .selected-suggestion img {
+  .suggestion-image {
+    flex-shrink: 0;
+  }
+
+  .suggestion-image img {
     width: 60px;
     height: 60px;
     border-radius: var(--small-radius);
     object-fit: cover;
   }
 
-  .selected-suggestion {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: color-mix(in srgb, black 30%, var(--main-background) 80%);
-    border-radius: var(--small-radius);
-    color: #fff;
-    display: flex;
-    align-items: center;
-  }
-
   .selected-suggestion img {
     width: 100px;
     height: 100px;
     border-radius: var(--small-radius);
-    margin-top: 10px;
+    object-fit: cover;
+  }
+
+  .selected-suggestion {
+    margin-bottom: 1rem;
+    padding: 12px;
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: var(--small-radius);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .selected-image {
+    flex-shrink: 0;
+  }
+
+  .selected-suggestion img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--small-radius);
+    object-fit: cover;
+  }
+
+  .selected-content {
+    flex: 1;
+    min-width: 0;
   }
 
   .selected-suggestion-title {
-    font-size: 16px;
+    font-size: 15px;
+    font-weight: 500;
     color: var(--main-text);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .selected-suggestion-id {
-    color: #aaa;
-    font-size: 14px;
+    color: #888;
+    font-size: 13px;
   }
 
   .save-button {
@@ -413,6 +519,46 @@
         color-mix(in srgb, var(--primary), #000 10%)
       ) !important;
     }
+  }
+
+  .empty-state {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    color: #888;
+    text-align: center;
+    background: #2a2a2a;
+    border-radius: var(--small-radius);
+    border: 1px solid #3a3a3a;
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.2s ease;
+    z-index: 1000;
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-state p {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #aaa;
+  }
+
+  .empty-state span {
+    font-size: 13px;
+    color: #777;
   }
 
   /*

@@ -139,9 +139,9 @@
 
   .game-form button {
     border: 0;
-    background-color: #313131;
+    background-color: var(--accent);
     border-radius: var(--small-radius);
-    color: #fff;
+    color: var(--main-text);
     width: 100%;
     padding: 0.5rem;
     font-size: 18px;
@@ -150,7 +150,7 @@
     transition: background-color 0.3s ease;
 
     &:hover {
-      background-color: #404040;
+      background-color: color-mix(in srgb, var(--accent), white 10%);
     }
   }
 
@@ -184,7 +184,7 @@
     top: 50%;
     transform: translateY(-50%);
     font-size: 16px;
-    color: #888;
+    color: var(--secondary-text);
     pointer-events: none;
   }
 
@@ -193,19 +193,19 @@
     padding: 12px 12px 12px 40px;
     font-size: 15px;
     border-radius: var(--small-radius);
-    background: #313131;
+    background: var(--accent);
     border: 1px solid transparent;
     color: var(--main-text);
     transition: all 0.2s ease;
 
     &::placeholder {
-      color: #888;
+      color: var(--secondary-text);
     }
 
     &:focus {
       outline: none;
       border-color: var(--primary);
-      background: #373737;
+      background: color-mix(in srgb, var(--accent), white 5%);
     }
   }
 
@@ -217,8 +217,8 @@
     max-height: 280px;
     overflow-y: auto;
     border-radius: var(--small-radius);
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
+    background: var(--accent);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow:
       0 8px 24px rgba(0, 0, 0, 0.4),
       0 2px 8px rgba(0, 0, 0, 0.2);
@@ -248,17 +248,17 @@
   }
 
   .dropdown-menu::-webkit-scrollbar-track {
-    background: #2a2a2a;
+    background: var(--accent);
     border-radius: var(--small-radius);
   }
 
   .dropdown-menu::-webkit-scrollbar-thumb {
-    background: #4a4a4a;
+    background: color-mix(in srgb, var(--accent), white 20%);
     border-radius: 4px;
   }
 
   .dropdown-menu::-webkit-scrollbar-thumb:hover {
-    background: #5a5a5a;
+    background: color-mix(in srgb, var(--accent), white 30%);
   }
 
   .dropdown-item {
@@ -277,7 +277,7 @@
   }
 
   .dropdown-item:not(:last-child) {
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .item-icon {
@@ -309,7 +309,7 @@
 
   .item-path {
     font-size: 12px;
-    color: #888;
+    color: var(--secondary-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -321,9 +321,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #3a3a3a;
+    background: color-mix(in srgb, var(--accent), white 10%);
     border-radius: 6px;
-    color: #888;
+    color: var(--secondary-text);
     font-size: 18px;
   }
 
@@ -333,7 +333,7 @@
     align-items: center;
     justify-content: center;
     padding: 32px 16px;
-    color: #888;
+    color: var(--secondary-text);
     text-align: center;
   }
 
@@ -347,11 +347,12 @@
     margin: 0 0 4px 0;
     font-size: 15px;
     font-weight: 500;
-    color: #aaa;
+    color: var(--main-text);
+    opacity: 0.8;
   }
 
   .empty-state span {
     font-size: 13px;
-    color: #777;
+    color: var(--secondary-text);
   }
 </style>

@@ -52,7 +52,7 @@ export interface CurrentGame {
 export interface Process {
   title: string;
   exe_path: string;
-  icon: string;
+  icon: string | null;
 }
 
 export interface ThemeSettings {

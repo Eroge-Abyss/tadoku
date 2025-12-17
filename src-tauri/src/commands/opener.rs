@@ -20,7 +20,7 @@ use tauri_plugin_shell::ShellExt;
 pub struct ActiveWindow {
     title: String,
     exe_path: String,
-    icon: String,
+    icon: Option<String>,
 }
 
 fn handle_open_lnk(exe_path: &mut PathBuf, args: &mut String) -> Result<(), String> {
@@ -224,9 +224,7 @@ pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
             .map(|window| {
                 debug!("Processing window: {} ({})", window.title, window.info.path);
                 ActiveWindow {
-                    icon: x_win::get_window_icon(window)
-                        .map(|i| i.data)
-                        .unwrap_or_default(),
+                    icon: x_win::get_window_icon(window).map(|i| i.data),
                     title: window.title.clone(),
                     exe_path: window.info.path.clone(),
                 }

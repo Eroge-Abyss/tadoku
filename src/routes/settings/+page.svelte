@@ -11,6 +11,9 @@
   } from '$lib/types';
   import { appLogDir } from '@tauri-apps/api/path';
   import { revealItemInDir } from '@tauri-apps/plugin-opener';
+  import InfoNote from '$lib/components/InfoNote.svelte';
+
+  const EXSTATIC_GITHUB_URL = 'https://github.com/kofta999/exSTATic';
 
   let appVersion = $state<string>();
   let selectedTheme = $state<string>(appState.themeSettings.theme);
@@ -63,10 +66,10 @@
 
   function toggleCustomColor(): void {
     if (useCustomColor) {
-      colorOptionsVisible = false;
+      useCustomColor = false;
+      appState.updateThemeSettings({ useCustomColor: false });
       setTimeout(() => {
-        useCustomColor = false;
-        appState.updateThemeSettings({ useCustomColor: false });
+        colorOptionsVisible = false;
       }, 300);
     } else {
       useCustomColor = true;
@@ -142,14 +145,19 @@
 <div class="container">
   <div class="content">
     <div class="header">
-      <h1>Settings</h1>
-      <p>Customize your Tadoku experience</p>
+      <div class="header-content">
+        <h1>Settings</h1>
+        <p>Customize your Tadoku experience</p>
+      </div>
     </div>
 
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="settings-section">
-      <h2>Theme Selection</h2>
+      <div class="section-header">
+        <h2>Theme Selection</h2>
+        <p class="section-description">Choose your preferred color theme</p>
+      </div>
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div class="theme-grid" onclick={handleThemeSelection}>
         {#each THEMES as theme}
@@ -221,7 +229,12 @@
     </div>
 
     <div class="settings-section">
-      <h2>Discord Presence</h2>
+      <div class="section-header">
+        <h2>Discord Presence</h2>
+        <p class="section-description">
+          Configure Discord Rich Presence settings
+        </p>
+      </div>
       <div class="select-container">
         <label for="presence-mode">Mode:</label>
         <select
@@ -250,7 +263,10 @@
     </div>
 
     <div class="settings-section">
-      <h2>App Settings</h2>
+      <div class="section-header">
+        <h2>App Settings</h2>
+        <p class="section-description">General application preferences</p>
+      </div>
       <div class="switch-container">
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
@@ -278,16 +294,28 @@
         >
       </div>
 
-      <div class="select-container">
-        <label for="playtime-mode">Playtime Recording Mode (BETA):</label>
-        <select
-          id="playtime-mode"
-          bind:value={playtimeMode}
-          onchange={() => appState.setPlaytimeMode(playtimeMode)}
-        >
-          <option value="classic">Classic</option>
-          <option value="ex_static">Pull Data from ExStatic</option>
-        </select>
+      <div class="playtime-group">
+        <div class="select-container">
+          <label for="playtime-mode"
+            >Playtime Recording Mode (relaunch game to take effect):</label
+          >
+          <select
+            id="playtime-mode"
+            bind:value={playtimeMode}
+            onchange={() => appState.setPlaytimeMode(playtimeMode)}
+          >
+            <option value="classic">Classic</option>
+            <option value="ex_static">Pull Data from exSTATic</option>
+          </select>
+        </div>
+
+        <InfoNote>
+          You must use <a
+            href={EXSTATIC_GITHUB_URL}
+            target="_blank"
+            rel="noopener noreferer">this</a
+          > version of exSTATic for exSTATic mode to work.
+        </InfoNote>
       </div>
 
       <div class="switch-container">
@@ -309,9 +337,15 @@
     </div>
     -->
 
-    <div class="settings-section">
-      <h2>Reset Settings</h2>
+    <div class="settings-section danger-section">
+      <div class="section-header">
+        <h2>Reset Settings</h2>
+        <p class="section-description">
+          Restore all settings to their default values
+        </p>
+      </div>
       <button class="reset-button" onclick={resetSettings}>
+        <i class="fa-solid fa-rotate-left"></i>
         Reset to Default Settings
       </button>
     </div>
@@ -326,78 +360,95 @@
     display: flex;
     flex-direction: row-reverse;
     user-select: none;
-    opacity: 0.5;
-    font-family: monospace;
+    opacity: 0.4;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: var(--secondary-text);
+    padding: 0.5rem 0;
+  }
+
+  .playtime-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
   .select-container {
     display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 0.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .select-container label {
-    font-size: 14px;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--main-text);
+    opacity: 0.9;
   }
 
   .select-container select {
-    background-color: var(--main-background);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--small-radius);
-    padding: 0.5rem 0.75rem;
+    padding: 0.625rem 0.875rem;
     color: var(--main-text);
-    font-size: 14px;
+    font-size: 0.875rem;
     cursor: pointer;
     transition:
-      border-color 0.2s,
-      box-shadow 0.2s;
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-    padding-right: 2rem;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem;
   }
 
   .select-container select:hover {
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
+    background-color: rgba(255, 255, 255, 0.05);
   }
 
   .select-container select:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 1px var(--primary);
   }
   .container {
-    padding: 25px;
-    max-width: 1200px;
-    margin: auto;
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    min-height: 100vh;
   }
 
   .content {
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 2rem;
-    padding: 1rem;
+    gap: 1rem;
+    padding: 0;
   }
 
   .header {
+    margin-bottom: 0.5rem;
+  }
+
+  .header-content {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    gap: 0.5rem;
   }
 
   .header h1 {
-    font-size: 2.5rem;
-    font-weight: 600;
+    font-size: 2.25rem;
+    font-weight: 700;
     color: var(--main-text);
+    letter-spacing: -0.02em;
   }
 
   .header p {
     color: var(--secondary-text);
     font-size: 1rem;
+    opacity: 0.8;
   }
 
   .settings-section {
@@ -406,88 +457,99 @@
     padding: 1.5rem 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.1),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition:
+      box-shadow 0.3s ease,
+      transform 0.2s ease;
   }
 
-  .settings-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-
-    pointer-events: none;
+  .settings-section:hover {
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.15),
+      0 2px 4px rgba(0, 0, 0, 0.08);
   }
 
-  .settings-section h2 {
-    font-size: 1.5rem;
-    font-weight: 500;
-    color: var(--main-text);
-    margin-bottom: 0.5rem;
-    margin-top: 0.25em;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  .danger-section {
+    border: 1.5px solid rgba(239, 68, 68, 0.3);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 95%, #ef4444 5%) 0%,
+      var(--accent) 100%
+    );
+  }
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
     padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .section-header h2 {
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--main-text);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .section-description {
+    font-size: 0.875rem;
+    color: var(--secondary-text);
+    opacity: 0.7;
+    margin: 0;
   }
 
   .theme-grid {
     will-change: transform;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.25rem;
     contain: layout style;
+    padding: 0.5rem 0;
   }
 
   .theme-item {
-    background-color: color-mix(
-      in srgb,
-      var(--primary) 2.5%,
-      var(--main-background) 92%
-    );
-    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
     padding: 1rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    gap: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.08);
     position: relative;
     overflow: hidden;
     contain: layout paint;
   }
 
-  .theme-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 80%;
-    height: 100%;
-    transition: 0.3s ease-in;
-  }
-
   .theme-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-    background-color: color-mix(in srgb, var(--main-background), white 5%);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .theme-item.active {
     border-color: var(--primary);
-    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+    box-shadow: 0 0 0 2px var(--primary);
+    background-color: rgba(255, 255, 255, 0.05);
   }
 
   .theme-preview {
-    height: 100px;
+    height: 90px;
     display: flex;
     background-color: var(--preview-bg);
-    border-radius: var(--small-radius);
+    border-radius: 6px;
     overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
   }
 
   .preview-sidebar {
@@ -524,18 +586,22 @@
   }
 
   .theme-name {
-    font-size: 14px;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--main-text);
     text-align: center;
-    margin-top: 0.5rem;
+    opacity: 0.9;
   }
   .custom-color-section {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
   .custom-color-section:has(.color-options.visible) {
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .custom-color-section:not(:has(.color-options.visible)) {
@@ -545,44 +611,61 @@
   .switch-container {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.875rem;
+    padding: 0.25rem 0;
   }
 
   .switch {
     position: relative;
-    width: 40px;
-    height: 22px;
-    background-color: rgba(68, 68, 68, 0.6);
-    border-radius: var(--big-radius);
+    width: 44px;
+    height: 24px;
+    background-color: color-mix(in srgb, var(--accent), white 10%);
+    border-radius: 12px;
     padding: 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition:
+      background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .switch:hover {
+    background-color: color-mix(in srgb, var(--accent), white 15%);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .switch-thumb {
     position: absolute;
-    top: 1px;
+    top: 1.5px;
     will-change: transform;
-    left: 1px;
-    width: 18px;
-    height: 18px;
-    background-color: white;
+    left: 1.5px;
+    width: 19px;
+    height: 19px;
+    background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
     border-radius: 50%;
-    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .switch.active {
     background: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .switch.active:hover {
+    background: color-mix(in srgb, var(--primary) 90%, white 10%);
   }
 
   .switch.active .switch-thumb {
-    transform: translateX(18px);
+    transform: translateX(20px);
   }
 
   .switch-label {
-    font-size: 14px;
+    font-size: 0.9375rem;
     color: var(--main-text);
+    opacity: 0.95;
+    line-height: 1.5;
   }
 
   .color-options {
@@ -614,33 +697,41 @@
   }
 
   .color-picker input {
-    width: 50px;
-    height: 50px;
-    border: none;
+    width: 54px;
+    height: 54px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
     cursor: pointer;
     background: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .color-picker input:hover {
+    border-color: rgba(255, 255, 255, 0.3);
   }
 
   .color-picker span {
     color: var(--main-text);
-    font-family: monospace;
-    font-size: 15px;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    opacity: 0.9;
   }
 
   .color-swatches {
-    margin: 5px;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.875rem;
+    padding: 0.25rem;
   }
 
   .color-swatch {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     cursor: pointer;
-    transition: transform 0.2s;
-    border: 2px solid transparent;
+    transition: border-color 0.2s ease;
+    border: 2.5px solid transparent;
     position: relative;
     overflow: hidden;
   }
@@ -661,7 +752,7 @@
   }
 
   .color-swatch:hover {
-    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.3);
   }
 
   .color-swatch.active {
@@ -695,34 +786,47 @@
   }
 
   .preview-title {
-    font-size: 14px;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--secondary-text);
+    opacity: 0.8;
   }
 
   .preview-button {
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1.25rem;
     border-radius: var(--small-radius);
     color: white;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 0.9375rem;
     text-align: center;
     width: fit-content;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: default;
+    transition: opacity 0.2s ease;
+  }
+
+  .preview-button:hover {
+    opacity: 0.85;
   }
 
   .reset-button {
     background-color: #ef4444;
     color: white;
     border: none;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1.25rem;
     border-radius: var(--small-radius);
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 0.9375rem;
     cursor: pointer;
     width: fit-content;
-    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    transition: filter 0.2s ease;
   }
 
   .reset-button:hover {
-    background-color: #dc2626;
+    filter: brightness(0.9);
   }
 </style>

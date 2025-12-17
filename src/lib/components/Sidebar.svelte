@@ -9,10 +9,11 @@
 
   let pinnedGames = $derived.by(() =>
     Object.entries(appState.gamesList)
-      .filter(([k, v]) => v.is_pinned)
+      .filter(([_, v]) => v.is_pinned)
       .map(([k, v]) => ({
         id: k,
         char: v.title[0],
+        title: v.title,
         image: v.icon_url ? convertFileSrc(v.icon_url) : null,
       })),
   );
@@ -22,15 +23,16 @@
   <section id="sidebar__header">
     <h1>多</h1>
     <div id="sidebar__header__buttons">
-      <SidebarButton onclick={() => goto('/')}>
+      <SidebarButton onclick={() => goto('/')} tooltip="Library">
         <SquaresIcon style="font-size: 24px;" />
       </SidebarButton>
 
-      {#each pinnedGames as { id, image, char } (id)}
+      {#each pinnedGames as { id, image, char, title } (id)}
         <SidebarButton
           onclick={() => invoke('open_game', { gameId: id })}
           image={image ? image : undefined}
           text={image ? undefined : char}
+          tooltip={title}
         />
       {/each}
 
@@ -41,12 +43,6 @@
   <section id="sidebar__footer">
     <SettingsButton />
   </section>
-
-  <!-- TODO: Hidden until implemented for completeness -->
-  <!-- <Icon
-        icon="material-symbols:settings-outline-rounded"
-        style="font-size: 24px; color: #fff; cursor:pointer;"
-    /> -->
 </nav>
 
 <style>

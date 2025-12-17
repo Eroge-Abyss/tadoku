@@ -9,6 +9,7 @@
   import { debounce } from '$lib/util';
   import Checkbox from '$lib/components/Checkbox.svelte';
   import InfoNote from '../InfoNote.svelte';
+  import SidebarButton from '$lib/components/SidebarButton.svelte';
 
   const NSFW_RATE = 0.5;
 
@@ -133,7 +134,9 @@
 </script>
 
 <section>
-  <button id="btn__add" onclick={openModal}> + </button>
+  <SidebarButton onclick={openModal} tooltip="Add Game">
+    <span class="add-icon">+</span>
+  </SidebarButton>
 
   <Dialog show={showModal} close={closeModal}>
     {#snippet header()}
@@ -251,35 +254,10 @@
   .blur:hover {
     filter: blur(0);
   }
-  #btn__add {
-    border: 0;
-    width: 56px;
-    height: 56px;
+
+  .add-icon {
     font-size: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: auto;
-    cursor: pointer;
     color: var(--primary);
-    background: rgba(185, 154, 250, 0.17);
-    border-radius: var(--big-radius);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(185, 154, 250, 0.13);
-    transition: all 0.3s ease;
-  }
-
-  #btn__add:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
-    background: rgba(185, 154, 250, 0.25);
-  }
-
-  #btn__add:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
   .game-form {
@@ -307,14 +285,14 @@
     top: 50%;
     transform: translateY(-50%);
     font-size: 16px;
-    color: #888;
+    color: var(--secondary-text);
     pointer-events: none;
   }
 
   .search-dropdown input[type='text'] {
     height: 40px;
     width: 100%;
-    background-color: #313131;
+    background-color: var(--accent);
     border: 1px solid transparent;
     border-radius: var(--small-radius);
     padding: 12px 12px 12px 40px;
@@ -325,13 +303,13 @@
   }
 
   .search-dropdown input[type='text']::placeholder {
-    color: #888;
+    color: var(--secondary-text);
   }
 
   .search-dropdown input[type='text']:focus {
     outline: none;
     border-color: var(--primary);
-    background: #373737;
+    background: color-mix(in srgb, var(--accent), white 5%);
   }
 
   .game-form .form-group.characters {
@@ -343,9 +321,9 @@
 
   .game-form button {
     border: 0;
-    background-color: #313131;
+    background-color: var(--accent);
     border-radius: var(--small-radius);
-    color: #fff;
+    color: var(--main-text);
     width: 100%;
     padding: 0.5rem;
     font-size: 18px;
@@ -355,7 +333,7 @@
   }
 
   .game-form button:hover {
-    background-color: #404040;
+    background-color: color-mix(in srgb, var(--accent), white 10%);
   }
 
   #suggestions {
@@ -367,8 +345,8 @@
     overflow-y: auto;
     overflow-x: hidden;
     border-radius: var(--small-radius);
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
+    background: var(--accent);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow:
       0 8px 24px rgba(0, 0, 0, 0.4),
       0 2px 8px rgba(0, 0, 0, 0.2);
@@ -393,17 +371,17 @@
   }
 
   #suggestions::-webkit-scrollbar-track {
-    background: #2a2a2a;
+    background: var(--accent);
     border-radius: var(--small-radius);
   }
 
   #suggestions::-webkit-scrollbar-thumb {
-    background: #4a4a4a;
+    background: color-mix(in srgb, var(--accent), white 20%);
     border-radius: 4px;
   }
 
   #suggestions::-webkit-scrollbar-thumb:hover {
-    background: #5a5a5a;
+    background: color-mix(in srgb, var(--accent), white 30%);
   }
 
   /* Suggestion Item Styling */
@@ -423,7 +401,7 @@
   }
 
   .suggestion-item:not(:last-child) {
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   /* Suggestion Text Styling */
@@ -444,7 +422,7 @@
 
   .suggestion-id {
     font-size: 12px;
-    color: #888;
+    color: var(--secondary-text);
   }
 
   /* Suggestion Image Styling */
@@ -469,8 +447,8 @@
   .selected-suggestion {
     margin-bottom: 1rem;
     padding: 12px;
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
+    background: var(--accent);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--small-radius);
     display: flex;
     align-items: center;
@@ -504,7 +482,7 @@
   }
 
   .selected-suggestion-id {
-    color: #888;
+    color: var(--secondary-text);
     font-size: 13px;
   }
 
@@ -531,11 +509,11 @@
     align-items: center;
     justify-content: center;
     padding: 32px 16px;
-    color: #888;
+    color: var(--secondary-text);
     text-align: center;
-    background: #2a2a2a;
+    background: var(--accent);
     border-radius: var(--small-radius);
-    border: 1px solid #3a3a3a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow:
       0 8px 24px rgba(0, 0, 0, 0.4),
       0 2px 8px rgba(0, 0, 0, 0.2);
@@ -553,12 +531,13 @@
     margin: 0 0 4px 0;
     font-size: 15px;
     font-weight: 500;
-    color: #aaa;
+    color: var(--main-text);
+    opacity: 0.8;
   }
 
   .empty-state span {
     font-size: 13px;
-    color: #777;
+    color: var(--secondary-text);
   }
 
   /*

@@ -7,7 +7,7 @@
   }
 </script>
 
-<SidebarButton onclick={handleClick}>
+<SidebarButton onclick={handleClick} tooltip="Settings">
   <span class="settings-icon">
     <i class="fas fa-cog"></i>
   </span>

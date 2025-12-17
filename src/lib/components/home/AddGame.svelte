@@ -8,6 +8,7 @@
   import { appState } from '$lib/state.svelte';
   import { debounce } from '$lib/util';
   import Checkbox from '$lib/components/Checkbox.svelte';
+  import InfoNote from '../InfoNote.svelte';
 
   const NSFW_RATE = 0.5;
 
@@ -200,27 +201,17 @@
       {/if}
 
       {#if platform() === 'linux'}
-        <div class="info-container">
-          <span class="icon-info">
-            <i class="fa-solid fa-info-circle"></i>
-          </span>
-          <p class="note">
-            If running via a script (e.g., Lutris), add the script as the
-            executable and the original EXE as a process path in game settings
-            if not detected.
-          </p>
-        </div>
+        <InfoNote>
+          If running via a script (e.g., Lutris), add the script as the
+          executable and the original EXE as a process path in game settings if
+          not detected.
+        </InfoNote>
       {/if}
 
-      <div class="info-container">
-        <span class="icon-info">
-          <i class="fa-solid fa-info-circle"></i>
-        </span>
-        <p class="note">
-          If you're using a launcher for this novel, please add its process from
-          the game details page.
-        </p>
-      </div>
+      <InfoNote>
+        If you're using a launcher for this novel, please add its process from
+        the game details page.
+      </InfoNote>
 
       <button onclick={pickFile}>Select Game Executable</button>
       <button
@@ -239,22 +230,6 @@
 </section>
 
 <style>
-  .note {
-    font-size: 12px;
-    color: var(--secondary-text);
-    text-align: left;
-    margin: 0;
-  }
-  .info-container {
-    display: flex;
-    padding: 10px 10px;
-    align-items: flex-start;
-  }
-  .icon-info {
-    font-size: 14px;
-    margin-right: 5px;
-    color: var(--secondary-text);
-  }
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;

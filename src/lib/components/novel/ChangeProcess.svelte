@@ -2,6 +2,7 @@
   import type { Process } from '$lib/types';
   import Dialog from '$lib/components/Dialog.svelte';
   import { appState } from '$lib/state.svelte';
+  import InfoNote from '../InfoNote.svelte';
 
   let {
     isOpen = $bindable(),
@@ -76,15 +77,10 @@
         {/if}
       </div>
 
-      <div class="info-container">
-        <span class="icon-info">
-          <i class="fa-solid fa-info-circle"></i>
-        </span>
-        <p class="note">
-          If you can't find your game, try setting it to windowed then return to
-          full screen when done.
-        </p>
-      </div>
+      <InfoNote>
+        If you can't find your game, try setting it to windowed then return to
+        full screen when done.
+      </InfoNote>
 
       <button disabled={loading} class="save-button" onclick={handleConfirm}>
         {#if loading}
@@ -201,21 +197,5 @@
     width: 24px;
     height: 24px;
     margin-right: 10px;
-  }
-
-  .note {
-    font-size: 12px;
-    color: var(--secondary-text);
-    margin: 0;
-  }
-  .info-container {
-    display: flex;
-    padding: 10px;
-    align-items: flex-start;
-  }
-  .icon-info {
-    font-size: 14px;
-    margin-right: 5px;
-    color: var(--secondary-text);
   }
 </style>

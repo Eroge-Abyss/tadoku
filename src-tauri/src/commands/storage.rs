@@ -4,14 +4,14 @@ use crate::{
         stores::{
             categories::{Categories, CategoriesStore},
             games::{Character, Game, Games, GamesStore},
-            settings::{PlaytimeMode, SettingsStore, SortOrder, ThemeSettings},
+            settings::{PlaytimeMode, SortOrder, ThemeSettings},
         },
         vndb::Vndb,
     },
     util::{self},
     AppState,
 };
-use log::{debug, error, info, warn};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
@@ -449,19 +449,9 @@ pub fn set_game_categories(
 /// Gets theme settings from storage
 #[tauri::command]
 pub fn get_theme_settings(app_handle: AppHandle) -> Result<ThemeSettings, String> {
-    debug!("Getting theme settings");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    let theme_settings = store.get_theme_settings().map_err(|e| {
-        error!("Error loading theme settings: {:?}", e);
-        "Couldn't get theme settings"
-    })?;
-
-    debug!("Successfully loaded theme settings");
-    Ok(theme_settings)
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.theme_settings.clone())
 }
 
 /// Saves theme settings to storage
@@ -470,154 +460,69 @@ pub fn set_theme_settings(
     app_handle: AppHandle,
     theme_settings: ThemeSettings,
 ) -> Result<(), String> {
-    info!("Setting theme settings");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    store.set_theme_settings(theme_settings).map_err(|e| {
-        error!("Error setting theme settings: {:?}", e);
-        "Error happened while setting theme settings"
-    })?;
-
-    info!("Successfully set theme settings");
-    Ok(())
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    lock.update_settings(&app_handle, |s| s.theme_settings = theme_settings)
+        .map_err(|e| e.to_string())
 }
 
 /// Gets nsfw presence toggle status
 #[tauri::command]
 pub fn get_nsfw_presence_status(app_handle: AppHandle) -> Result<bool, String> {
-    debug!("Getting NSFW presence status");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    let status = store.get_presence_on_nsfw().map_err(|e| {
-        error!("Error loading NSFW presence status: {:?}", e);
-        "Couldn't get theme settings"
-    })?;
-
-    debug!("NSFW presence status: {}", status);
-    Ok(status)
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.disable_presence_on_nsfw)
 }
 
 /// Saves theme settings to storage
 #[tauri::command]
 pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> Result<(), String> {
-    info!("Setting NSFW presence status to: {}", to);
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    store.set_presence_on_nsfw(to).map_err(|e| {
-        error!("Error setting NSFW presence status: {:?}", e);
-        "Error happened while setting theme settings"
-    })?;
-
-    let binding = app_handle.state::<Mutex<AppState>>();
-
-    let mut app_state = binding.lock().map_err(|e| {
-        error!("Cannot acquire state lock for NSFW presence: {:?}", e);
-        "Cannot acquire state lock"
-    })?;
-
-    app_state.config.disable_presence_on_nsfw = to;
-
-    info!("Successfully set NSFW presence status to: {}", to);
-    Ok(())
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    lock.update_settings(&app_handle, |s| s.disable_presence_on_nsfw = to)
+        .map_err(|e| e.to_string())
 }
 
 /// Gets sort order
 #[tauri::command]
 pub fn get_sort_order(app_handle: AppHandle) -> Result<SortOrder, String> {
-    debug!("Getting sort order");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    let sort_order = store.get_sort_order().map_err(|e| {
-        error!("Error loading sort order: {:?}", e);
-        "Couldn't get sort order"
-    })?;
-
-    debug!("Sort order loaded successfully");
-    Ok(sort_order)
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.sort_order)
 }
 
 /// Saves theme settings to storage
 #[tauri::command]
 pub fn set_sort_order(app_handle: AppHandle, sort_order: SortOrder) -> Result<(), String> {
-    info!("Setting sort order");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    store.set_sort_order(sort_order).map_err(|e| {
-        error!("Error setting sort order: {:?}", e);
-        "Error happened while setting sort order"
-    })?;
-
-    info!("Successfully set sort order");
-    Ok(())
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    lock.update_settings(&app_handle, |s| s.sort_order = sort_order)
+        .map_err(|e| e.to_string())
 }
 
 /// Gets show random picker
 #[tauri::command]
 pub fn get_show_random_picker(app_handle: AppHandle) -> Result<bool, String> {
-    debug!("Getting show random picker setting");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    let show_picker = store.get_show_random_picker().map_err(|e| {
-        error!("Error loading show random picker setting: {:?}", e);
-        "Couldn't get show random picker"
-    })?;
-
-    debug!("Show random picker: {}", show_picker);
-    Ok(show_picker)
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.show_random_picker)
 }
 
 /// Saves show random picker setting to storage
 #[tauri::command]
 pub fn set_show_random_picker(app_handle: AppHandle, to: bool) -> Result<(), String> {
-    info!("Setting show random picker to: {}", to);
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    store.set_show_random_picker(to).map_err(|e| {
-        error!("Error setting show random picker: {:?}", e);
-        "Error happened while setting show random picker"
-    })?;
-
-    info!("Successfully set show random picker to: {}", to);
-    Ok(())
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    lock.update_settings(&app_handle, |s| s.show_random_picker = to)
+        .map_err(|e| e.to_string())
 }
 
 /// Gets discord presence mode
 #[tauri::command]
 pub fn get_discord_presence_mode(app_handle: AppHandle) -> Result<DiscordPresenceMode, String> {
-    debug!("Getting Discord presence mode");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    let mode = store.get_discord_presence_mode().map_err(|e| {
-        error!("Error loading Discord presence mode: {:?}", e);
-        "Couldn't get discord presence mode"
-    })?;
-
-    debug!("Discord presence mode loaded successfully");
-    Ok(mode)
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.discord_presence_mode)
 }
 
 /// Saves Discord presence mode setting to storage
@@ -626,107 +531,47 @@ pub fn set_discord_presence_mode(
     app_handle: AppHandle,
     to: DiscordPresenceMode,
 ) -> Result<(), String> {
-    info!("Setting Discord presence mode");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
 
-    store.set_discord_presence_mode(to).map_err(|e| {
-        error!("Error setting Discord presence mode: {:?}", e);
-        "Error happened while setting discord presence mode"
-    })?;
+    lock.update_settings(&app_handle, |s| s.discord_presence_mode = to)
+        .map_err(|e| e.to_string())?;
 
-    let binding = app_handle.state::<Mutex<AppState>>();
-
-    let mut app_state = binding.lock().map_err(|e| {
-        error!(
-            "Cannot acquire state lock for Discord presence mode: {:?}",
-            e
-        );
-        "Cannot acquire state lock"
-    })?;
-
-    if let Some(presence) = app_state.presence.as_mut() {
-        debug!("Updating Discord presence mode in runtime state");
+    if let Some(presence) = lock.presence.as_mut() {
         presence.set_mode(to);
-    } else {
-        warn!("No Discord presence instance found in app state");
     }
 
-    info!("Successfully set Discord presence mode");
     Ok(())
 }
 
 /// Gets playtime mode
 #[tauri::command]
 pub fn get_playtime_mode(app_handle: AppHandle) -> Result<PlaytimeMode, String> {
-    debug!("Getting playtime mode");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    let mode = store.get_playtime_mode().map_err(|e| {
-        error!("Error loading playtime mode: {:?}", e);
-        "Couldn't get playtime mode"
-    })?;
-
-    debug!("Playtime mode loaded successfully");
-    Ok(mode)
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.playtime_mode)
 }
 
 /// Saves new playtime mode to disk
 #[tauri::command]
 pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> Result<(), String> {
-    info!("Setting playtime mode");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing settings store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
-
-    store.set_playtime_mode(to).map_err(|e| {
-        error!("Error setting playtime mode: {:?}", e);
-        "Error happened while setting playtime mode"
-    })?;
-
-    info!("Successfully set playtime mode");
-    Ok(())
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    lock.update_settings(&app_handle, |s| s.playtime_mode = to)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub fn get_use_jp_for_title_time(app_handle: AppHandle) -> Result<bool, String> {
-    info!("Getting use_jp_for_title_time setting");
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Failed to create settings store: {:?}", e);
-        e.to_string()
-    })?;
-
-    let setting = store.get_use_jp_for_title_time().map_err(|e| {
-        error!("Failed to get use_jp_for_title_time setting: {:?}", e);
-        e.to_string()
-    })?;
-
-    info!(
-        "Successfully got use_jp_for_title_time setting: {}",
-        setting
-    );
-    Ok(setting)
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.use_jp_for_title_time)
 }
 
 #[tauri::command]
 pub fn set_use_jp_for_title_time(app_handle: AppHandle, to: bool) -> Result<(), String> {
-    info!("Setting use_jp_for_title_time to: {}", to);
-    let store = SettingsStore::new(&app_handle).map_err(|e| {
-        error!("Failed to create settings store: {:?}", e);
-        e.to_string()
-    })?;
-
-    store.set_use_jp_for_title_time(to).map_err(|e| {
-        error!("Failed to set use_jp_for_title_time: {:?}", e);
-        e.to_string()
-    })?;
-
-    info!("Successfully set use_jp_for_title_time to: {}", to);
-    Ok(())
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    lock.update_settings(&app_handle, |s| s.use_jp_for_title_time = to)
+        .map_err(|e| e.to_string())
 }

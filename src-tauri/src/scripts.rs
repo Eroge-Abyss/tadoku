@@ -1,8 +1,9 @@
 use crate::prelude::Result;
-use crate::services::stores::settings::PlaytimeMode;
 use crate::services::vndb::{Vndb, VndbAltTitleGame, VNDB_MAX_PAGE_SIZE};
 use crate::services::{
-    discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore,
+    discord::DiscordPresence,
+    stores::games::Game,
+    stores::settings::{Settings, SettingsStore},
 };
 use log::{debug, error, info, warn};
 use std::{fs, sync::Mutex};
@@ -18,16 +19,24 @@ pub struct GameState {
 }
 
 #[derive(Default)]
-pub struct Config {
-    pub disable_presence_on_nsfw: bool,
-    pub playtime_mode: PlaytimeMode,
-}
-
-#[derive(Default)]
 pub struct AppState {
     pub game: Option<GameState>,
     pub presence: Option<DiscordPresence>,
-    pub config: Config,
+    pub settings: Settings,
+}
+
+impl AppState {
+    pub fn update_settings<F>(&mut self, app_handle: &AppHandle, update_fn: F) -> Result<()>
+    where
+        F: FnOnce(&mut Settings),
+    {
+        update_fn(&mut self.settings);
+
+        let store = SettingsStore::new(app_handle)?;
+        store.save(&self.settings)?;
+
+        Ok(())
+    }
 }
 
 // This script should be able to
@@ -196,30 +205,25 @@ pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
         e
     })?;
 
-    let disable_presence_on_nsfw = settings_store.get_presence_on_nsfw().map_err(|e| {
-        error!("Failed to get NSFW presence setting: {:?}", e);
+    let settings = settings_store.load().map_err(|e| {
+        error!("Failed to load settings: {:?}", e);
         e
     })?;
-
-    let playtime_mode = settings_store.get_playtime_mode().map_err(|e| {
-        error!("Failed to get playtime mode setting: {:?}", e);
-        e
-    })?;
-
-    let config = Config {
-        disable_presence_on_nsfw,
-        playtime_mode,
-    };
 
     debug!(
         "App config - disable_presence_on_nsfw: {}",
-        config.disable_presence_on_nsfw
+        settings.disable_presence_on_nsfw
     );
     debug!("App config - playtime_mode loaded successfully");
 
+    debug!(
+        "App config - use_jp_for_title_time: {}",
+        settings.use_jp_for_title_time
+    );
+
     let state = AppState {
         presence: None,
-        config,
+        settings,
         ..Default::default()
     };
 
@@ -236,10 +240,6 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
     tauri::async_runtime::spawn(async move {
         debug!("Starting Discord initialization background task");
         let app_state_mutex = app_handle_clone.state::<Mutex<AppState>>();
-        let store = SettingsStore::new(&app_handle_clone).map_err(|e| {
-            error!("Background task: Error accessing settings store: {:?}", e);
-            "Error happened while accessing store"
-        })?;
 
         let mut state = match app_state_mutex.lock() {
             Ok(s) => {
@@ -255,13 +255,7 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
             }
         };
 
-        let mode = store.get_discord_presence_mode().map_err(|e| {
-            error!(
-                "Background task: Failed to get Discord presence mode: {:?}",
-                e
-            );
-            "Couldn't get presence mode"
-        })?;
+        let mode = state.settings.discord_presence_mode;
 
         debug!("Background task: Retrieved Discord presence mode from settings");
 
@@ -291,7 +285,7 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
 /// Adds missing alt title for provided VN IDs
 pub async fn add_missing_alt_titles(
     games: &mut serde_json::Map<String, serde_json::Value>,
-    ids: &Vec<String>,
+    ids: &[String],
 ) -> Result<()> {
     info!(
         "Attempting to add missing alt titles for {} games",
@@ -300,7 +294,7 @@ pub async fn add_missing_alt_titles(
     let mut games_with_title: Vec<VndbAltTitleGame> = vec![];
 
     let total_ids = ids.len();
-    let fetch_iterations = (total_ids + VNDB_MAX_PAGE_SIZE - 1) / VNDB_MAX_PAGE_SIZE;
+    let fetch_iterations = total_ids.div_ceil(VNDB_MAX_PAGE_SIZE);
 
     for i in 0..fetch_iterations {
         let start = i * VNDB_MAX_PAGE_SIZE;

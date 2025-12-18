@@ -421,7 +421,6 @@ class AppState {
   async setCharacters(gameId) {
     try {
       await invoke('set_characters', { gameId });
-      await new Promise(r => setTimeout(r, 20000));
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to set characters for game ${gameId}:`, error);

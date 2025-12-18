@@ -3,8 +3,11 @@
   let {
     isOpen = $bindable(),
     onConfirm,
-    title = 'Confirm',
+    title = 'Confirm Action',
     message = 'Are you sure you want to proceed?',
+    confirmText = 'Confirm',
+    cancelText = 'Cancel',
+    isDanger = false,
   } = $props();
 
   // Close the modal
@@ -27,44 +30,87 @@
   {/snippet}
 
   <div class="confirm-dialog-content">
-    <p>{@html message}</p>
+    <div class="message">
+      {@html message}
+    </div>
     <div class="buttons">
-      <button onclick={handleConfirm}>OK</button>
-      <button onclick={closeModal} style="background: #f7768e">Cancel</button>
+      <button class="cancel-btn" onclick={closeModal}>
+        {cancelText}
+      </button>
+      <button
+        class="confirm-btn"
+        class:danger={isDanger}
+        onclick={handleConfirm}
+      >
+        {confirmText}
+      </button>
     </div>
   </div>
 </Dialog>
 
 <style>
-  /* Styles specific to confirm dialog content */
   .confirm-dialog-content {
     color: var(--main-text);
   }
 
-  .confirm-dialog-content p {
-    margin-bottom: 1rem; /* Add some space below the message */
+  .message {
+    margin-bottom: 1.5rem;
+    font-size: 15px;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--secondary-text);
   }
 
-  .confirm-dialog-content .buttons {
+  /* Themed highlights for text in messages */
+  :global(.message b),
+  :global(.message strong) {
+    color: var(--secondary);
+    font-weight: 700;
+  }
+
+  :global(.message .danger-highlight) {
+    color: #f7768e;
+    font-weight: 700;
+  }
+
+  .buttons {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
-  .confirm-dialog-content .buttons button {
+  button {
     border: 0;
-    background-color: #313131;
     border-radius: var(--small-radius);
-    color: #fff;
+    color: var(--main-text);
     width: 100%;
     padding: 0.5rem;
     font-size: 18px;
-    margin-top: 0; /* Remove margin-top as it's on the container now */
     cursor: pointer;
+    transition: background-color 0.3s ease;
   }
 
-  .confirm-dialog-content .buttons button:hover {
-    background-color: #404040; /* Add a simple hover effect */
+  .cancel-btn {
+    background-color: var(--accent);
+  }
+
+  .cancel-btn:hover {
+    background-color: color-mix(in srgb, var(--accent), white 10%);
+  }
+
+  .confirm-btn {
+    background-color: var(--primary);
+  }
+
+  .confirm-btn:hover {
+    background-color: color-mix(in srgb, var(--primary), #000 10%);
+  }
+
+  .confirm-btn.danger {
+    background-color: #f7768e;
+  }
+
+  .confirm-btn.danger:hover {
+    background-color: color-mix(in srgb, #f7768e, #000 10%);
   }
 </style>

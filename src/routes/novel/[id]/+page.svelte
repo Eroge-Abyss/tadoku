@@ -56,6 +56,7 @@
   let processList = $state();
   let processDialog = $state(false);
   let deleteDialog = $state(false);
+  let resetStatsDialog = $state(false);
   let selectedTab = $state('progress');
   let notes = $state(novel.notes);
   let originalNotes = novel.notes;
@@ -114,6 +115,10 @@
     deleteDialog = true;
   };
 
+  const openResetStatsDialog = () => {
+    resetStatsDialog = true;
+  };
+
   // Game actions
   const gameActions = {
     startGame: async () => {
@@ -151,6 +156,8 @@
     },
 
     setNotes: debounce(invoke.bind(null, 'set_game_notes'), 300),
+
+    resetStats: () => appState.resetStats(novel.id),
   };
 
   // Notes handlers
@@ -198,12 +205,23 @@
       onEditExe={gameActions.editExe}
       onProcessDialog={openProcessDialog}
       onDeleteDialog={openDeleteDialog}
+      onResetStats={openResetStatsDialog}
     />
 
     <ConfirmDialog
       bind:isOpen={deleteDialog}
+      title="Delete Game"
       onConfirm={gameActions.deleteGame}
-      message={`Are you sure you want to delete <b style="color: red">${novel.title}</b>?`}
+      isDanger
+      message={`Are you sure you want to delete <i class="danger-highlight">${novel.title}</i> ?`}
+    />
+
+    <ConfirmDialog
+      bind:isOpen={resetStatsDialog}
+      onConfirm={gameActions.resetStats}
+      title="Reset Stats"
+      isDanger
+      message={`Are you sure you want to reset stats for <i class="danger-highlight">${novel.title}</i> ?`}
     />
 
     <ChangeProcess

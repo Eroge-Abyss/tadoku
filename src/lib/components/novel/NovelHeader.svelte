@@ -8,14 +8,6 @@
   import { appState } from '$lib/state.svelte';
   import StatusSelector from '../StatusSelector.svelte';
 
-  async function toggleStatus(status: string) {
-    const currentStatuses = novel.categories || [];
-    const newStatuses = currentStatuses.includes(status)
-      ? currentStatuses.filter((s) => s !== status)
-      : [...currentStatuses, status];
-    await appState.setGameCategories(novel.id, newStatuses);
-  }
-
   let {
     novel,
     playing,
@@ -25,6 +17,7 @@
     onTogglePin,
     onEditExe,
     onProcessDialog,
+    onResetStats,
     onDeleteDialog,
   }: { novel: Novel; [key: string]: any } = $props();
 
@@ -34,6 +27,14 @@
   // svelte-ignore non_reactive_update
   let statusMenuRef: HTMLDivElement;
   let showStatusMenu = $state(false);
+
+  async function toggleStatus(status: string) {
+    const currentStatuses = novel.categories || [];
+    const newStatuses = currentStatuses.includes(status)
+      ? currentStatuses.filter((s) => s !== status)
+      : [...currentStatuses, status];
+    await appState.setGameCategories(novel.id, newStatuses);
+  }
 
   // Function to handle clicks outside the menu and submenu
   function handleClickOutside(event: any) {
@@ -241,6 +242,14 @@
             </button>
 
             <div class="menu-divider"></div>
+
+            <button
+              onclick={withMenuClose(onResetStats)}
+              class="menu-item danger"
+            >
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              Reset Stats
+            </button>
 
             <button
               onclick={withMenuClose(onDeleteDialog)}

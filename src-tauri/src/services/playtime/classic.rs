@@ -52,7 +52,7 @@ impl ClassicPlaytime {
                         game_state.pid,
                         game_state.id.clone(),
                         game_state.current_playtime,
-                        state.config.playtime_mode,
+                        state.settings.playtime_mode,
                     )
                 };
 
@@ -147,7 +147,7 @@ impl ClassicPlaytime {
                         state.game = None;
 
                         if let Some(pres) = &mut state.presence {
-                            if let Err(e) = pres.reset() {
+                            if let Err(e) = pres.reset_presence() {
                                 error!("Error happened while clearing presence: {}", e);
                             }
                         }

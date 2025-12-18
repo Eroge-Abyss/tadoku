@@ -36,7 +36,7 @@ impl ExStaticPlaytime {
             "Error acquiring mutex lock".to_string()
         })?;
 
-        if !matches!(&state.config.playtime_mode, PlaytimeMode::ExStatic) {
+        if !matches!(&state.settings.playtime_mode, PlaytimeMode::ExStatic) {
             debug!("PlaytimeMode is not ExStatic, ignoring data");
             return Ok(());
         }

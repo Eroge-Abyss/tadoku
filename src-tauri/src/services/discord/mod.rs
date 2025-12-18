@@ -52,7 +52,7 @@ impl DiscordPresence {
         Ok(DiscordPresence { client, mode })
     }
 
-    pub fn set(&mut self, details: DiscordGameDetails) -> Result<()> {
+    pub fn set_presence(&mut self, details: DiscordGameDetails) -> Result<()> {
         debug!("Setting Discord activity: {:?}", details);
         if self.mode == DiscordPresenceMode::None {
             debug!("Discord presence mode is None, skipping set activity");
@@ -99,7 +99,7 @@ impl DiscordPresence {
             })
     }
 
-    pub fn reset(&mut self) -> Result<()> {
+    pub fn reset_presence(&mut self) -> Result<()> {
         info!("Resetting Discord activity");
         if self.mode == DiscordPresenceMode::All {
             debug!("Discord presence mode is All, setting default activity");
@@ -129,7 +129,7 @@ impl DiscordPresence {
     pub fn set_mode(&mut self, to: DiscordPresenceMode) {
         info!("Setting Discord presence mode to: {:?}", to);
         self.mode = to;
-        match self.reset() {
+        match self.reset_presence() {
             Ok(_) => info!("Discord presence mode set successfully"),
             Err(e) => error!("Failed to reset Discord presence: {}", e),
         };

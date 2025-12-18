@@ -8,14 +8,6 @@
   import { appState } from '$lib/state.svelte';
   import StatusSelector from '../StatusSelector.svelte';
 
-  async function toggleStatus(status: string) {
-    const currentStatuses = novel.categories || [];
-    const newStatuses = currentStatuses.includes(status)
-      ? currentStatuses.filter((s) => s !== status)
-      : [...currentStatuses, status];
-    await appState.setGameCategories(novel.id, newStatuses);
-  }
-
   let {
     novel,
     playing,
@@ -25,7 +17,9 @@
     onTogglePin,
     onEditExe,
     onProcessDialog,
+    onResetStats,
     onDeleteDialog,
+    onDownloadCharacters,
   }: { novel: Novel; [key: string]: any } = $props();
 
   let menuToggleRef: HTMLButtonElement;
@@ -34,6 +28,14 @@
   // svelte-ignore non_reactive_update
   let statusMenuRef: HTMLDivElement;
   let showStatusMenu = $state(false);
+
+  async function toggleStatus(status: string) {
+    const currentStatuses = novel.categories || [];
+    const newStatuses = currentStatuses.includes(status)
+      ? currentStatuses.filter((s) => s !== status)
+      : [...currentStatuses, status];
+    await appState.setGameCategories(novel.id, newStatuses);
+  }
 
   // Function to handle clicks outside the menu and submenu
   function handleClickOutside(event: any) {
@@ -231,9 +233,7 @@
             </button>
 
             <button
-              onclick={withMenuClose(() =>
-                invoke('set_characters', { gameId: novel.id }),
-              )}
+              onclick={withMenuClose(onDownloadCharacters)}
               class="menu-item"
             >
               <i class="fa-solid fa-user-plus"></i>
@@ -241,6 +241,14 @@
             </button>
 
             <div class="menu-divider"></div>
+
+            <button
+              onclick={withMenuClose(onResetStats)}
+              class="menu-item danger"
+            >
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              Reset Stats
+            </button>
 
             <button
               onclick={withMenuClose(onDeleteDialog)}

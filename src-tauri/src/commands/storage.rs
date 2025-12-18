@@ -185,12 +185,35 @@ pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> Result<(), String> 
         "Error happened while accessing store"
     })?;
 
-    store.toggle_pin(&game_id).map_err(|e| {
-        error!("Error toggling pin for game {}: {:?}", game_id, e);
-        "Error happened while toggling pin"
-    })?;
+    store
+        .update_game(&game_id, |g| g.is_pinned = !g.is_pinned)
+        .map_err(|e| {
+            error!("Error toggling pin for game {}: {:?}", game_id, e);
+            "Error happened while toggling pin"
+        })?;
 
     info!("Successfully toggled pin state for game: {}", game_id);
+    Ok(())
+}
+
+/// Resets game stats
+#[tauri::command]
+pub fn reset_stats(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+    debug!("Resetting stats for game {}", game_id);
+    let store = GamesStore::new(&app_handle).map_err(|e| {
+        error!(
+            "Error accessing games store for resetting stats of {}: {:?}",
+            game_id, e
+        );
+        "Error happened while accessing store"
+    })?;
+
+    store.reset_stats(&game_id).map_err(|e| {
+        error!("Error resetting stats for game {}: {:?}", game_id, e);
+        "Error happened while resetting stats"
+    })?;
+
+    info!("Successfully reset stats for game: {}", game_id);
     Ok(())
 }
 
@@ -211,7 +234,7 @@ pub fn update_exe(
     })?;
 
     store
-        .update_exe_path(&game_id, &new_exe_path)
+        .update_game(&game_id, |g| g.exe_file_path = new_exe_path)
         .map_err(|e| {
             error!("Error updating exe path for game {}: {:?}", game_id, e);
             "Error happened while updating exe"
@@ -241,7 +264,7 @@ pub fn update_process(
     })?;
 
     store
-        .update_process_path(&game_id, &new_process_path)
+        .update_game(&game_id, |g| g.process_file_path = new_process_path)
         .map_err(|e| {
             error!("Error updating process path for game {}: {:?}", game_id, e);
             "Error happened while updating process path"
@@ -267,10 +290,12 @@ pub fn set_game_notes(app_handle: AppHandle, game_id: String, notes: String) -> 
         "Error happened while accessing store"
     })?;
 
-    store.set_notes(&game_id, &notes).map_err(|e| {
-        error!("Error setting notes for game {}: {:?}", game_id, e);
-        "Error happened while setting notes"
-    })?;
+    store
+        .update_game(&game_id, |g| g.notes = notes)
+        .map_err(|e| {
+            error!("Error setting notes for game {}: {:?}", game_id, e);
+            "Error happened while setting notes"
+        })?;
 
     info!("Successfully set notes for game: {}", game_id);
     Ok(())
@@ -321,10 +346,12 @@ pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<()
     })?;
 
     let characters_len = characters.len();
-    store.set_characters(&game_id, characters).map_err(|e| {
-        error!("Error setting characters for game {}: {:?}", game_id, e);
-        "Error happened while saving characters"
-    })?;
+    store
+        .update_game(&game_id, |g| g.characters = Some(characters))
+        .map_err(|e| {
+            error!("Error setting characters for game {}: {:?}", game_id, e);
+            "Error happened while saving characters"
+        })?;
 
     info!(
         "Successfully set {} characters for game: {}",
@@ -434,10 +461,12 @@ pub fn set_game_categories(
     })?;
 
     let categories_len = categories.len();
-    store.set_categories(&game_id, categories).map_err(|e| {
-        error!("Error setting categories for game {}: {:?}", game_id, e);
-        "Error happened while setting categories"
-    })?;
+    store
+        .update_game(&game_id, |g| g.categories = categories)
+        .map_err(|e| {
+            error!("Error setting categories for game {}: {:?}", game_id, e);
+            "Error happened while setting categories"
+        })?;
 
     info!(
         "Successfully set {} categories for game: {}",

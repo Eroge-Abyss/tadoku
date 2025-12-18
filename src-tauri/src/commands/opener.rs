@@ -157,13 +157,18 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                 pid.as_u32()
             );
 
-            let disable_presence_on_nsfw = state.config.disable_presence_on_nsfw;
+            let disable_presence_on_nsfw = state.settings.disable_presence_on_nsfw;
+            let game_title = if state.settings.use_jp_for_title_time {
+                game.alt_title.unwrap_or(game.title)
+            } else {
+                game.title
+            };
 
             if let Some(pres) = &mut state.presence {
-                debug!("Setting Discord presence for game: {}", game.title);
-                pres.set(DiscordGameDetails::new(
+                debug!("Setting Discord presence for game: {}", game_title);
+                pres.set_presence(DiscordGameDetails::new(
                     &game_id,
-                    &game.title,
+                    &game_title,
                     &game.image_url,
                     game.is_nsfw && disable_presence_on_nsfw,
                 ))
@@ -171,7 +176,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                     error!("Error setting Discord presence for {}: {:?}", game_id, e);
                     "Error setting presence".to_string()
                 })?;
-                info!("Discord presence set for game: {}", game.title);
+                info!("Discord presence set for game: {}", game_title);
             }
 
             debug!("Starting playtime tracking for {}", game_id);

@@ -290,7 +290,8 @@
         >
           <span class="switch-thumb"></span>
         </button>
-        <span class="switch-label">Use Japanese for title and time display</span
+        <span class="switch-label"
+          >Use Japanese for title, Discord presence and time display</span
         >
       </div>
 

@@ -19,6 +19,7 @@
     onProcessDialog,
     onResetStats,
     onDeleteDialog,
+    onDownloadCharacters,
   }: { novel: Novel; [key: string]: any } = $props();
 
   let menuToggleRef: HTMLButtonElement;
@@ -232,9 +233,7 @@
             </button>
 
             <button
-              onclick={withMenuClose(() =>
-                invoke('set_characters', { gameId: novel.id }),
-              )}
+              onclick={withMenuClose(onDownloadCharacters)}
               class="menu-item"
             >
               <i class="fa-solid fa-user-plus"></i>

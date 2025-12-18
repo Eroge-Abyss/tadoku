@@ -414,6 +414,22 @@ class AppState {
   }
 
   /**
+   * Sets/updates the characters for a game by fetching from VNDB.
+   * @param {string} gameId - The unique identifier for the game.
+   * @returns {Promise<void>}
+   */
+  async setCharacters(gameId) {
+    try {
+      await invoke('set_characters', { gameId });
+      await new Promise(r => setTimeout(r, 20000));
+      await this.refreshGamesList();
+    } catch (error) {
+      console.error(`Failed to set characters for game ${gameId}:`, error);
+      throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
    * Updates the executable path of a game in the backend and refreshes the list.
    * @param {string} gameId - The unique identifier for the game.
    * @param {string} newExePath - The new executable path.

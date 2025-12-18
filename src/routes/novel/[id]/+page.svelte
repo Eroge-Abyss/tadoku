@@ -60,22 +60,27 @@
   let selectedTab = $state('progress');
   let notes = $state(novel.notes);
   let originalNotes = novel.notes;
+  let downloadingCharacters = $state(false);
 
-  const TABS = $state.raw([
+  const TABS = $derived([
     {
       label: 'Progress Overview',
       id: 'progress',
       visible: true,
+      disabled: false,
     },
     {
       label: 'Characters',
       id: 'characters',
-      visible: novel?.characters,
+      visible: true,
+      disabled: !novel?.characters,
+      loading: downloadingCharacters,
     },
     {
       label: 'Notes',
       id: 'notes',
       visible: true,
+      disabled: false,
     },
   ]);
 
@@ -179,6 +184,17 @@
     editingNotes = true;
   };
 
+  const handleDownloadCharacters = async () => {
+    downloadingCharacters = true;
+    try {
+      await appState.setCharacters(novel.id);
+    } catch (error) {
+      console.error('Failed to download characters:', error);
+    } finally {
+      downloadingCharacters = false;
+    }
+  };
+
   // @ts-ignore
   function handleMenuClick(e) {
     // Check if the click occurred directly on the modal backdrop
@@ -206,6 +222,7 @@
       onProcessDialog={openProcessDialog}
       onDeleteDialog={openDeleteDialog}
       onResetStats={openResetStatsDialog}
+      onDownloadCharacters={handleDownloadCharacters}
     />
 
     <ConfirmDialog

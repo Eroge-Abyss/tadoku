@@ -70,6 +70,7 @@ pub fn run() {
             commands::storage::load_games,
             commands::storage::delete_game,
             commands::storage::toggle_pin,
+            commands::storage::reset_stats,
             commands::storage::update_exe,
             commands::storage::set_game_categories,
             commands::storage::update_process,

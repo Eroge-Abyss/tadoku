@@ -72,7 +72,11 @@ class AppState {
   #useJpForTitleTime = $state(false);
 
   /**
-   * The currently selected filter categories for the games list.
+   * @type {boolean}
+   */
+  #hideNsfwImages = $state(false);
+
+  /**
    * @type {string[]}
    */
   #selectedCategories = $state([]);
@@ -88,6 +92,7 @@ class AppState {
     this.loadDiscordPresenceMode();
     this.loadPlaytimeMode();
     this.loadUseJpForTitleTime();
+    this.loadHideNsfwImages();
     this.loadSelectedCategories();
   }
 
@@ -139,6 +144,14 @@ class AppState {
    */
   get useJpForTitleTime() {
     return this.#useJpForTitleTime;
+  }
+
+  /**
+   * Gets whether to hide NSFW images in home page.
+   * @returns {boolean}
+   */
+  get hideNsfwImages() {
+    return this.#hideNsfwImages;
   }
 
   /**
@@ -317,6 +330,19 @@ class AppState {
   }
 
   /**
+   * Loads the hide NSFW images setting from the backend.
+   * @returns {Promise<void>}
+   */
+  async loadHideNsfwImages() {
+    try {
+      this.#hideNsfwImages = await invoke('get_hide_nsfw_images');
+    } catch (error) {
+      console.error('Failed to load hide NSFW images setting:', error);
+    }
+  }
+
+  /**
+   * Loads the selected categories from the backend.
    * Loads the sort order from the backend.
    * @returns {Promise<void>}
    */
@@ -679,6 +705,22 @@ class AppState {
       await invoke('set_use_jp_for_title_time', { to });
     } catch (error) {
       console.error('Error setting use JP for title time:', error);
+      throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
+   * Sets the hide NSFW images setting and saves it to the backend.
+   *
+   * @param {boolean} to - Whether to hide NSFW images in home page.
+   * @returns {Promise<void>}
+   */
+  async setHideNsfwImages(to) {
+    try {
+      this.#hideNsfwImages = to;
+      await invoke('set_hide_nsfw_images', { to });
+    } catch (error) {
+      console.error('Error setting hide NSFW images:', error);
       throw error; // Re-throw to allow UI to handle
     }
   }

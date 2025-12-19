@@ -94,6 +94,8 @@ pub fn run() {
             commands::storage::set_game_notes,
             commands::storage::get_use_jp_for_title_time,
             commands::storage::set_use_jp_for_title_time,
+            commands::storage::get_hide_nsfw_images,
+            commands::storage::set_hide_nsfw_images,
             commands::opener::open_game,
             commands::opener::close_game,
             commands::opener::get_active_windows

@@ -604,3 +604,18 @@ pub fn set_use_jp_for_title_time(app_handle: AppHandle, to: bool) -> Result<(), 
     lock.update_settings(&app_handle, |s| s.use_jp_for_title_time = to)
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+pub fn get_hide_nsfw_images(app_handle: AppHandle) -> Result<bool, String> {
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.hide_nsfw_images)
+}
+
+#[tauri::command]
+pub fn set_hide_nsfw_images(app_handle: AppHandle, to: bool) -> Result<(), String> {
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    lock.update_settings(&app_handle, |s| s.hide_nsfw_images = to)
+        .map_err(|e| e.to_string())
+}

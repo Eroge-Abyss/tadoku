@@ -7,6 +7,7 @@
   import type { Novel } from '$lib/types';
   import { appState } from '$lib/state.svelte';
   import StatusSelector from '../StatusSelector.svelte';
+  import NsfwPlaceholder from '../NsfwPlaceholder.svelte';
 
   let {
     novel,
@@ -102,21 +103,18 @@
 
 <div class="header">
   <div class="novel-info" in:fly={{ x: 10, duration: 500 }}>
-    {#if !novel.is_nsfw}
-      <img
-        src={convertFileSrc(novel.image_url)}
-        alt={novel.title}
-        class="novel-image"
-        in:fly={{ y: 50, duration: 500, delay: 300 }}
-      />
-    {:else}
-      <img
-        src={convertFileSrc(novel.image_url)}
-        alt={novel.title}
-        class="novel-image blur"
-        in:fly={{ y: 50, duration: 500, delay: 300 }}
-      />
-    {/if}
+    <div class="novel-image">
+      {#if novel.is_nsfw && appState.hideNsfwImages}
+        <NsfwPlaceholder />
+      {:else}
+        <img
+          src={convertFileSrc(novel.image_url)}
+          alt={novel.title}
+          class:blur={novel.is_nsfw}
+          in:fly={{ y: 50, duration: 500, delay: 300 }}
+        />
+      {/if}
+    </div>
     <div class="novel-text">
       {#if appState.useJpForTitleTime && novel.alt_title}
         <h1>{novel.alt_title}</h1>
@@ -294,6 +292,12 @@
   .novel-image {
     width: 150px;
     height: 200px;
+    aspect-ratio: 3/ 4;
+  }
+
+  .novel-image img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);

@@ -295,6 +295,18 @@
         >
       </div>
 
+      <div class="switch-container">
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button
+          class="switch"
+          class:active={appState.hideNsfwImages}
+          onclick={() => appState.setHideNsfwImages(!appState.hideNsfwImages)}
+        >
+          <span class="switch-thumb"></span>
+        </button>
+        <span class="switch-label">Hide NSFW images in Home page</span>
+      </div>
+
       <div class="playtime-group">
         <div class="select-container">
           <label for="playtime-mode"

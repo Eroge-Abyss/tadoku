@@ -20,7 +20,7 @@ pub struct GamesStore {
 impl GamesStore {
     /// Creates store or uses existing one
     pub fn new(app_handle: &AppHandle) -> Result<Self> {
-        info!("Creating GamesStore");
+        debug!("Creating GamesStore");
         let store = app_handle.store("store.json")?;
         let base_app_path = app_handle.path().app_local_data_dir()?;
 

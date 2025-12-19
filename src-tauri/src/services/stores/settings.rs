@@ -47,6 +47,7 @@ pub struct Settings {
     pub sort_order: SortOrder,
     pub show_random_picker: bool,
     pub discord_presence_mode: DiscordPresenceMode,
+    pub hide_nsfw_images: bool,
 }
 
 impl Default for Settings {
@@ -59,6 +60,7 @@ impl Default for Settings {
             sort_order: SortOrder::default(),
             show_random_picker: true,
             discord_presence_mode: DiscordPresenceMode::default(),
+            hide_nsfw_images: false,
         }
     }
 }

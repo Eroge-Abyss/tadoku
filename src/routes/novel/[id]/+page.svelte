@@ -56,25 +56,31 @@
   let processList = $state();
   let processDialog = $state(false);
   let deleteDialog = $state(false);
+  let resetStatsDialog = $state(false);
   let selectedTab = $state('progress');
   let notes = $state(novel.notes);
   let originalNotes = novel.notes;
+  let downloadingCharacters = $state(false);
 
-  const TABS = $state.raw([
+  const TABS = $derived([
     {
       label: 'Progress Overview',
       id: 'progress',
       visible: true,
+      disabled: false,
     },
     {
       label: 'Characters',
       id: 'characters',
-      visible: novel?.characters,
+      visible: true,
+      disabled: !novel?.characters,
+      loading: downloadingCharacters,
     },
     {
       label: 'Notes',
       id: 'notes',
       visible: true,
+      disabled: false,
     },
   ]);
 
@@ -114,6 +120,10 @@
     deleteDialog = true;
   };
 
+  const openResetStatsDialog = () => {
+    resetStatsDialog = true;
+  };
+
   // Game actions
   const gameActions = {
     startGame: async () => {
@@ -151,6 +161,8 @@
     },
 
     setNotes: debounce(invoke.bind(null, 'set_game_notes'), 300),
+
+    resetStats: () => appState.resetStats(novel.id),
   };
 
   // Notes handlers
@@ -170,6 +182,17 @@
 
   const handleStartEdit = () => {
     editingNotes = true;
+  };
+
+  const handleDownloadCharacters = async () => {
+    downloadingCharacters = true;
+    try {
+      await appState.setCharacters(novel.id);
+    } catch (error) {
+      console.error('Failed to download characters:', error);
+    } finally {
+      downloadingCharacters = false;
+    }
   };
 
   // @ts-ignore
@@ -198,12 +221,24 @@
       onEditExe={gameActions.editExe}
       onProcessDialog={openProcessDialog}
       onDeleteDialog={openDeleteDialog}
+      onResetStats={openResetStatsDialog}
+      onDownloadCharacters={handleDownloadCharacters}
     />
 
     <ConfirmDialog
       bind:isOpen={deleteDialog}
+      title="Delete Game"
       onConfirm={gameActions.deleteGame}
-      message={`Are you sure you want to delete <b style="color: red">${novel.title}</b>?`}
+      isDanger
+      message={`Are you sure you want to delete <i class="danger-highlight">${novel.title}</i> ?`}
+    />
+
+    <ConfirmDialog
+      bind:isOpen={resetStatsDialog}
+      onConfirm={gameActions.resetStats}
+      title="Reset Stats"
+      isDanger
+      message={`Are you sure you want to reset stats for <i class="danger-highlight">${novel.title}</i> ?`}
     />
 
     <ChangeProcess

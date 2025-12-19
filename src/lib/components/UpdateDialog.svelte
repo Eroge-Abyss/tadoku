@@ -2,6 +2,7 @@
   import { check, Update } from '@tauri-apps/plugin-updater';
   import { onMount } from 'svelte';
   import Dialog from '$lib/components/Dialog.svelte';
+  import InfoNote from './InfoNote.svelte';
 
   const GITHUB_RELEASE_URL =
     'https://github.com/Eroge-Abyss/tadoku/releases/latest';
@@ -82,15 +83,10 @@
           </div>
         {/if}
 
-        <div class="info-container">
-          <span class="icon-info">
-            <i class="fa-solid fa-info-circle"></i>
-          </span>
-          <p class="note">
-            You can install the update now, or get prompted to install the next
-            time you start the application.
-          </p>
-        </div>
+        <InfoNote>
+          You can install the update now, or get prompted to install the next
+          time you start the application.
+        </InfoNote>
       </div>
 
       <div class="btn-row">
@@ -174,24 +170,6 @@
     margin: 0;
     white-space: pre-line;
     font-size: 14px;
-  }
-
-  .note {
-    font-size: 12px;
-    color: var(--secondary-text);
-    margin: 0;
-  }
-
-  .info-container {
-    display: flex;
-    padding: 10px 0;
-    align-items: flex-start;
-  }
-
-  .icon-info {
-    font-size: 14px;
-    margin-right: 5px;
-    color: var(--secondary-text);
   }
 
   .btn-row {

@@ -8,6 +8,8 @@
   import { appState } from '$lib/state.svelte';
   import { debounce } from '$lib/util';
   import Checkbox from '$lib/components/Checkbox.svelte';
+  import InfoNote from '../InfoNote.svelte';
+  import SidebarButton from '$lib/components/SidebarButton.svelte';
 
   const NSFW_RATE = 0.5;
 
@@ -132,7 +134,9 @@
 </script>
 
 <section>
-  <button id="btn__add" onclick={openModal}> + </button>
+  <SidebarButton onclick={openModal} tooltip="Add Game">
+    <span class="add-icon">+</span>
+  </SidebarButton>
 
   <Dialog show={showModal} close={closeModal}>
     {#snippet header()}
@@ -140,55 +144,61 @@
     {/snippet}
 
     <section class="game-form">
-      <div class="form-group">
-        <!-- No questions asked (about autocomplete). it just works -->
-        <input
-          type="text"
-          bind:value={search}
-          autocomplete="one-time-code"
-          onkeyup={debounce(updateSearch)}
-          placeholder="Name or ID"
-        />
-      </div>
-      <div class="form-group characters">
-        <Checkbox
-          id="characters"
-          label="Include Characters"
-          bind:checked={charactersDownload}
-        />
-      </div>
-      <div id="suggestions">
-        {#each results as vn}
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div class="suggestion-item" onclick={() => selectGame(vn)}>
-            <div class="suggestion-image">
-              {#if vn?.image?.sexual < NSFW_RATE}
-                <img src={vn?.image?.url} alt={vn?.title} />
-              {:else}
-                <img src={vn?.image?.url} alt={vn?.title} class="blur" />
-              {/if}
-            </div>
-            <div class="suggestion-text">
-              <p class="suggestion-title">{vn?.title}</p>
-              <p class="suggestion-id">{vn?.id}</p>
-            </div>
+      <div class="search-dropdown">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="text"
+            bind:value={search}
+            autocomplete="one-time-code"
+            onkeyup={debounce(updateSearch)}
+            placeholder="Search by name or ID..."
+          />
+        </div>
+
+        {#if results.length > 0}
+          <div id="suggestions">
+            {#each results as vn}
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
+              <div class="suggestion-item" onclick={() => selectGame(vn)}>
+                <div class="suggestion-image">
+                  {#if vn?.image?.sexual < NSFW_RATE}
+                    <img src={vn?.image?.url} alt={vn?.title} />
+                  {:else}
+                    <img src={vn?.image?.url} alt={vn?.title} class="blur" />
+                  {/if}
+                </div>
+                <div class="suggestion-content">
+                  <p class="suggestion-title">{vn?.title}</p>
+                  <p class="suggestion-id">{vn?.id}</p>
+                </div>
+              </div>
+            {/each}
           </div>
-        {/each}
+        {:else if search && results.length === 0}
+          <div class="empty-state">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <p>No games found</p>
+            <span>Try a different search term or ID</span>
+          </div>
+        {/if}
       </div>
 
       {#if selectedVn}
         <div class="selected-suggestion">
-          {#if selectedVn.image.sexual < NSFW_RATE || showImage}
-            <img src={selectedVn.image.url} alt={selectedVn.title} />
-          {:else}
-            <img
-              src={selectedVn.image.url}
-              alt={selectedVn.title}
-              class="blur"
-            />
-          {/if}
-          <div class="suggestion-text">
+          <div class="selected-image">
+            {#if selectedVn.image.sexual < NSFW_RATE || showImage}
+              <img src={selectedVn.image.url} alt={selectedVn.title} />
+            {:else}
+              <img
+                src={selectedVn.image.url}
+                alt={selectedVn.title}
+                class="blur"
+              />
+            {/if}
+          </div>
+          <div class="selected-content">
             <p class="selected-suggestion-title">
               {selectedVn.title}
             </p>
@@ -199,28 +209,26 @@
         </div>
       {/if}
 
+      <div class="form-group characters">
+        <Checkbox
+          id="characters"
+          label="Include Characters"
+          bind:checked={charactersDownload}
+        />
+      </div>
+
       {#if platform() === 'linux'}
-        <div class="info-container">
-          <span class="icon-info">
-            <i class="fa-solid fa-info-circle"></i>
-          </span>
-          <p class="note">
-            If running via a script (e.g., Lutris), add the script as the
-            executable and the original EXE as a process path in game settings
-            if not detected.
-          </p>
-        </div>
+        <InfoNote>
+          If running via a script (e.g., Lutris), add the script as the
+          executable and the original EXE as a process path in game settings if
+          not detected.
+        </InfoNote>
       {/if}
 
-      <div class="info-container">
-        <span class="icon-info">
-          <i class="fa-solid fa-info-circle"></i>
-        </span>
-        <p class="note">
-          If you're using a launcher for this novel, please add its process from
-          the game details page.
-        </p>
-      </div>
+      <InfoNote>
+        If you're using a launcher for this novel, please add its process from
+        the game details page.
+      </InfoNote>
 
       <button onclick={pickFile}>Select Game Executable</button>
       <button
@@ -239,22 +247,6 @@
 </section>
 
 <style>
-  .note {
-    font-size: 12px;
-    color: var(--secondary-text);
-    text-align: left;
-    margin: 0;
-  }
-  .info-container {
-    display: flex;
-    padding: 10px 10px;
-    align-items: flex-start;
-  }
-  .icon-info {
-    font-size: 14px;
-    margin-right: 5px;
-    color: var(--secondary-text);
-  }
   .blur {
     filter: blur(5px);
     transition: filter 0.2s ease-in-out;
@@ -262,60 +254,62 @@
   .blur:hover {
     filter: blur(0);
   }
-  #btn__add {
-    border: 0;
-    width: 56px;
-    height: 56px;
+
+  .add-icon {
     font-size: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: auto;
-    cursor: pointer;
     color: var(--primary);
-    background: rgba(185, 154, 250, 0.17);
-    border-radius: var(--big-radius);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(185, 154, 250, 0.13);
-    transition: all 0.3s ease;
-  }
-
-  #btn__add:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
-    background: rgba(185, 154, 250, 0.25);
-  }
-
-  #btn__add:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
   .game-form {
     margin: 1rem;
   }
+
+  .search-dropdown {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .search-input-wrapper {
+    position: relative;
+  }
+
   .game-form .form-group {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  .game-form .form-group input[type='text'] {
-    height: 40px;
-    width: 100%;
-    background-color: #313131;
-    border: 0;
-    border-radius: var(--small-radius);
-    padding: 0.5rem;
-    color: var(--main-text);
-    box-sizing: border-box;
-    grid-column: 1 / -1;
-    transition: border-color 0.2s ease;
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--secondary-text);
+    pointer-events: none;
   }
 
-  .game-form .form-group input[type='text']:focus {
+  .search-dropdown input[type='text'] {
+    height: 40px;
+    width: 100%;
+    background-color: var(--accent);
+    border: 1px solid transparent;
+    border-radius: var(--small-radius);
+    padding: 12px 12px 12px 40px;
+    color: var(--main-text);
+    box-sizing: border-box;
+    font-size: 15px;
+    transition: all 0.2s ease;
+  }
+
+  .search-dropdown input[type='text']::placeholder {
+    color: var(--secondary-text);
+  }
+
+  .search-dropdown input[type='text']:focus {
     outline: none;
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--accent), white 5%);
   }
 
   .game-form .form-group.characters {
@@ -327,9 +321,9 @@
 
   .game-form button {
     border: 0;
-    background-color: #313131;
+    background-color: var(--accent);
     border-radius: var(--small-radius);
-    color: #fff;
+    color: var(--main-text);
     width: 100%;
     padding: 0.5rem;
     font-size: 18px;
@@ -339,92 +333,157 @@
   }
 
   .game-form button:hover {
-    background-color: #404040;
+    background-color: color-mix(in srgb, var(--accent), white 10%);
   }
 
   #suggestions {
-    margin-top: 10px;
-    /* max-width: 400px; */
-    max-height: 200px;
-    overflow-y: scroll;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    max-height: 280px;
+    overflow-y: auto;
     overflow-x: hidden;
+    border-radius: var(--small-radius);
+    background: var(--accent);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.2s ease;
+    z-index: 1000;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Custom scrollbar */
+  #suggestions::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  #suggestions::-webkit-scrollbar-track {
+    background: var(--accent);
+    border-radius: var(--small-radius);
+  }
+
+  #suggestions::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--accent), white 20%);
+    border-radius: 4px;
+  }
+
+  #suggestions::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--accent), white 30%);
   }
 
   /* Suggestion Item Styling */
   .suggestion-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    background-color: color-mix(in srgb, black 30%, var(--main-background) 80%);
-    border-radius: var(--small-radius);
-    margin-bottom: 5px;
+    padding: 12px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.15s ease;
     color: var(--main-text);
+    gap: 12px;
   }
 
   .suggestion-item:hover {
-    background-color: color-mix(
-      in srgb,
-      var(--primary) 2.5%,
-      var(--secondary) 92%
-    );
+    background: var(--secondary);
+    padding-left: 16px;
+  }
 
-    & .suggestion-id {
-      color: #cfc9c2;
-    }
+  .suggestion-item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   /* Suggestion Text Styling */
-  .suggestion-text {
+  .suggestion-content {
     flex: 1;
-    padding: 1rem;
+    min-width: 0;
   }
 
   .suggestion-title {
-    font-size: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--main-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
   }
 
   .suggestion-id {
-    font-size: 14px;
-    color: #aaa;
+    font-size: 12px;
+    color: var(--secondary-text);
   }
 
   /* Suggestion Image Styling */
-  .suggestion-image img,
-  .selected-suggestion img {
+  .suggestion-image {
+    flex-shrink: 0;
+  }
+
+  .suggestion-image img {
     width: 60px;
     height: 60px;
     border-radius: var(--small-radius);
     object-fit: cover;
   }
 
-  .selected-suggestion {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: color-mix(in srgb, black 30%, var(--main-background) 80%);
-    border-radius: var(--small-radius);
-    color: #fff;
-    display: flex;
-    align-items: center;
-  }
-
   .selected-suggestion img {
     width: 100px;
     height: 100px;
     border-radius: var(--small-radius);
-    margin-top: 10px;
+    object-fit: cover;
+  }
+
+  .selected-suggestion {
+    margin-bottom: 1rem;
+    padding: 12px;
+    background: var(--accent);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--small-radius);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .selected-image {
+    flex-shrink: 0;
+  }
+
+  .selected-suggestion img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--small-radius);
+    object-fit: cover;
+  }
+
+  .selected-content {
+    flex: 1;
+    min-width: 0;
   }
 
   .selected-suggestion-title {
-    font-size: 16px;
+    font-size: 15px;
+    font-weight: 500;
     color: var(--main-text);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .selected-suggestion-id {
-    color: #aaa;
-    font-size: 14px;
+    color: var(--secondary-text);
+    font-size: 13px;
   }
 
   .save-button {
@@ -438,6 +497,47 @@
         color-mix(in srgb, var(--primary), #000 10%)
       ) !important;
     }
+  }
+
+  .empty-state {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    color: var(--secondary-text);
+    text-align: center;
+    background: var(--accent);
+    border-radius: var(--small-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.2s ease;
+    z-index: 1000;
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-state p {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--main-text);
+    opacity: 0.8;
+  }
+
+  .empty-state span {
+    font-size: 13px;
+    color: var(--secondary-text);
   }
 
   /*

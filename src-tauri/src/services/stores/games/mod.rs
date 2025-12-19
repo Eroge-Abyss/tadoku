@@ -1,6 +1,5 @@
 mod character;
 mod game;
-use super::categories::Categories;
 use crate::prelude::*;
 use crate::util;
 pub use character::Character;
@@ -21,7 +20,7 @@ pub struct GamesStore {
 impl GamesStore {
     /// Creates store or uses existing one
     pub fn new(app_handle: &AppHandle) -> Result<Self> {
-        info!("Creating GamesStore");
+        debug!("Creating GamesStore");
         let store = app_handle.store("store.json")?;
         let base_app_path = app_handle.path().app_local_data_dir()?;
 
@@ -31,7 +30,7 @@ impl GamesStore {
         })
     }
 
-    fn get_store(&self) -> serde_json::Value {
+    fn get_store_value(&self) -> serde_json::Value {
         debug!("Getting games from store");
         self.store
             .get("gamesData")
@@ -41,7 +40,7 @@ impl GamesStore {
     /// Gets all games in store (image_urls are Paths)
     pub fn get_all(&self) -> Result<Games> {
         debug!("Getting all games");
-        let mut games: Games = serde_json::from_value(self.get_store())?;
+        let mut games: Games = serde_json::from_value(self.get_store_value())?;
 
         for game in games.values_mut() {
             game.image_url = util::construct_image_path(&self.base_app_path, &game.image_url)?
@@ -55,7 +54,7 @@ impl GamesStore {
     /// Deletes a game from the store (also removes images from filesystem)
     pub fn delete(&self, game_id: &str) -> Result<()> {
         info!("Deleting game with id: {}", game_id);
-        let mut games: Games = serde_json::from_value(self.get_store())?;
+        let mut games: Games = serde_json::from_value(self.get_store_value())?;
 
         if let Some(removed_game) = games.remove(game_id) {
             fs::remove_file(util::construct_image_path(
@@ -67,185 +66,106 @@ impl GamesStore {
             if let Some(characters) = removed_game.characters {
                 for character in characters {
                     if let Some(image_url) = character.image_url {
-                        fs::remove_file(&image_url).map_err(|err| err.to_string())?;
+                        if fs::metadata(&image_url).is_ok() {
+                            let _ = fs::remove_file(&image_url);
+                        }
                     }
                 }
             }
 
-            let games_data = serde_json::to_value(games)?;
-            self.store.set("gamesData", games_data);
+            self.store.set("gamesData", serde_json::to_value(games)?);
+            self.store.save()?;
         }
 
         Ok(())
+    }
+
+    /// Resets a game's stats (playtime, today_playtime, last_played, first_played and last_play_date)
+    pub fn reset_stats(&self, game_id: &str) -> Result<()> {
+        info!("Resetting stats for game with id: {}", game_id);
+        self.update_game(game_id, |game| {
+            game.playtime = 0;
+            game.today_playtime = 0;
+            game.last_played = None;
+            game.first_played = None;
+            game.last_play_date = None;
+        })
     }
 
     /// Saves a game to the store
     pub fn save(&self, game_id: String, game_data: Game) -> Result<()> {
         info!("Saving game with id: {}", game_id);
-        let mut games: Games = serde_json::from_value(self.get_store())?;
+        let mut games: Games = serde_json::from_value(self.get_store_value())?;
         games.insert(game_id, game_data);
 
-        let games_data = serde_json::to_value(games)?;
-
-        self.store.set("gamesData", games_data);
-
-        Ok(())
-    }
-
-    /// Gets a game by id
-    pub fn get(&self, game_id: &str) -> Option<Game> {
-        debug!("Getting game with id: {}", game_id);
-        let games_data = self.get_store();
-        let game = games_data.get(game_id)?;
-
-        serde_json::from_value::<Game>(game.clone()).ok()
-    }
-
-    /// Toggles a game's pinned state
-    pub fn toggle_pin(&self, game_id: &str) -> Result<()> {
-        info!("Toggling pin for game with id: {}", game_id);
-        let mut games_data = self.get_store();
-        let game = games_data.get(game_id).ok_or("Couldn't find game")?;
-        let mut game = serde_json::from_value::<Game>(game.clone())?;
-
-        game.is_pinned = !game.is_pinned;
-        games_data[game_id] = serde_json::to_value(game)?;
-
-        self.store.set("gamesData", games_data);
-        Ok(())
-    }
-
-    pub fn update_playtime(&self, game_id: &str, playtime: u64) -> Result<()> {
-        debug!(
-            "Updating playtime for game with id: {}, playtime: {}",
-            game_id, playtime
-        );
-        let mut games_data = self.get_store();
-        let game_value = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
-        let mut game: Game = serde_json::from_value(game_value.clone())?;
-
-        game.playtime += playtime;
-
-        let current_date = Local::now().format("%Y-%m-%d").to_string();
-
-        if game.last_play_date.is_none() || game.last_play_date.as_ref().unwrap() != &current_date {
-            game.today_playtime = playtime;
-            game.last_play_date = Some(current_date.clone());
-        } else {
-            game.today_playtime += playtime;
-        }
-
-        *game_value = serde_json::to_value(game)?;
-        self.store.set("gamesData", games_data);
-        // Note
-        // store.set() saves into an internal AppState
-        // and the store is automatically saved to disk using auto_save (defined in default builder as 100ms)
-        // why do I have to use it here even if it's every 60s? maybe a scope thing
+        self.store.set("gamesData", serde_json::to_value(games)?);
         self.store.save()?;
 
         Ok(())
     }
 
-    pub fn update_exe_path(&self, game_id: &str, exe_path: &str) -> Result<()> {
-        info!(
-            "Updating exe path for game with id: {}, path: {}",
-            game_id, exe_path
-        );
-        let mut games_data = self.get_store();
-        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
+    /// Generic update method for a single game.
+    /// Handles loading, updating, and saving in one transaction.
+    pub fn update_game<F>(&self, game_id: &str, update_fn: F) -> Result<()>
+    where
+        F: FnOnce(&mut Game),
+    {
+        debug!("Updating game with id: {}", game_id);
+        let mut games: Games = serde_json::from_value(self.get_store_value())?;
 
-        game["exe_file_path"] = serde_json::json!(exe_path);
-        self.store.set("gamesData", games_data);
-
-        Ok(())
+        if let Some(game) = games.get_mut(game_id) {
+            update_fn(game);
+            self.store.set("gamesData", serde_json::to_value(games)?);
+            self.store.save()?;
+            Ok(())
+        } else {
+            Err(format!("Game with id {} not found", game_id).into())
+        }
     }
 
-    pub fn update_process_path(&self, game_id: &str, process_path: &str) -> Result<()> {
-        info!(
-            "Updating process path for game with id: {}, path: {}",
-            game_id, process_path
-        );
-        let mut games_data = self.get_store();
-        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
+    /// Gets a game by id
+    pub fn get(&self, game_id: &str) -> Option<Game> {
+        debug!("Getting game with id: {}", game_id);
+        let games_data = self.get_store_value();
+        let game_val = games_data.get(game_id)?;
 
-        game["process_file_path"] = serde_json::json!(process_path);
-        self.store.set("gamesData", games_data);
-
-        Ok(())
+        serde_json::from_value::<Game>(game_val.clone()).ok()
     }
 
-    pub fn set_categories(&self, game_id: &str, categories: Categories) -> Result<()> {
-        info!(
-            "Setting categories for game with id: {}, categories: {:?}",
-            game_id, categories
-        );
-        let mut games_data = self.get_store();
-        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
+    /// Logic-heavy helpers that benefit from being in the store layer
+    pub fn update_playtime(&self, game_id: &str, playtime: u64) -> Result<()> {
+        self.update_game(game_id, |game| {
+            game.playtime += playtime;
+            let current_date = Local::now().format("%Y-%m-%d").to_string();
 
-        game["categories"] = serde_json::json!(categories);
-        self.store.set("gamesData", games_data);
-
-        Ok(())
-    }
-
-    pub fn set_characters(&self, game_id: &str, characters: Vec<Character>) -> Result<()> {
-        info!(
-            "Setting characters for game with id: {}, characters: {:?}",
-            game_id, characters
-        );
-        let mut games_data = self.get_store();
-        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
-
-        game["characters"] = serde_json::json!(characters);
-        self.store.set("gamesData", games_data);
-
-        Ok(())
+            if game.last_play_date.as_ref() != Some(&current_date) {
+                game.today_playtime = playtime;
+                game.last_play_date = Some(current_date);
+            } else {
+                game.today_playtime += playtime;
+            }
+        })
     }
 
     pub fn update_last_played(&self, game_id: &str) -> Result<()> {
-        info!("Updating last played for game with id: {}", game_id);
-        let mut games_data = self.get_store();
-        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
-        let start = time::SystemTime::now();
-        let since_the_epoch = start
-            .duration_since(time::UNIX_EPOCH)
-            .expect("Time went backwards");
-
-        game["last_played"] = since_the_epoch.as_secs().into();
-        self.store.set("gamesData", games_data);
-
-        Ok(())
-    }
-
-    pub fn set_first_played(&self, game_id: &str) -> Result<()> {
-        info!("Setting first played for game with id: {}", game_id);
-        let mut games_data = self.get_store();
-        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
-
-        if game["first_played"].as_u64().is_none() {
+        self.update_game(game_id, |game| {
             let start = time::SystemTime::now();
             let since_the_epoch = start
                 .duration_since(time::UNIX_EPOCH)
                 .expect("Time went backwards");
-
-            game["first_played"] = since_the_epoch.as_secs().into();
-            self.store.set("gamesData", games_data);
-        }
-
-        Ok(())
+            game.last_played = Some(since_the_epoch.as_secs());
+        })
     }
 
-    pub fn set_notes(&self, game_id: &str, notes: &str) -> Result<()> {
-        info!(
-            "Setting notes for game with id: {}, notes: {}",
-            game_id, notes
-        );
-        let mut games_data = self.get_store();
-        let game = games_data.get_mut(game_id).ok_or("Couldn't find game")?;
-
-        game["notes"] = serde_json::json!(notes);
-        self.store.set("gamesData", games_data);
-
-        Ok(())
+    pub fn set_first_played(&self, game_id: &str) -> Result<()> {
+        self.update_game(game_id, |game| {
+            if game.first_played.is_none() {
+                let start = time::SystemTime::now();
+                let since_the_epoch = start
+                    .duration_since(time::UNIX_EPOCH)
+                    .expect("Time went backwards");
+                game.first_played = Some(since_the_epoch.as_secs());
+            }
+        })
     }
 }

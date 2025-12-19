@@ -2,6 +2,7 @@
   import type { Process } from '$lib/types';
   import Dialog from '$lib/components/Dialog.svelte';
   import { appState } from '$lib/state.svelte';
+  import InfoNote from '../InfoNote.svelte';
 
   let {
     isOpen = $bindable(),
@@ -57,34 +58,58 @@
 
     <section class="game-form">
       <div class="dropdown">
-        <input
-          type="text"
-          placeholder="Search..."
-          bind:value={searchTerm}
-          onfocus={() => (isDropdownOpen = true)}
-        />
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="text"
+            placeholder="Search processes..."
+            bind:value={searchTerm}
+            onfocus={() => (isDropdownOpen = true)}
+          />
+        </div>
 
         {#if isDropdownOpen}
           <div class="dropdown-menu show">
-            {#each filteredItems as item}
-              <div onclick={() => selectItem(item)} class="dropdown-item">
-                <img src={item.icon} alt={item.title} width={32} height={32} />
-                <span>{item.title}</span>
+            {#if filteredItems.length === 0}
+              <div class="empty-state">
+                <i class="fa-solid fa-circle-xmark"></i>
+                <p>No processes found</p>
+                <span>Try a different search term</span>
               </div>
-            {/each}
+            {:else}
+              {#each filteredItems as item}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div onclick={() => selectItem(item)} class="dropdown-item">
+                  <div class="item-icon">
+                    {#if item.icon}
+                      <img
+                        src={item.icon}
+                        alt={item.title}
+                        width={32}
+                        height={32}
+                      />
+                    {:else}
+                      <div class="placeholder-icon">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                      </div>
+                    {/if}
+                  </div>
+                  <div class="item-content">
+                    <span class="item-title">{item.title}</span>
+                    <span class="item-path">{item.exe_path}</span>
+                  </div>
+                </div>
+              {/each}
+            {/if}
           </div>
         {/if}
       </div>
 
-      <div class="info-container">
-        <span class="icon-info">
-          <i class="fa-solid fa-info-circle"></i>
-        </span>
-        <p class="note">
-          If you can't find your game, try setting it to windowed then return to
-          full screen when done.
-        </p>
-      </div>
+      <InfoNote>
+        If you can't find your game, try setting it to windowed then return to
+        full screen when done.
+      </InfoNote>
 
       <button disabled={loading} class="save-button" onclick={handleConfirm}>
         {#if loading}
@@ -114,9 +139,9 @@
 
   .game-form button {
     border: 0;
-    background-color: #313131;
+    background-color: var(--accent);
     border-radius: var(--small-radius);
-    color: #fff;
+    color: var(--main-text);
     width: 100%;
     padding: 0.5rem;
     font-size: 18px;
@@ -125,7 +150,7 @@
     transition: background-color 0.3s ease;
 
     &:hover {
-      background-color: #404040;
+      background-color: color-mix(in srgb, var(--accent), white 10%);
     }
   }
 
@@ -147,75 +172,187 @@
     font-family: Arial, sans-serif;
   }
 
-  input[type='text'] {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: var(--small-radius);
-    background: #313131;
-    border: 0;
-    /* border-left: 3px solid
-      var(--primary-dark, color-mix(in srgb, var(--primary), #000 15%)); */
+  .search-input-wrapper {
+    position: relative;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--secondary-text);
+    pointer-events: none;
+  }
+
+  input[type='text'] {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    font-size: 15px;
+    border-radius: var(--small-radius);
+    background: var(--accent);
+    border: 1px solid transparent;
     color: var(--main-text);
-    grid-column: 1 / -1;
-    transition: border-color 0.2s ease;
+    transition: all 0.2s ease;
+
+    &::placeholder {
+      color: var(--secondary-text);
+    }
 
     &:focus {
       outline: none;
+      border-color: var(--primary);
+      background: color-mix(in srgb, var(--accent), white 5%);
     }
   }
 
   .dropdown-menu {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     left: 0;
     width: 100%;
-    max-height: 200px;
+    max-height: 280px;
     overflow-y: auto;
     border-radius: var(--small-radius);
-    background: var(--main-background);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: var(--accent);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.2);
     display: none;
+    animation: slideDown 0.2s ease;
+    z-index: 1000;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .dropdown-menu.show {
     display: block;
   }
 
+  /* Custom scrollbar */
+  .dropdown-menu::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-track {
+    background: var(--accent);
+    border-radius: var(--small-radius);
+  }
+
+  .dropdown-menu::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--accent), white 20%);
+    border-radius: 4px;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--accent), white 30%);
+  }
+
   .dropdown-item {
     display: flex;
     align-items: center;
-    padding: 10px;
+    padding: 12px;
     cursor: pointer;
     color: var(--main-text);
+    transition: all 0.15s ease;
+    gap: 12px;
   }
 
   .dropdown-item:hover {
     background: var(--secondary);
-    color: white;
+    padding-left: 16px;
+  }
+
+  .dropdown-item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .item-icon {
+    flex-shrink: 0;
   }
 
   .dropdown-item img {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
   }
 
-  .note {
+  .item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .item-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--main-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .item-path {
     font-size: 12px;
     color: var(--secondary-text);
-    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .info-container {
+
+  .placeholder-icon {
+    width: 32px;
+    height: 32px;
     display: flex;
-    padding: 10px;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--accent), white 10%);
+    border-radius: 6px;
+    color: var(--secondary-text);
+    font-size: 18px;
   }
-  .icon-info {
-    font-size: 14px;
-    margin-right: 5px;
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    color: var(--secondary-text);
+    text-align: center;
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-state p {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--main-text);
+    opacity: 0.8;
+  }
+
+  .empty-state span {
+    font-size: 13px;
     color: var(--secondary-text);
   }
 </style>

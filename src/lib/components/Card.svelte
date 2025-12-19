@@ -2,6 +2,8 @@
   import { convertFileSrc } from '@tauri-apps/api/core';
   import { goto } from '$app/navigation';
   import { formatTime } from '$lib/util';
+  import { appState } from '$lib/state.svelte';
+  import NsfwPlaceholder from './NsfwPlaceholder.svelte';
   const { id, title, image, playtime, isNsfw } = $props();
 
   const hoursPlayed = $derived(Math.floor(playtime / 3600));
@@ -14,19 +16,16 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <section onclick={() => goto(`/novel/${id}`)} class="card">
   <div class="card-image">
-    <img src={image_url} alt={title} class:blur={isNsfw} />
-    <!-- <span class="category">{category}</span> -->
+    {#if isNsfw && appState?.hideNsfwImages}
+      <NsfwPlaceholder />
+    {:else}
+      <img src={image_url} alt={title} class:blur={isNsfw} />
+    {/if}
   </div>
+
   <div class="card-content">
     <h3>{title}</h3>
     <div class="progress-info">
-      <!--div class="progress-bar">
-                 <div
-                    class="progress"
-                    style="width: {progress.completion}%"
-                ></div>
-            </div-->
-      <!-- <span class="progress-text">{progress.completion}% Complete</span> -->
       <p class="time">
         {formatTime(hoursPlayed, minutesPlayed)}
       </p>
@@ -79,20 +78,6 @@
     object-fit: cover;
   }
 
-  /* .category {
-        position: absolute;
-        top: 1rem;
-        left: 1rem;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: var(--main-text);
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    } */
-
   .card-content {
     padding: 1rem;
   }
@@ -123,24 +108,4 @@
       font-weight: bold;
     }
   }
-
-  /* .progress-bar {
-        width: 100%;
-        height: 6px;
-        background-color: var(--accent);
-        border-radius: 3px;
-        overflow: hidden;
-    }
-
-    .progress {
-        height: 100%;
-        background-color: var(--main-background);
-        transition: width 0.3s ease;
-    }
-
-    .progress-text {
-        color: var(--main-text);
-        font-size: 0.875rem;
-        font-weight: 500;
-    } */
 </style>

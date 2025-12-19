@@ -3,7 +3,7 @@
   import { fly } from 'svelte/transition';
   import { openUrl } from '@tauri-apps/plugin-opener';
 
-  let { characters } = $props();
+  let { characters = $bindable() } = $props();
 </script>
 
 <div class="characters" in:fly={{ y: 20, duration: 300 }}>

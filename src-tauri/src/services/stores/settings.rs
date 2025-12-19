@@ -1,15 +1,14 @@
 use crate::{prelude::*, services::discord::DiscordPresenceMode};
 use log::{debug, info};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ThemeSettings {
-    theme: String,
-    accent_color: String,
-    use_custom_accent: bool,
+    pub theme: String,
+    pub accent_color: String,
+    pub use_custom_accent: bool,
 }
 
 impl Default for ThemeSettings {
@@ -22,7 +21,7 @@ impl Default for ThemeSettings {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum SortOrder {
     Playtime,
@@ -39,140 +38,83 @@ pub enum PlaytimeMode {
     ExStatic,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Settings {
+    pub disable_presence_on_nsfw: bool,
+    pub playtime_mode: PlaytimeMode,
+    pub use_jp_for_title_time: bool,
+    pub theme_settings: ThemeSettings,
+    pub sort_order: SortOrder,
+    pub show_random_picker: bool,
+    pub discord_presence_mode: DiscordPresenceMode,
+    pub hide_nsfw_images: bool,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            disable_presence_on_nsfw: true,
+            playtime_mode: PlaytimeMode::default(),
+            use_jp_for_title_time: false,
+            theme_settings: ThemeSettings::default(),
+            sort_order: SortOrder::default(),
+            show_random_picker: true,
+            discord_presence_mode: DiscordPresenceMode::default(),
+            hide_nsfw_images: false,
+        }
+    }
+}
+
 pub struct SettingsStore {
-    store: Store,
+    app_handle: AppHandle,
 }
 
 impl SettingsStore {
     pub fn new(app_handle: &AppHandle) -> Result<Self> {
-        info!("Creating SettingsStore");
-        let store = app_handle.store("settings.json")?;
-
-        Ok(Self { store })
+        Ok(Self {
+            app_handle: app_handle.clone(),
+        })
     }
 
-    pub fn set_theme_settings(&self, theme_settings: ThemeSettings) -> Result<()> {
-        info!("Setting theme settings: {:?}", theme_settings);
-        self.store
-            .set("theme_settings", serde_json::json!(theme_settings));
+    /// Loads settings from the store.
+    /// Since the store is flat, we reconstruct the struct from individual keys.
+    pub fn load(&self) -> Result<Settings> {
+        debug!("Loading settings from store");
+        let store = self.app_handle.store("settings.json")?;
 
-        Ok(())
-    }
+        let default_settings = Settings::default();
+        let default_value = serde_json::to_value(&default_settings)?;
+        let default_obj = default_value
+            .as_object()
+            .expect("Settings must be an object");
 
-    pub fn get_theme_settings(&self) -> Result<ThemeSettings> {
-        debug!("Getting theme settings");
-        match self.store.get("theme_settings") {
-            Some(v) => {
-                let settings: ThemeSettings = serde_json::from_value(v)?;
-                Ok(settings)
+        let mut map = serde_json::Map::new();
+
+        for key in default_obj.keys() {
+            if let Some(val) = store.get(key) {
+                map.insert(key.clone(), val.clone());
+            } else {
+                map.insert(key.clone(), default_obj.get(key).unwrap().clone());
             }
-            None => Ok(ThemeSettings::default()),
         }
+
+        let settings: Settings = serde_json::from_value(serde_json::Value::Object(map))?;
+        Ok(settings)
     }
 
-    pub fn set_presence_on_nsfw(&self, to: bool) -> Result<()> {
-        info!("Setting disable_presence_on_nsfw to: {}", to);
-        self.store.set("disable_presence_on_nsfw", json!(to));
+    /// Saves settings to the store as a flat structure.
+    pub fn save(&self, settings: &Settings) -> Result<()> {
+        info!("Saving settings to store");
+        let store = self.app_handle.store("settings.json")?;
+        let value = serde_json::to_value(settings)?;
 
-        Ok(())
-    }
+        if let Some(obj) = value.as_object() {
+            for (k, v) in obj {
+                store.set(k.clone(), v.clone());
+            }
+        }
 
-    // TODO: Refactor
-    pub fn get_presence_on_nsfw(&self) -> Result<bool> {
-        debug!("Getting disable_presence_on_nsfw");
-        let v: bool = serde_json::from_value(
-            self.store
-                .get("disable_presence_on_nsfw")
-                .unwrap_or(json!(true)),
-        )?;
-
-        Ok(v)
-    }
-
-    pub fn get_sort_order(&self) -> Result<SortOrder> {
-        debug!("Getting sort_order");
-        let v: SortOrder = serde_json::from_value(
-            self.store
-                .get("sort_order")
-                .unwrap_or(json!(SortOrder::default())),
-        )?;
-
-        Ok(v)
-    }
-
-    pub fn set_sort_order(&self, new_sort_order: SortOrder) -> Result<()> {
-        info!("Setting sort_order to: {:?}", new_sort_order);
-        self.store.set("sort_order", json!(new_sort_order));
-
-        Ok(())
-    }
-
-    pub fn get_show_random_picker(&self) -> Result<bool> {
-        debug!("Getting show_random_picker");
-        let v: bool =
-            serde_json::from_value(self.store.get("show_random_picker").unwrap_or(json!(true)))?;
-
-        Ok(v)
-    }
-
-    pub fn set_show_random_picker(&self, to: bool) -> Result<()> {
-        info!("Setting show_random_picker to: {}", to);
-        self.store.set("show_random_picker", json!(to));
-
-        Ok(())
-    }
-
-    pub fn get_discord_presence_mode(&self) -> Result<DiscordPresenceMode> {
-        debug!("Getting discord_presence_mode");
-        let v: DiscordPresenceMode = serde_json::from_value(
-            self.store
-                .get("discord_presence_mode")
-                .unwrap_or(json!(DiscordPresenceMode::default())),
-        )?;
-
-        Ok(v)
-    }
-
-    pub fn set_discord_presence_mode(&self, to: DiscordPresenceMode) -> Result<()> {
-        info!("Setting discord_presence_mode to: {:?}", to);
-        self.store.set("discord_presence_mode", json!(to));
-
-        Ok(())
-    }
-
-    pub fn get_playtime_mode(&self) -> Result<PlaytimeMode> {
-        debug!("Getting playtime_mode");
-        let v: PlaytimeMode = serde_json::from_value(
-            self.store
-                .get("playtime_mode")
-                .unwrap_or(json!(PlaytimeMode::default())),
-        )?;
-
-        Ok(v)
-    }
-
-    pub fn set_playtime_mode(&self, to: PlaytimeMode) -> Result<()> {
-        info!("Setting playtime_mode to: {:?}", to);
-        self.store.set("playtime_mode", json!(to));
-
-        Ok(())
-    }
-
-    pub fn get_use_jp_for_title_time(&self) -> Result<bool> {
-        debug!("Getting use_jp_for_title_time");
-        let v: bool = serde_json::from_value(
-            self.store
-                .get("use_jp_for_title_time")
-                .unwrap_or(json!(false)),
-        )?;
-
-        Ok(v)
-    }
-
-    pub fn set_use_jp_for_title_time(&self, to: bool) -> Result<()> {
-        info!("Setting use_jp_for_title_time to: {}", to);
-        self.store.set("use_jp_for_title_time", json!(to));
-
+        store.save()?;
         Ok(())
     }
 }

@@ -43,8 +43,8 @@
     display: inline-block;
     height: 16px;
     width: 16px;
-    background-color: #313131;
-    border: 2px solid #5d5d5d;
+    background-color: var(--accent);
+    border: 2px solid color-mix(in srgb, var(--accent), white 20%);
     border-radius: var(--small-radius);
     transition:
       background-color 0.3s ease,

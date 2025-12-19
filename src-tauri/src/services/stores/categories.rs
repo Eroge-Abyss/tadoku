@@ -12,7 +12,7 @@ pub struct CategoriesStore {
 impl CategoriesStore {
     /// Creates store or uses existing one
     pub fn new(app_handle: &AppHandle) -> Result<Self> {
-        info!("Creating CategoriesStore");
+        debug!("Creating CategoriesStore");
         let store = app_handle.store("store.json")?;
 
         Ok(Self { store })

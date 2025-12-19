@@ -145,7 +145,7 @@ pub fn load_games(app_handle: AppHandle) -> Result<Games, String> {
         "Error happened while getting games"
     })?;
 
-    info!(
+    debug!(
         "Successfully loaded {} games from storage",
         games_data.len()
     );

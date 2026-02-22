@@ -1,5 +1,3 @@
-[![blazingly fast](https://www.blazingly.fast/api/badge.svg?repo=Eroge-Abyss%2Ftadoku)](https://www.blazingly.fast)
-
 # Tadoku - Visual Novel Tracker
 
 <p align="center">
@@ -14,6 +12,7 @@
   <img src="https://img.shields.io/github/v/release/Eroge-Abyss/tadoku?label=version" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey.svg" alt="Platform">
+  <img src="https://www.blazingly.fast/api/badge.svg?repo=Eroge-Abyss%2Ftadoku" alt="fast">
 </p>
 
 ---

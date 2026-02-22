@@ -1,3 +1,5 @@
+[![blazingly fast](https://www.blazingly.fast/api/badge.svg?repo=Eroge-Abyss%2Ftadoku)](https://www.blazingly.fast)
+
 # Tadoku - Visual Novel Tracker
 
 <p align="center">

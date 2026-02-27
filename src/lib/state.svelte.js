@@ -455,6 +455,20 @@ class AppState {
   }
 
   /**
+   * Fetches the total character count for a VN from the Jiten API.
+   * @param {string} gameId - The VNDB ID of the game (e.g., 'v38').
+   * @returns {Promise<number | null>} The character count, or null if not found.
+   */
+  async fetchJitenCharCount(gameId) {
+    try {
+      return await invoke('fetch_jiten_char_count', { gameId });
+    } catch (error) {
+      console.error(`Failed to fetch Jiten char count for ${gameId}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Updates the executable path of a game in the backend and refreshes the list.
    * @param {string} gameId - The unique identifier for the game.
    * @param {string} newExePath - The new executable path.

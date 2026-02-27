@@ -4,12 +4,13 @@
   import { formatTime } from '$lib/util';
   import { appState } from '$lib/state.svelte';
   import NsfwPlaceholder from './NsfwPlaceholder.svelte';
-  const { id, title, image, playtime, isNsfw } = $props();
+  const { id, title, image, playtime, isNsfw, categories = [] } = $props();
 
   const hoursPlayed = $derived(Math.floor(playtime / 3600));
   const minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
 
   const image_url = $derived(convertFileSrc(image));
+  const isCompleted = $derived(categories.includes('Completed'));
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -20,6 +21,20 @@
       <NsfwPlaceholder />
     {:else}
       <img src={image_url} alt={title} class:blur={isNsfw} />
+    {/if}
+    {#if isCompleted}
+      <div class="completion-badge completed">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      </div>
     {/if}
   </div>
 
@@ -70,6 +85,45 @@
 
   .card-image {
     aspect-ratio: 3/4;
+    position: relative;
+  }
+
+  .completion-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    animation: badge-pop 0.3s ease-out;
+    z-index: 2;
+  }
+
+  .completion-badge.completed {
+    background: linear-gradient(135deg, #34d399, #059669);
+  }
+
+  .completion-badge svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  @keyframes badge-pop {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    70% {
+      transform: scale(1.15);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   .card-image img {

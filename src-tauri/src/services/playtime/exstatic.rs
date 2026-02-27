@@ -13,6 +13,7 @@ const SERVER_ADDRESS: &str = "127.0.0.1:6969";
 struct ExStaticData {
     time: f64,
     process_path: String,
+    chars_read: Option<u64>,
 }
 
 pub struct ExStaticPlaytime;
@@ -50,6 +51,12 @@ impl ExStaticPlaytime {
                 info!("Updating playtime for game {} by {} seconds", game.id, time);
                 game.current_playtime += time;
                 util::flush_playtime(app_handle, &game.id, time)?;
+
+                // Update chars_read if provided by exSTATic
+                if let Some(chars_read) = data.chars_read {
+                    debug!("Updating chars_read for game {} to {}", game.id, chars_read);
+                    util::flush_chars_read(app_handle, &game.id, chars_read)?;
+                }
             } else {
                 warn!(
                     "PID mismatch: data PID {} != game PID {}",

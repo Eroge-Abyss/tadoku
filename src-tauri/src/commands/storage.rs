@@ -619,3 +619,20 @@ pub fn set_hide_nsfw_images(app_handle: AppHandle, to: bool) -> Result<(), Strin
     lock.update_settings(&app_handle, |s| s.hide_nsfw_images = to)
         .map_err(|e| e.to_string())
 }
+
+/// Gets the Jiten API base URL
+#[tauri::command]
+pub fn get_jiten_base_url(app_handle: AppHandle) -> Result<String, String> {
+    let state = app_handle.state::<Mutex<AppState>>();
+    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    Ok(lock.settings.jiten_base_url.clone())
+}
+
+/// Sets the Jiten API base URL
+#[tauri::command]
+pub fn set_jiten_base_url(app_handle: AppHandle, url: String) -> Result<(), String> {
+    let state = app_handle.state::<Mutex<AppState>>();
+    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    lock.update_settings(&app_handle, |s| s.jiten_base_url = url)
+        .map_err(|e| e.to_string())
+}

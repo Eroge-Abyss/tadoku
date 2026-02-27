@@ -39,6 +39,8 @@ export interface Game {
     og_name: string | null;
     image_url: string | null;
   }[];
+  /** Cumulative characters read (from exSTATic) */
+  chars_read: number;
 }
 
 export interface Options {

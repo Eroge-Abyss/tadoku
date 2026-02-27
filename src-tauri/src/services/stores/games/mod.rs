@@ -89,6 +89,7 @@ impl GamesStore {
             game.last_played = None;
             game.first_played = None;
             game.last_play_date = None;
+            game.chars_read = 0;
         })
     }
 
@@ -166,6 +167,12 @@ impl GamesStore {
                     .expect("Time went backwards");
                 game.first_played = Some(since_the_epoch.as_secs());
             }
+        })
+    }
+
+    pub fn update_chars_read(&self, game_id: &str, chars_read: u64) -> Result<()> {
+        self.update_game(game_id, |game| {
+            game.chars_read = chars_read;
         })
     }
 }

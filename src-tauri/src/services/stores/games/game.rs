@@ -24,4 +24,7 @@ pub struct Game {
     pub categories: Categories,
     // TODO: Make its own struct?
     pub characters: Option<Vec<Character>>,
+    /// Cumulative characters read (from exSTATic)
+    #[serde(default)]
+    pub chars_read: u64,
 }

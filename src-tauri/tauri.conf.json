@@ -3,9 +3,9 @@
   "productName": "Tadoku",
   "identifier": "tadoku",
   "build": {
-    "beforeDevCommand": "bun run dev",
+    "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "bun run build",
+    "beforeBuildCommand": "npm run build",
     "frontendDist": "../build"
   },
   "app": {
@@ -24,17 +24,23 @@
         "img-src": "'self' asset: http://asset.localhost https://t.vndb.org blob: data:",
         "style-src": "'unsafe-inline' 'self'"
       },
-      "dangerousDisableAssetCspModification": ["style-src"],
+      "dangerousDisableAssetCspModification": [
+        "style-src"
+      ],
       "assetProtocol": {
         "enable": true,
-        "scope": ["$APPLOCALDATA/images/**"]
+        "scope": [
+          "$APPLOCALDATA/images/**"
+        ]
       }
     }
   },
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

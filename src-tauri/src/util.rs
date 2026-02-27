@@ -97,6 +97,21 @@ pub fn flush_playtime(
     Ok(())
 }
 
+/// Flushes chars_read to disk
+pub fn flush_chars_read(
+    app_handle: &AppHandle,
+    game_id: &str,
+    chars_read: u64,
+) -> Result<(), Box<dyn Error>> {
+    let store = GamesStore::new(app_handle).map_err(|_| "Error happened while accessing store")?;
+
+    store
+        .update_chars_read(game_id, chars_read)
+        .map_err(|_| "Error happened while setting chars_read")?;
+
+    Ok(())
+}
+
 pub fn is_debug_mode() -> bool {
     std::env::var("TADOKU_DEBUG")
         .map(|s| s == "1" || s.to_lowercase() == "true")

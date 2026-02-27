@@ -62,6 +62,21 @@
   let originalNotes = novel.notes;
   let downloadingCharacters = $state(false);
 
+  // Jiten character count state
+  let jitenCharCount = $state(null);
+  let jitenLoading = $state(true);
+
+  // Fetch Jiten character count on mount
+  $effect(() => {
+    if (novel?.id) {
+      jitenLoading = true;
+      appState.fetchJitenCharCount(novel.id).then((count) => {
+        jitenCharCount = count;
+        jitenLoading = false;
+      });
+    }
+  });
+
   const TABS = $derived([
     {
       label: 'Progress Overview',
@@ -257,6 +272,9 @@
       {todayMinutesPlayed}
       {firstPlayedDate}
       {lastPlayedDate}
+      {jitenCharCount}
+      {jitenLoading}
+      charsRead={novel.chars_read || 0}
       bind:notes
       bind:editingNotes
       onSaveNotes={handleSaveNotes}

@@ -16,8 +16,8 @@
     firstPlayedDate,
     lastPlayedDate,
     jitenCharCount = null,
-    jitenLoading = false,
     charsRead = 0,
+    playtimeMode = 'classic',
     notes = $bindable(),
     editingNotes = $bindable(),
     onSaveNotes,
@@ -67,8 +67,8 @@
         {lastPlayedDate}
         {formatRelativeDate}
         {jitenCharCount}
-        {jitenLoading}
         {charsRead}
+        {playtimeMode}
       />
     {:else if selectedTab == 'characters'}
       {#if novel.characters && novel.characters.length > 0}

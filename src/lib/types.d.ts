@@ -1,13 +1,7 @@
 export interface Novel extends Game {
   id: string;
 }
-export interface Theme {
-  id: string;
-  name: string;
-  primary: string;
-  background: string;
-  accent: string;
-}
+
 
 type ColorSwatch = {
   color: string;
@@ -41,6 +35,8 @@ export interface Game {
   }[];
   /** Cumulative characters read (from exSTATic) */
   chars_read: number;
+  /** Total character count from Jiten API (pre-fetched at startup) */
+  jiten_char_count: number | null;
 }
 
 export interface Options {

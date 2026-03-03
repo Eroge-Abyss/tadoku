@@ -313,3 +313,59 @@ pub async fn add_missing_alt_titles(
     info!("Successfully added missing alt titles.");
     Ok(())
 }
+
+/// Spawns a background task to fetch Jiten character counts for all games.
+/// For each game that doesn't already have a `jiten_char_count`, it queries the Jiten API
+/// and saves the result into the game's stored data.
+pub fn fetch_jiten_char_counts(app_handle: &AppHandle) {
+    info!("Spawning Jiten character count fetch task");
+    let app_handle = app_handle.clone();
+
+    tauri::async_runtime::spawn(async move {
+        use crate::commands::jiten::fetch_jiten_char_count;
+        use crate::services::stores::games::GamesStore;
+
+        let store = match GamesStore::new(&app_handle) {
+            Ok(s) => s,
+            Err(e) => {
+                error!("Failed to create GamesStore for Jiten fetch: {}", e);
+                return;
+            }
+        };
+
+        let games = match store.get_all() {
+            Ok(g) => g,
+            Err(e) => {
+                error!("Failed to get games for Jiten fetch: {}", e);
+                return;
+            }
+        };
+
+        let mut fetched = 0;
+        for (game_id, game) in &games {
+            if game.jiten_char_count.is_some() {
+                continue;
+            }
+
+            match fetch_jiten_char_count(app_handle.clone(), game_id.clone()).await {
+                Ok(count) => {
+                    if let Err(e) = store.update_jiten_char_count(game_id, count) {
+                        error!("Failed to save Jiten count for {}: {}", game_id, e);
+                    } else {
+                        fetched += 1;
+                        debug!("Saved Jiten count for {}: {:?}", game_id, count);
+                    }
+                }
+                Err(e) => {
+                    warn!("Failed to fetch Jiten count for {}: {}", game_id, e);
+                }
+            }
+        }
+
+        if fetched > 0 {
+            info!("Jiten fetch completed: updated {} games", fetched);
+        } else {
+            info!("Jiten fetch completed: all games already had counts");
+        }
+    });
+}

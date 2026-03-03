@@ -3,7 +3,7 @@ use futures_util::StreamExt;
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::sync::Mutex;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::net::TcpListener;
 use tokio_tungstenite::accept_async;
 
@@ -56,6 +56,9 @@ impl ExStaticPlaytime {
                 if let Some(chars_read) = data.chars_read {
                     debug!("Updating chars_read for game {} to {}", game.id, chars_read);
                     util::flush_chars_read(app_handle, &game.id, chars_read)?;
+                    if let Err(e) = app_handle.emit("chars_read_updated", chars_read) {
+                        error!("Error emitting chars_read_updated event: {}", e);
+                    }
                 }
             } else {
                 warn!(

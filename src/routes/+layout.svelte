@@ -10,9 +10,6 @@
   import { appState, type CurrentGame } from '$lib/state.svelte';
   import { type Event } from '@tauri-apps/api/event';
 
-  // when using `"withGlobalTauri": true`, you may use
-  // const { getCurrentWindow } = window.__TAURI__.window;
-
   const { children } = $props();
   const appWindow = getCurrentWindow();
   let refreshInterval: number;
@@ -41,7 +38,9 @@
       appState.refreshGamesList();
     });
 
-    //listen('playtime', (e) => console.log(e.payload));
+    listen('chars_read_updated', () => {
+      appState.refreshGamesList();
+    });
   });
 </script>
 

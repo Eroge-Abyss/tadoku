@@ -11,8 +11,8 @@
     lastPlayedDate,
     formatRelativeDate,
     jitenCharCount = null,
-    jitenLoading = false,
     charsRead = 0,
+    playtimeMode = 'classic',
   } = $props();
 
   /**
@@ -22,6 +22,23 @@
    */
   function formatNumber(n) {
     return n.toLocaleString();
+  }
+
+  const progressPercent = $derived(
+    jitenCharCount !== null && jitenCharCount > 0
+      ? Math.min((charsRead / jitenCharCount) * 100, 100)
+      : 0,
+  );
+
+  /**
+   * Interpolates from red (0%) through yellow (50%) to green (100%).
+   * @param {number} pct - 0 to 100
+   * @returns {string}
+   */
+  function progressColor(pct) {
+    const r = Math.round(pct < 50 ? 255 : 255 - ((pct - 50) / 50) * 255);
+    const g = Math.round(pct < 50 ? (pct / 50) * 255 : 255);
+    return `rgb(${r}, ${g}, 60)`;
   }
 </script>
 
@@ -56,38 +73,41 @@
       {/if}
     </span>
   </div>
-  <div class="stat-item" in:fly={{ y: 20, duration: 500, delay: 100 }}>
-    <p class="stat-label">Chars Read</p>
-    <span class="stat-value">{formatNumber(charsRead)}</span>
-  </div>
-  <div class="stat-item" in:fly={{ y: 20, duration: 500, delay: 100 }}>
-    <p class="stat-label">Total Chars (Jiten)</p>
-    <span class="stat-value">
-      {#if jitenLoading}
-        <span class="loading-text">Loading...</span>
-      {:else if jitenCharCount !== null}
-        {formatNumber(jitenCharCount)}
-      {:else}
-        <span class="na-text">N/A</span>
-      {/if}
-    </span>
-  </div>
-</div>
-
-{#if !jitenLoading && jitenCharCount !== null && charsRead > 0}
-  <div class="progress-bar-container" in:fly={{ y: 20, duration: 500, delay: 200 }}>
-    <p class="stat-label">Reading Progress</p>
-    <div class="progress-bar-track">
-      <div
-        class="progress-bar-fill"
-        style="width: {Math.min((charsRead / jitenCharCount) * 100, 100)}%"
-      ></div>
-    </div>
-    <span class="progress-text"
-      >{Math.min(((charsRead / jitenCharCount) * 100), 100).toFixed(1)}%</span
+  {#if playtimeMode === 'ex_static'}
+    <div
+      class="stat-item has-progress"
+      in:fly={{ y: 20, duration: 500, delay: 100 }}
     >
-  </div>
-{/if}
+      <p class="stat-label">Chars Read</p>
+      <span class="stat-value">{formatNumber(charsRead)}</span>
+      {#if jitenCharCount !== null && charsRead > 0}
+        <span
+          class="progress-badge"
+          style="color: {progressColor(progressPercent)};"
+          >{progressPercent.toFixed(1)}%</span
+        >
+        <div class="bottom-progress">
+          <div
+            class="bottom-progress-fill"
+            style="width: {progressPercent}%; background: {progressColor(
+              progressPercent,
+            )};"
+          ></div>
+        </div>
+      {/if}
+    </div>
+    <div class="stat-item" in:fly={{ y: 20, duration: 500, delay: 100 }}>
+      <p class="stat-label">Total Chars (Jiten)</p>
+      <span class="stat-value">
+        {#if jitenCharCount !== null}
+          {formatNumber(jitenCharCount)}
+        {:else}
+          <span class="na-text">N/A</span>
+        {/if}
+      </span>
+    </div>
+  {/if}
+</div>
 
 <style>
   .stats-grid {
@@ -101,6 +121,8 @@
     background-color: var(--accent);
     padding: 1rem;
     border-radius: 8px;
+    position: relative;
+    overflow: hidden;
   }
 
   .stat-item:hover {
@@ -119,42 +141,44 @@
     font-weight: 600;
   }
 
-  .loading-text {
-    font-size: 1rem;
-    opacity: 0.5;
-    font-style: italic;
-  }
-
   .na-text {
     font-size: 1rem;
     opacity: 0.4;
   }
 
-  .progress-bar-container {
-    margin-bottom: 2rem;
-    padding: 1rem;
-    background-color: var(--accent);
-    border-radius: 8px;
+  .progress-badge {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
   }
 
-  .progress-bar-track {
+  .has-progress:hover .progress-badge {
+    opacity: 1;
+  }
+
+  .has-progress {
+    padding-bottom: calc(1rem + 4px);
+  }
+
+  .bottom-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
     width: 100%;
-    height: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-    margin: 0.5rem 0;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.08);
   }
 
-  .progress-bar-fill {
+  .bottom-progress-fill {
     height: 100%;
-    background: var(--primary);
-    border-radius: 4px;
-    transition: width 0.5s ease;
-  }
-
-  .progress-text {
-    font-size: 0.875rem;
-    opacity: 0.7;
+    border-radius: 0 2px 2px 0;
+    transition:
+      width 0.5s ease,
+      background 0.5s ease;
   }
 </style>

@@ -27,4 +27,7 @@ pub struct Game {
     /// Cumulative characters read (from exSTATic)
     #[serde(default)]
     pub chars_read: u64,
+    /// Total character count from Jiten API (pre-fetched at startup)
+    #[serde(default)]
+    pub jiten_char_count: Option<u64>,
 }

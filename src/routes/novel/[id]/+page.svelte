@@ -18,9 +18,6 @@
     throw goto('/');
   }
 
-  // Should I use derived?
-  // yes
-  // oki uwu
   // Derived values
   const hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
   const minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
@@ -62,20 +59,8 @@
   let originalNotes = novel.notes;
   let downloadingCharacters = $state(false);
 
-  // Jiten character count state
-  let jitenCharCount = $state(null);
-  let jitenLoading = $state(true);
-
-  // Fetch Jiten character count on mount
-  $effect(() => {
-    if (novel?.id) {
-      jitenLoading = true;
-      appState.fetchJitenCharCount(novel.id).then((count) => {
-        jitenCharCount = count;
-        jitenLoading = false;
-      });
-    }
-  });
+  // Jiten character count is now pre-fetched at startup and stored in game data
+  const jitenCharCount = $derived(novel.jiten_char_count ?? null);
 
   const TABS = $derived([
     {
@@ -210,10 +195,14 @@
     }
   };
 
-  // @ts-ignore
+  /** @param {MouseEvent} e */
   function handleMenuClick(e) {
     // Check if the click occurred directly on the modal backdrop
-    if (e.target?.classList.contains('secondary-menu')) {
+    if (
+      /** @type {HTMLElement} */ (e.target)?.classList.contains(
+        'secondary-menu',
+      )
+    ) {
       activeMenu = false;
     }
   }
@@ -273,8 +262,8 @@
       {firstPlayedDate}
       {lastPlayedDate}
       {jitenCharCount}
-      {jitenLoading}
       charsRead={novel.chars_read || 0}
+      playtimeMode={appState.playtimeMode}
       bind:notes
       bind:editingNotes
       onSaveNotes={handleSaveNotes}

@@ -175,4 +175,10 @@ impl GamesStore {
             game.chars_read = chars_read;
         })
     }
+
+    pub fn update_jiten_char_count(&self, game_id: &str, count: Option<u64>) -> Result<()> {
+        self.update_game(game_id, |game| {
+            game.jiten_char_count = count;
+        })
+    }
 }

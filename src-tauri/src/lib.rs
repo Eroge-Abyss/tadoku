@@ -60,6 +60,7 @@ pub fn run() {
             }
 
             playtime::ExStaticPlaytime::spawn(app.app_handle());
+            scripts::fetch_jiten_char_counts(app.app_handle());
             info!("Tadoku application setup completed successfully");
 
             Ok(())
@@ -98,7 +99,6 @@ pub fn run() {
             commands::storage::set_hide_nsfw_images,
             commands::storage::get_jiten_base_url,
             commands::storage::set_jiten_base_url,
-            commands::jiten::fetch_jiten_char_count,
             commands::opener::open_game,
             commands::opener::close_game,
             commands::opener::get_active_windows

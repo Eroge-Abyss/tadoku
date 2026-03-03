@@ -2,7 +2,6 @@ export interface Novel extends Game {
   id: string;
 }
 
-
 type ColorSwatch = {
   color: string;
   index: number;

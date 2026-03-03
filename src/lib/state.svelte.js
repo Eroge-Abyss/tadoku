@@ -454,7 +454,6 @@ class AppState {
     }
   }
 
-
   /**
    * Updates the executable path of a game in the backend and refreshes the list.
    * @param {string} gameId - The unique identifier for the game.

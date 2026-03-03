@@ -29,17 +29,6 @@
       ? Math.min((charsRead / jitenCharCount) * 100, 100)
       : 0,
   );
-
-  /**
-   * Interpolates from red (0%) through yellow (50%) to green (100%).
-   * @param {number} pct - 0 to 100
-   * @returns {string}
-   */
-  function progressColor(pct) {
-    const r = Math.round(pct < 50 ? 255 : 255 - ((pct - 50) / 50) * 255);
-    const g = Math.round(pct < 50 ? (pct / 50) * 255 : 255);
-    return `rgb(${r}, ${g}, 60)`;
-  }
 </script>
 
 <div class="stats-grid">
@@ -81,17 +70,11 @@
       <p class="stat-label">Chars Read</p>
       <span class="stat-value">{formatNumber(charsRead)}</span>
       {#if jitenCharCount !== null && charsRead > 0}
-        <span
-          class="progress-badge"
-          style="color: {progressColor(progressPercent)};"
-          >{progressPercent.toFixed(1)}%</span
-        >
+        <span class="progress-badge">{progressPercent.toFixed(1)}%</span>
         <div class="bottom-progress">
           <div
             class="bottom-progress-fill"
-            style="width: {progressPercent}%; background: {progressColor(
-              progressPercent,
-            )};"
+            style="width: {progressPercent}%;"
           ></div>
         </div>
       {/if}
@@ -150,10 +133,11 @@
     position: absolute;
     bottom: 0.5rem;
     right: 0.5rem;
-    font-size: 0.75rem;
+    font-size: 1rem;
     font-weight: 600;
     opacity: 0;
     transition: opacity 0.2s ease;
+    color: var(--secondary-text);
     pointer-events: none;
   }
 
@@ -177,6 +161,7 @@
   .bottom-progress-fill {
     height: 100%;
     border-radius: 0 2px 2px 0;
+    background: var(--secondary);
     transition:
       width 0.5s ease,
       background 0.5s ease;

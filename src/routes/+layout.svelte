@@ -38,9 +38,9 @@
       appState.refreshGamesList();
     });
 
-    listen('chars_read_updated', () => {
-      appState.refreshGamesList();
-    });
+    // listen('chars_read_updated', () => {
+    //   appState.refreshGamesList();
+    // });
   });
 </script>
 

@@ -15,13 +15,13 @@
 
   let showModal = $state(false);
 
-  // ── shared state ────────────────────────────────────────────────────────────
+  // shared state
   /** @type {'vndb' | 'manual'} */
   let mode = $state('vndb');
   let exe_path = $state();
   let loading = $state(false);
 
-  // ── VNDB mode state ─────────────────────────────────────────────────────────
+  // VNDB mode state
   let search = $state();
   /**
    * @type {VndbResult[]}
@@ -31,7 +31,7 @@
   let showImage = $state(false);
   let charactersDownload = $state(false);
 
-  // ── Manual mode state ────────────────────────────────────────────────────────
+  // Manual mode state
   let manualTitle = $state('');
   let manualAltTitle = $state('');
   let manualDescription = $state('');
@@ -144,17 +144,9 @@
         exe_file_path: exe_path,
         process_file_path: exe_path,
         categories: [],
-        icon_url: null,
         image_url: vn.image.url,
-        is_pinned: false,
         is_nsfw: vn.image.sexual > NSFW_RATE,
-        playtime: 0,
-        today_playtime: 0,
-        last_play_date: null,
         characters: [],
-        last_played: null,
-        first_played: null,
-        notes: '',
       };
 
       await appState.saveGame(vn.id, gameData, {
@@ -194,17 +186,10 @@
         exe_file_path: exe_path,
         process_file_path: exe_path,
         categories: [],
-        icon_url: null,
+        characters: null,
         // Pass the raw local path; backend will copy it and store the filename.
         image_url: manualImagePath,
-        is_pinned: false,
         is_nsfw: manualIsNsfw,
-        playtime: 0,
-        today_playtime: 0,
-        last_play_date: null,
-        characters: [],
-        last_played: null,
-        first_played: null,
         notes: '',
       };
 
@@ -251,7 +236,7 @@
       </div>
 
       {#if mode === 'vndb'}
-        <!-- ── VNDB search mode ──────────────────────────────────────────── -->
+        <!-- VNDB search mode────────────────────────────────────────── -->
         <div class="search-dropdown">
           <div class="search-input-wrapper">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -338,21 +323,22 @@
           the game details page.
         </InfoNote>
 
-        <button onclick={pickFile}>Select Game Executable</button>
-        <button
-          disabled={loading}
-          class="save-button"
-          onclick={() => saveVndbGame(selectedVn)}
-        >
-          {#if loading}
-            Saving...
-          {:else}
-            Save
-          {/if}
-        </button>
-
+        <div class="form-handler">
+          <button onclick={pickFile}>Select Game Executable</button>
+          <button
+            disabled={loading}
+            class="save-button"
+            onclick={() => saveVndbGame(selectedVn)}
+          >
+            {#if loading}
+              Saving...
+            {:else}
+              Save
+            {/if}
+          </button>
+        </div>
       {:else}
-        <!-- ── Manual entry mode ─────────────────────────────────────────── -->
+        <!-- Manual entry mode───────────────────────────────────────── -->
         <div class="manual-form">
           <label class="field-label" for="manual-title">
             Title <span class="required">*</span>
@@ -397,7 +383,9 @@
 
           <button onclick={pickImage} class="pick-image-btn">
             <i class="fa-solid fa-image"></i>
-            {manualImagePath ? 'Change Cover Image' : 'Select Cover Image (optional)'}
+            {manualImagePath
+              ? 'Change Cover Image'
+              : 'Select Cover Image (optional)'}
           </button>
 
           {#if manualImagePath}
@@ -417,18 +405,20 @@
             from the game details page.
           </InfoNote>
 
-          <button onclick={pickFile}>Select Game Executable</button>
-          <button
-            disabled={loading}
-            class="save-button"
-            onclick={saveManualGame}
-          >
-            {#if loading}
-              Saving...
-            {:else}
-              Save
-            {/if}
-          </button>
+          <div class="form-handler">
+            <button onclick={pickFile}>Select Game Executable</button>
+            <button
+              disabled={loading}
+              class="save-button"
+              onclick={saveManualGame}
+            >
+              {#if loading}
+                Saving...
+              {:else}
+                Save
+              {/if}
+            </button>
+          </div>
         </div>
       {/if}
     </section>
@@ -453,7 +443,6 @@
     margin: 1rem;
   }
 
-  /* ── Mode toggle ─────────────────────────────────────────────────────────── */
   .mode-toggle {
     display: flex;
     gap: 0;
@@ -471,7 +460,9 @@
     color: var(--secondary-text);
     font-size: 14px;
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
   }
 
   .mode-btn.active {
@@ -484,7 +475,6 @@
     color: var(--main-text);
   }
 
-  /* ── Manual form ─────────────────────────────────────────────────────────── */
   .manual-form {
     display: flex;
     flex-direction: column;
@@ -546,7 +536,6 @@
     white-space: nowrap;
   }
 
-  /* ── Shared form elements ────────────────────────────────────────────────── */
   .search-dropdown {
     position: relative;
     margin-bottom: 1rem;
@@ -595,6 +584,12 @@
     background: color-mix(in srgb, var(--accent), white 5%);
   }
 
+  .form-handler {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
   .game-form .form-group.characters {
     display: flex;
     align-items: center;
@@ -610,7 +605,6 @@
     width: 100%;
     padding: 0.5rem;
     font-size: 18px;
-    margin-top: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
   }

@@ -17,7 +17,7 @@ use url::Url;
 /// returns the value itself after stripping any directory component.
 pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
     if let Ok(parsed) = Url::parse(url) {
-        if let Some(filename) = parsed.path_segments().and_then(|s| s.last()) {
+        if let Some(filename) = parsed.path_segments().and_then(|mut s| s.next_back()) {
             if !filename.is_empty() {
                 return Ok(filename.to_string());
             }

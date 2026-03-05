@@ -25,9 +25,9 @@ pub struct Options {
 
 /// Saves a game to the local storage.
 ///
-/// **NOTE**: For remote-URL games this function downloads the image and saves it locally.
-/// For games with a local image path the file is copied into the images directory.
-/// For games without an image (`image_url` is empty) the step is skipped entirely.
+/// **NOTE**: The image is either downloaded from a remote URL or copied from a
+/// local path.  When `image_url` is empty (manual entry with no cover) the
+/// image step is skipped entirely.
 #[tauri::command]
 pub async fn save_game(
     app_handle: AppHandle,
@@ -41,40 +41,22 @@ pub async fn save_game(
         options.include_characters
     );
 
-    // Determine how to handle the image depending on what was supplied.
+    // Save image (skip when no image was provided).
     let _path: Option<String> = if game.image_url.is_empty() {
-        // No image supplied (manual entry without image) – skip.
         debug!("No image URL provided for game {}, skipping image save", game_id);
         None
-    } else if util::is_local_path(&game.image_url) {
-        // A local file path was supplied – copy the file and store just the filename.
-        debug!("Local image path detected for game {}: {}", game_id, game.image_url);
-        let source = util::strip_file_scheme(&game.image_url).to_string();
-        let source_path = std::path::Path::new(&source);
-        // Build a fallback name that preserves the extension when possible.
-        let fallback: String = source_path
-            .extension()
-            .and_then(|e| e.to_str())
-            .map(|ext| format!("cover.{ext}"))
-            .unwrap_or_else(|| "cover.jpg".to_string());
-        // Preserve the original filename (including extension) for the unique destination.
-        let original_filename = source_path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or(&fallback);
-        let dest_filename = format!("{}_{}", game_id, original_filename);
-        let saved_path = util::save_image_from_path(&app_handle, &source, &dest_filename)
-            .map_err(|e| {
-                error!("Error copying local image for game {}: {:?}", game_id, e);
-                "Error happened while saving image"
-            })?;
-        // Update stored image_url to the unique filename so it resolves correctly on load.
-        game.image_url = dest_filename;
-        debug!("Successfully copied local image for game {}", game_id);
-        Some(saved_path)
     } else {
-        // Remote URL – download as before.
-        let path = util::save_image(&app_handle, &game.image_url)
+        // For local paths generate a unique dest name; for remote URLs derive from the URL.
+        let dest_name = util::is_local_path(&game.image_url).then(|| {
+            let filename = util::extract_image(&game.image_url).unwrap_or_else(|_| "cover.jpg".to_owned());
+            format!("{}_{}", game_id, filename)
+        });
+        let source = game.image_url.clone();
+        // Update stored image_url to the final filename before saving.
+        if let Some(ref name) = dest_name {
+            game.image_url = name.clone();
+        }
+        let path = util::save_image(&app_handle, &source, dest_name.as_deref())
             .await
             .map_err(|e| {
                 error!("Error saving image for game {}: {:?}", game_id, e);
@@ -122,7 +104,7 @@ pub async fn save_game(
             let path = match char.image {
                 Some(p) => {
                     debug!("Saving character image for {} ({})", char.name, p.url);
-                    Some(util::save_image(&app_handle, &p.url).await.map_err(|e| {
+                    Some(util::save_image(&app_handle, &p.url, None).await.map_err(|e| {
                         error!("Error saving character image for {}: {:?}", char.name, e);
                         "Error happened while saving image"
                     })?)
@@ -353,7 +335,7 @@ pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<()
         let path = match char.image {
             Some(p) => {
                 debug!("Saving character image for {} ({})", char.name, p.url);
-                Some(util::save_image(&app_handle, &p.url).await.map_err(|e| {
+                Some(util::save_image(&app_handle, &p.url, None).await.map_err(|e| {
                     error!("Error saving character image for {}: {:?}", char.name, e);
                     "Error happened while saving image"
                 })?)

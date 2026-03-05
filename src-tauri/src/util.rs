@@ -33,10 +33,6 @@ pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
 
 /// Returns `true` when `url` refers to a local file rather than a remote resource.
 pub fn is_local_path(url: &str) -> bool {
-    // Check `file://` scheme first (fastest, no allocation).
-    if url.starts_with("file://") {
-        return true;
-    }
     // Unix absolute path.
     if url.starts_with('/') {
         return true;
@@ -47,20 +43,6 @@ pub fn is_local_path(url: &str) -> bool {
         return true;
     }
     false
-}
-
-/// Strips the `file://` (or `file:///`) scheme prefix from a URL, leaving a
-/// usable filesystem path.  On Windows the leading `/` before the drive letter
-/// is also removed.
-pub fn strip_file_scheme(url: &str) -> &str {
-    let path = url
-        .strip_prefix("file:///")
-        .or_else(|| url.strip_prefix("file://"))
-        .unwrap_or(url);
-    // On Windows paths look like /C:/... after stripping the scheme.
-    #[cfg(windows)]
-    let path = path.trim_start_matches('/');
-    path
 }
 
 pub fn construct_image_path(base_path: &Path, url: &str) -> Result<PathBuf, Box<dyn Error>> {
@@ -99,36 +81,13 @@ pub fn get_pid_from_process_path(process_file_path: &str) -> Option<Pid> {
     None
 }
 
-/// Saves an image to storage by downloading it from a remote URL.
-pub async fn save_image(app_handle: &AppHandle, image_url: &str) -> Result<String, Box<dyn Error>> {
-    let response = reqwest::get(image_url)
-        .await
-        .map_err(|_| "Failed to fetch image")?;
-
-    let base_path = app_handle
-        .path()
-        .app_local_data_dir()
-        .map_err(|err| err.to_string())?;
-
-    scripts::create_images_folder(app_handle).map_err(|err| err.to_string())?;
-
-    let path = construct_image_path(&base_path, image_url)
-        .map_err(|_| "Failed to construct image path")?;
-
-    let mut file = fs::File::create(&path).map_err(|err| err.to_string())?;
-    let mut content = Cursor::new(response.bytes().await.map_err(|err| err.to_string())?);
-
-    std::io::copy(&mut content, &mut file).map_err(|_| "Failed to download image")?;
-
-    Ok(path.to_str().expect("Should not happen").to_owned())
-}
-
-/// Copies a local image file into the app images directory under `dest_filename`.
-/// Returns the full destination path on success.
-pub fn save_image_from_path(
+/// Saves an image to the images directory.
+/// - `source`: HTTP(S) URL (downloaded) or local absolute path (copied).
+/// - `dest_name`: filename to store as. When `None`, the name is derived from `source`.
+pub async fn save_image(
     app_handle: &AppHandle,
-    source_path: &str,
-    dest_filename: &str,
+    source: &str,
+    dest_name: Option<&str>,
 ) -> Result<String, Box<dyn Error>> {
     let base_path = app_handle
         .path()
@@ -137,10 +96,23 @@ pub fn save_image_from_path(
 
     scripts::create_images_folder(app_handle).map_err(|err| err.to_string())?;
 
-    let dest_path = base_path.join("images").join(dest_filename);
-    fs::copy(source_path, &dest_path).map_err(|e| format!("Failed to copy local image: {e}"))?;
+    let filename = dest_name
+        .map(str::to_owned)
+        .unwrap_or_else(|| extract_image(source).unwrap_or_else(|_| "image.jpg".to_owned()));
+    let dest = base_path.join("images").join(&filename);
 
-    Ok(dest_path.to_str().expect("Should not happen").to_owned())
+    if is_local_path(source) {
+        fs::copy(source, &dest).map_err(|e| format!("Failed to copy local image: {e}"))?;
+    } else {
+        let response = reqwest::get(source)
+            .await
+            .map_err(|_| "Failed to fetch image")?;
+        let mut file = fs::File::create(&dest).map_err(|err| err.to_string())?;
+        let mut content = Cursor::new(response.bytes().await.map_err(|err| err.to_string())?);
+        std::io::copy(&mut content, &mut file).map_err(|_| "Failed to download image")?;
+    }
+
+    Ok(dest.to_str().expect("Should not happen").to_owned())
 }
 
 /// Flushes playtime to disk

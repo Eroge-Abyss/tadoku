@@ -25,8 +25,9 @@ pub struct Options {
 
 /// Saves a game to the local storage.
 ///
-/// **NOTE**: This function downloads the image from the provided URL, saves it locally,
-/// and updates the game data in the JSON store.
+/// **NOTE**: For remote-URL games this function downloads the image and saves it locally.
+/// For games with a local image path the file is copied into the images directory.
+/// For games without an image (`image_url` is empty) the step is skipped entirely.
 #[tauri::command]
 pub async fn save_game(
     app_handle: AppHandle,
@@ -40,20 +41,54 @@ pub async fn save_game(
         options.include_characters
     );
 
-    let _path = util::save_image(&app_handle, &game.image_url)
-        .await
-        .map_err(|e| {
-            error!("Error saving image for game {}: {:?}", game_id, e);
-            "Error happened while saving image"
-        })?;
-
-    debug!("Successfully saved game image for {}", game_id);
+    // Determine how to handle the image depending on what was supplied.
+    let _path: Option<String> = if game.image_url.is_empty() {
+        // No image supplied (manual entry without image) – skip.
+        debug!("No image URL provided for game {}, skipping image save", game_id);
+        None
+    } else if util::is_local_path(&game.image_url) {
+        // A local file path was supplied – copy the file and store just the filename.
+        debug!("Local image path detected for game {}: {}", game_id, game.image_url);
+        let source = util::strip_file_scheme(&game.image_url).to_string();
+        let source_path = std::path::Path::new(&source);
+        // Build a fallback name that preserves the extension when possible.
+        let fallback: String = source_path
+            .extension()
+            .and_then(|e| e.to_str())
+            .map(|ext| format!("cover.{ext}"))
+            .unwrap_or_else(|| "cover.jpg".to_string());
+        // Preserve the original filename (including extension) for the unique destination.
+        let original_filename = source_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or(&fallback);
+        let dest_filename = format!("{}_{}", game_id, original_filename);
+        let saved_path = util::save_image_from_path(&app_handle, &source, &dest_filename)
+            .map_err(|e| {
+                error!("Error copying local image for game {}: {:?}", game_id, e);
+                "Error happened while saving image"
+            })?;
+        // Update stored image_url to the unique filename so it resolves correctly on load.
+        game.image_url = dest_filename;
+        debug!("Successfully copied local image for game {}", game_id);
+        Some(saved_path)
+    } else {
+        // Remote URL – download as before.
+        let path = util::save_image(&app_handle, &game.image_url)
+            .await
+            .map_err(|e| {
+                error!("Error saving image for game {}: {:?}", game_id, e);
+                "Error happened while saving image"
+            })?;
+        debug!("Successfully saved game image for {}", game_id);
+        Some(path)
+    };
 
     #[cfg(windows)]
-    {
+    if let Some(ref saved_path) = _path {
         debug!("Extracting and saving icon for game {}", game_id);
         let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
-        let icon_path = format!("{}.icon.png", _path);
+        let icon_path = format!("{}.icon.png", saved_path);
         icon.save(&icon_path).map_err(|e| {
             error!("Error saving icon for game {}: {:?}", game_id, e);
             "Error happened while saving image"

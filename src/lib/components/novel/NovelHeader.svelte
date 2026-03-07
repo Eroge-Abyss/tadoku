@@ -29,6 +29,7 @@
   // svelte-ignore non_reactive_update
   let statusMenuRef: HTMLDivElement;
   let showStatusMenu = $state(false);
+  let isLocalGame = $derived.by(() => novel.id.startsWith('l'));
 
   async function toggleStatus(status: string) {
     const currentStatuses = novel.categories || [];
@@ -220,23 +221,25 @@
               Open Game Directory
             </button>
 
-            <button
-              onclick={withMenuClose(() =>
-                openUrl(`https://vndb.org/${novel.id}`),
-              )}
-              class="menu-item"
-            >
-              <i class="fa-solid fa-arrow-up-right-from-square"></i>
-              Open in VNDB
-            </button>
+            {#if !isLocalGame}
+              <button
+                onclick={withMenuClose(() =>
+                  openUrl(`https://vndb.org/${novel.id}`),
+                )}
+                class="menu-item"
+              >
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                Open in VNDB
+              </button>
 
-            <button
-              onclick={withMenuClose(onDownloadCharacters)}
-              class="menu-item"
-            >
-              <i class="fa-solid fa-user-plus"></i>
-              Download Characters
-            </button>
+              <button
+                onclick={withMenuClose(onDownloadCharacters)}
+                class="menu-item"
+              >
+                <i class="fa-solid fa-user-plus"></i>
+                Download Characters
+              </button>
+            {/if}
 
             <div class="menu-divider"></div>
 

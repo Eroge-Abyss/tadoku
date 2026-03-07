@@ -25,8 +25,9 @@ pub struct Options {
 
 /// Saves a game to the local storage.
 ///
-/// **NOTE**: This function downloads the image from the provided URL, saves it locally,
-/// and updates the game data in the JSON store.
+/// **NOTE**: The image is either downloaded from a remote URL or copied from a
+/// local path.  When `image_url` is empty (manual entry with no cover) the
+/// image step is skipped entirely.
 #[tauri::command]
 pub async fn save_game(
     app_handle: AppHandle,
@@ -40,20 +41,36 @@ pub async fn save_game(
         options.include_characters
     );
 
-    let _path = util::save_image(&app_handle, &game.image_url)
-        .await
-        .map_err(|e| {
-            error!("Error saving image for game {}: {:?}", game_id, e);
-            "Error happened while saving image"
-        })?;
-
-    debug!("Successfully saved game image for {}", game_id);
+    // Save image (skip when no image was provided).
+    let _path: Option<String> = if game.image_url.is_empty() {
+        debug!("No image URL provided for game {}, skipping image save", game_id);
+        None
+    } else {
+        // For local paths generate a unique dest name; for remote URLs derive from the URL.
+        let dest_name = util::is_local_path(&game.image_url).then(|| {
+            let filename = util::extract_image(&game.image_url).unwrap_or_else(|_| "cover.jpg".to_owned());
+            format!("{}_{}", game_id, filename)
+        });
+        let source = game.image_url.clone();
+        // Update stored image_url to the final filename before saving.
+        if let Some(ref name) = dest_name {
+            game.image_url = name.clone();
+        }
+        let path = util::save_image(&app_handle, &source, dest_name.as_deref())
+            .await
+            .map_err(|e| {
+                error!("Error saving image for game {}: {:?}", game_id, e);
+                "Error happened while saving image"
+            })?;
+        debug!("Successfully saved game image for {}", game_id);
+        Some(path)
+    };
 
     #[cfg(windows)]
-    {
+    if let Some(ref saved_path) = _path {
         debug!("Extracting and saving icon for game {}", game_id);
         let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
-        let icon_path = format!("{}.icon.png", _path);
+        let icon_path = format!("{}.icon.png", saved_path);
         icon.save(&icon_path).map_err(|e| {
             error!("Error saving icon for game {}: {:?}", game_id, e);
             "Error happened while saving image"
@@ -87,7 +104,7 @@ pub async fn save_game(
             let path = match char.image {
                 Some(p) => {
                     debug!("Saving character image for {} ({})", char.name, p.url);
-                    Some(util::save_image(&app_handle, &p.url).await.map_err(|e| {
+                    Some(util::save_image(&app_handle, &p.url, None).await.map_err(|e| {
                         error!("Error saving character image for {}: {:?}", char.name, e);
                         "Error happened while saving image"
                     })?)
@@ -318,7 +335,7 @@ pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<()
         let path = match char.image {
             Some(p) => {
                 debug!("Saving character image for {} ({})", char.name, p.url);
-                Some(util::save_image(&app_handle, &p.url).await.map_err(|e| {
+                Some(util::save_image(&app_handle, &p.url, None).await.map_err(|e| {
                     error!("Error saving character image for {}: {:?}", char.name, e);
                     "Error happened while saving image"
                 })?)

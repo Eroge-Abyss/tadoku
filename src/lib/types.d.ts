@@ -7,7 +7,7 @@ type ColorSwatch = {
   index: number;
 };
 
-export interface Game {
+export interface GameDto {
   title: string;
   alt_title: string | null;
   description: string;
@@ -15,6 +15,18 @@ export interface Game {
   image_url: string;
   exe_file_path: string;
   process_file_path: string;
+  is_nsfw: boolean;
+  characters: Character[] | null;
+}
+
+interface Character {
+  id: string;
+  en_name: string;
+  og_name: string | null;
+  image_url: string | null;
+}
+
+export interface Game extends GameDto {
   /** Play time in seconds. */
   playtime: number;
   today_playtime: number;
@@ -22,16 +34,9 @@ export interface Game {
   last_played: number | null;
   first_played: number | null;
   is_pinned: boolean;
-  is_nsfw: boolean;
-  icon_url: string | null;
   categories: string[];
   notes: string;
-  characters: {
-    id: string;
-    en_name: string;
-    og_name: string | null;
-    image_url: string | null;
-  }[];
+  icon_url: string | null;
   /** Cumulative characters read (from exSTATic) */
   chars_read: number;
   /** Total character count from Jiten API (pre-fetched at startup) */

@@ -14,7 +14,8 @@
         id: k,
         char: v.title[0],
         title: v.title,
-        image: v.icon_url ? convertFileSrc(v.icon_url) : null,
+        altTitle: v.alt_title,
+        icon: v.icon_url ? convertFileSrc(v.icon_url) : null,
       })),
   );
 </script>
@@ -27,12 +28,12 @@
         <SquaresIcon style="font-size: 24px;" />
       </SidebarButton>
 
-      {#each pinnedGames as { id, image, char, title } (id)}
+      {#each pinnedGames as { id, icon, char, title, altTitle } (id)}
         <SidebarButton
           onclick={() => invoke('open_game', { gameId: id })}
-          image={image ? image : undefined}
-          text={image ? undefined : char}
-          tooltip={title}
+          image={icon ? icon : undefined}
+          text={icon ? undefined : char}
+          tooltip={appState.useJpForTitleTime && altTitle ? altTitle : title}
         />
       {/each}
 

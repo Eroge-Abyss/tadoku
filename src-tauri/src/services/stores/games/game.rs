@@ -1,11 +1,13 @@
 use super::super::categories::Categories;
 use super::character::Character;
+use crate::prelude::Fetchable;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Game {
     pub title: String,
-    pub alt_title: Option<String>,
+    #[serde(default)]
+    pub alt_title: Fetchable<String>,
     pub description: String,
     /// Is a local file path when loading games only, otherwise it's VNDB image URL
     pub image_url: String,
@@ -33,5 +35,5 @@ pub struct Game {
     pub chars_read: u64,
     /// Total character count from Jiten API (pre-fetched at startup)
     #[serde(default)]
-    pub jiten_char_count: Option<u64>,
+    pub jiten_char_count: Fetchable<u64>,
 }

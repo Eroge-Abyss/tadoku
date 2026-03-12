@@ -60,7 +60,7 @@ pub fn run() {
             }
 
             playtime::ExStaticPlaytime::spawn(app.app_handle());
-            scripts::fetch_jiten_char_counts(app.app_handle());
+            scripts::spawn_background_tasks(app.app_handle());
             info!("Tadoku application setup completed successfully");
 
             Ok(())

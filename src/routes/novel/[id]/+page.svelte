@@ -12,6 +12,7 @@
   import { debounce } from '$lib/util';
   import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
   import type { Process, Tab } from '$lib/types';
+  import { getAvailable } from '$lib/util';
 
   const novel = $derived(appState.loadGame(page.params.id));
 
@@ -64,7 +65,7 @@
   let downloadingCharacters = $state(false);
 
   // Jiten character count is now pre-fetched at startup and stored in game data
-  const jitenCharCount = $derived(novel.jiten_char_count ?? null);
+  const jitenCharCount = $derived(getAvailable(novel.jiten_char_count));
 
   const TABS: Tab[] = $derived([
     {

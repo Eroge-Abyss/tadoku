@@ -6,19 +6,23 @@
   import SquaresIcon from '$lib/components/SquaresIcon.svelte';
   import { appState } from '$lib/state.svelte';
   import SettingsButton from '$lib/components/SettingsButton.svelte';
+  import { getAvailable } from '$lib/util';
 
   let pinnedGames = $derived.by(() =>
     Object.entries(appState.gamesList)
       .filter(([_, v]) => v.is_pinned)
-      .map(([k, v]) => ({
-        id: k,
-        char: (appState.useJpForTitleTime && v.alt_title
-          ? v.alt_title
-          : v.title)[0],
-        title: v.title,
-        altTitle: v.alt_title,
-        icon: v.icon_url ? convertFileSrc(v.icon_url) : null,
-      })),
+      .map(([k, v]) => {
+        const altTitle = getAvailable(v.alt_title);
+        const displayTitle =
+          appState.useJpForTitleTime && altTitle ? altTitle : v.title;
+        return {
+          id: k,
+          char: displayTitle[0],
+          title: v.title,
+          altTitle: altTitle,
+          icon: v.icon_url ? convertFileSrc(v.icon_url) : null,
+        };
+      }),
   );
 </script>
 

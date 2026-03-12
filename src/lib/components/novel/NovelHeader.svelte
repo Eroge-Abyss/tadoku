@@ -8,6 +8,7 @@
   import { appState } from '$lib/state.svelte';
   import StatusSelector from '../StatusSelector.svelte';
   import NsfwPlaceholder from '../NsfwPlaceholder.svelte';
+  import { getAvailable } from '$lib/util';
 
   type Props = {
     novel: Novel;
@@ -36,6 +37,8 @@
     onDeleteDialog,
     onDownloadCharacters,
   }: Props = $props();
+
+  const altTitle = $derived(getAvailable(novel.alt_title));
 
   let menuToggleRef: HTMLButtonElement;
   // svelte-ignore non_reactive_update
@@ -135,8 +138,8 @@
       {/if}
     </div>
     <div class="novel-text">
-      {#if appState.useJpForTitleTime && novel.alt_title}
-        <h1>{novel.alt_title}</h1>
+      {#if appState.useJpForTitleTime && altTitle}
+        <h1>{altTitle}</h1>
         <p class="alt-title">{novel.title}</p>
       {:else}
         <h1>{novel.title}</h1>

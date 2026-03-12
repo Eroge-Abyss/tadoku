@@ -139,7 +139,7 @@ pub fn flush_chars_read(
     let store = GamesStore::new(app_handle).map_err(|_| "Error happened while accessing store")?;
 
     store
-        .update_chars_read(game_id, chars_read)
+        .update_game(game_id, |g| g.chars_read = chars_read)
         .map_err(|_| "Error happened while setting chars_read")?;
 
     Ok(())

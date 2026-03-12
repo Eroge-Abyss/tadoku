@@ -6,8 +6,17 @@
   import type { Game } from '$lib/types';
   import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
   import { formatTime } from '$lib/util';
+  import { getAvailable } from '$lib/util';
 
   let { gamesList }: { gamesList: Record<string, Game> } = $props();
+
+  function getTitle(game: Game): string {
+    if (appState.useJpForTitleTime) {
+      const alt = getAvailable(game.alt_title);
+      if (alt) return alt;
+    }
+    return game.title;
+  }
 
   const totalPlaytime = $derived.by(() => {
     const seconds = Object.values(gamesList).reduce(
@@ -72,9 +81,7 @@
           {id}
           image={game.image_url}
           isNsfw={game.is_nsfw}
-          title={appState.useJpForTitleTime && game.alt_title
-            ? game.alt_title
-            : game.title}
+          title={getTitle(game)}
           playtime={game.playtime}
         />
       </div>

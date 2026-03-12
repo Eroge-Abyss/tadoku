@@ -1,4 +1,4 @@
-use crate::{prelude::Result, services::stores::settings::PlaytimeMode, util, AppState};
+use crate::{AppState, prelude::Result, services::stores::settings::PlaytimeMode, util};
 use futures_util::StreamExt;
 use log::{debug, error, info, warn};
 use serde::Deserialize;
@@ -117,7 +117,7 @@ impl ExStaticPlaytime {
                                         .into_text()
                                         .expect("Shouldn't happen, already made an if check");
 
-                                    match Self::process_input(msg) {
+                                    match Self::process_input(msg.to_string()) {
                                         Ok(data) => {
                                             if let Err(e) = Self::handle(&app_handle, data) {
                                                 error!("Error handling ExStatic data: {}", e);

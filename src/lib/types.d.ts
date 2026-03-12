@@ -7,9 +7,14 @@ type ColorSwatch = {
   index: number;
 };
 
+export type Fetchable<T> =
+  | { type: 'notFetched' }
+  | { type: 'notFound' }
+  | { type: 'available'; value: T };
+
 export interface GameDto {
   title: string;
-  alt_title: string | null;
+  alt_title: Fetchable<string>;
   description: string;
   /** Is a local file path when loading games only, otherwise it's VNDB image URL.*/
   image_url: string;
@@ -40,7 +45,7 @@ export interface Game extends GameDto {
   /** Cumulative characters read (from exSTATic) */
   chars_read: number;
   /** Total character count from Jiten API (pre-fetched at startup) */
-  jiten_char_count: number | null;
+  jiten_char_count: Fetchable<number>;
 }
 
 export interface Options {

@@ -28,7 +28,7 @@
           isOpen = true;
         }, 50);
       })
-      .catch(console.error);
+      .catch((error) => console.error(error as Error));
   });
 
   // Close the modal
@@ -48,7 +48,7 @@
       await update.download();
       await update.install();
     } catch (error) {
-      console.error('Failed to install update:', error);
+      console.error('Failed to install update:', error as Error);
     } finally {
       loading = false;
       closeModal();

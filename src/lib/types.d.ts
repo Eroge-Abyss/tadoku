@@ -19,7 +19,7 @@ export interface GameDto {
   characters: Character[] | null;
 }
 
-interface Character {
+export interface Character {
   id: string;
   en_name: string;
   og_name: string | null;
@@ -90,3 +90,11 @@ export type SortOrder = 'title' | 'last_played' | 'playtime';
 export type DiscordPresenceMode = 'All' | 'None' | 'Menus';
 
 export type PlaytimeMode = 'classic' | 'ex_static';
+
+export type Tab = {
+  id: string;
+  label: string;
+  visible: boolean;
+  disabled: boolean;
+  loading: boolean;
+};

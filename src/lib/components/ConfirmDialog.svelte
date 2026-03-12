@@ -1,5 +1,16 @@
-<script>
+<script lang="ts">
   import Dialog from '$lib/components/Dialog.svelte';
+
+  type Props = {
+    isOpen: boolean;
+    onConfirm?: () => void;
+    title?: string;
+    message?: string;
+    confirmText?: string;
+    cancelText?: string;
+    isDanger?: boolean;
+  };
+
   let {
     isOpen = $bindable(),
     onConfirm,
@@ -8,7 +19,7 @@
     confirmText = 'Confirm',
     cancelText = 'Cancel',
     isDanger = false,
-  } = $props();
+  }: Props = $props();
 
   // Close the modal
   function closeModal() {

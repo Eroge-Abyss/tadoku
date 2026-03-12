@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import SidebarButton from '$lib/components/SidebarButton.svelte';
   import AddGame from '$lib/components/home/AddGame.svelte';
   import { goto } from '$app/navigation';

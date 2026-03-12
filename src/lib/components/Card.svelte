@@ -1,15 +1,23 @@
-<script>
+<script lang="ts">
   import { convertFileSrc } from '@tauri-apps/api/core';
   import { goto } from '$app/navigation';
   import { formatTime } from '$lib/util';
   import { appState } from '$lib/state.svelte';
   import NsfwPlaceholder from './NsfwPlaceholder.svelte';
-  const { id, title, image, playtime, isNsfw } = $props();
+
+  type Props = {
+    id: string;
+    title: string;
+    image: string | null;
+    playtime: number;
+    isNsfw: boolean;
+  };
+  const { id, title, image, playtime, isNsfw }: Props = $props();
 
   const hoursPlayed = $derived(Math.floor(playtime / 3600));
   const minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
 
-  const image_url = $derived(convertFileSrc(image));
+  const image_url = $derived(image ? convertFileSrc(image) : '');
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -110,6 +118,7 @@
     transition: color 0.2s ease-in-out;
     display: -webkit-box;
     -webkit-line-clamp: 2; /* Number of lines before ellipsis */
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;

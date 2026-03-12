@@ -4,12 +4,19 @@
   import { appState } from '$lib/state.svelte';
   import InfoNote from '../InfoNote.svelte';
 
+  type Props = {
+    isOpen: boolean;
+    gameId: string;
+    processList: Process[];
+    title?: string;
+  };
+
   let {
     isOpen = $bindable(),
     gameId,
     processList,
     title = 'Select game process',
-  } = $props();
+  }: Props = $props();
 
   let isDropdownOpen = $state(false);
   let loading = $state(false);
@@ -69,7 +76,7 @@
         </div>
 
         {#if isDropdownOpen}
-          <div class="dropdown-menu show">
+          <div class="dropdown-menu show" role="listbox">
             {#if filteredItems.length === 0}
               <div class="empty-state">
                 <i class="fa-solid fa-circle-xmark"></i>
@@ -78,9 +85,12 @@
               </div>
             {:else}
               {#each filteredItems as item}
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div onclick={() => selectItem(item)} class="dropdown-item">
+                <button
+                  role="option"
+                  aria-selected={process === item}
+                  onclick={() => selectItem(item)}
+                  class="dropdown-item"
+                >
                   <div class="item-icon">
                     {#if item.icon}
                       <img
@@ -99,7 +109,7 @@
                     <span class="item-title">{item.title}</span>
                     <span class="item-path">{item.exe_path}</span>
                   </div>
-                </div>
+                </button>
               {/each}
             {/if}
           </div>
@@ -261,7 +271,14 @@
     background: color-mix(in srgb, var(--accent), white 30%);
   }
 
-  .dropdown-item {
+  button.dropdown-item {
+    background: transparent;
+    border: none;
+    margin: 0;
+    font: inherit;
+    text-align: left;
+    box-sizing: border-box;
+    width: 100%;
     display: flex;
     align-items: center;
     padding: 12px;
@@ -296,6 +313,7 @@
     gap: 2px;
     min-width: 0;
     flex: 1;
+    text-align: left;
   }
 
   .item-title {

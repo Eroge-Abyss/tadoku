@@ -1,6 +1,5 @@
-<script>
-  /** @typedef {import('$lib/types').VndbResult} VndbResult */
-
+<script lang="ts">
+  import { type VndbResult } from '$lib/types';
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
   import Dialog from '$lib/components/Dialog.svelte';
@@ -16,18 +15,14 @@
   let showModal = $state(false);
 
   // shared state
-  /** @type {'vndb' | 'manual'} */
-  let mode = $state('vndb');
-  let exe_path = $state();
+  let mode: 'vndb' | 'manual' = $state('vndb');
+  let exe_path = $state<string | null>(null);
   let loading = $state(false);
 
   // VNDB mode state
-  let search = $state();
-  /**
-   * @type {VndbResult[]}
-   */
-  let results = $state.raw([]);
-  let selectedVn = $state.raw();
+  let search = $state('');
+  let results = $state.raw<VndbResult[]>([]);
+  let selectedVn = $state.raw<VndbResult | null>(null);
   let showImage = $state(false);
   let charactersDownload = $state(false);
 
@@ -38,9 +33,8 @@
   let manualImagePath = $state('');
   let manualIsNsfw = $state(false);
 
-  // @ts-ignore
   async function updateSearch() {
-    const data = await invoke('fetch_vn_info', { key: search });
+    const data = await invoke<VndbResult[]>('fetch_vn_info', { key: search });
     results = search ? data : [];
   }
 
@@ -50,7 +44,7 @@
     // VNDB state
     results = [];
     search = '';
-    selectedVn = '';
+    selectedVn = null;
     // Manual state
     manualTitle = '';
     manualAltTitle = '';
@@ -58,7 +52,7 @@
     manualImagePath = '';
     manualIsNsfw = false;
     // Shared
-    exe_path = undefined;
+    exe_path = null;
     mode = 'vndb';
     loading = false;
   };
@@ -113,18 +107,14 @@
     }
   };
 
-  // @ts-ignore
-  const selectGame = (game) => {
+  const selectGame = (game: VndbResult) => {
     selectedVn = game;
     showImage = false;
     results = [];
     search = '';
   };
 
-  /**
-   * @param {VndbResult} vn
-   */
-  const saveVndbGame = async (vn) => {
+  const saveVndbGame = async (vn: VndbResult | null) => {
     if (!vn || vn.id === undefined) {
       alert('Please select a game from the list.');
       return;
@@ -156,8 +146,9 @@
       closeModal();
     } catch (error) {
       console.error('Error saving game:', error);
-      // @ts-ignore
-      alert(`Failed to save game: ${error.message || 'Unknown error'}`);
+      alert(
+        `Failed to save game: ${(error as Error).message || 'Unknown error'}`,
+      );
     } finally {
       loading = false;
     }
@@ -198,8 +189,9 @@
       closeModal();
     } catch (error) {
       console.error('Error saving manual game:', error);
-      // @ts-ignore
-      alert(`Failed to save game: ${error.message || 'Unknown error'}`);
+      alert(
+        `Failed to save game: ${(error as Error).message || 'Unknown error'}`,
+      );
     } finally {
       loading = false;
     }
@@ -250,11 +242,14 @@
           </div>
 
           {#if results.length > 0}
-            <div id="suggestions">
+            <div id="suggestions" role="listbox">
               {#each results as vn}
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div class="suggestion-item" onclick={() => selectGame(vn)}>
+                <button
+                  role="option"
+                  aria-selected={selectedVn === vn}
+                  class="suggestion-item"
+                  onclick={() => selectGame(vn)}
+                >
                   <div class="suggestion-image">
                     {#if vn?.image?.sexual < NSFW_RATE}
                       <img src={vn?.image?.url} alt={vn?.title} />
@@ -266,7 +261,7 @@
                     <p class="suggestion-title">{vn?.title}</p>
                     <p class="suggestion-id">{vn?.id}</p>
                   </div>
-                </div>
+                </button>
               {/each}
             </div>
           {:else if search && results.length === 0}
@@ -662,7 +657,14 @@
   }
 
   /* Suggestion Item Styling */
-  .suggestion-item {
+  button.suggestion-item {
+    background: transparent;
+    border: none;
+    margin: 0;
+    font: inherit;
+    text-align: left;
+    box-sizing: border-box;
+    width: 100%;
     display: flex;
     align-items: center;
     padding: 12px;
@@ -685,6 +687,7 @@
   .suggestion-content {
     flex: 1;
     min-width: 0;
+    text-align: left;
   }
 
   .suggestion-title {

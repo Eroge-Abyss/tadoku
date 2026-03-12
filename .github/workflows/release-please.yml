@@ -16,6 +16,11 @@ jobs:
           # This tells it to handle both Rust and Node
           manifest-config: .release-please-manifest.json
           config-file: release-please-config.json
+          # Use a PAT so that the tag push triggers the release.yml workflow.
+          # GITHUB_TOKEN does not trigger downstream workflows by design.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          # Create releases as drafts so artifacts can be uploaded before going public
+          draft: true
     permissions:
       pull-requests: write
       contents: write

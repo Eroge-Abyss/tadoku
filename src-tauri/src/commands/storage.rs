@@ -1,4 +1,7 @@
+use crate::commands::jiten;
+use crate::prelude::Fetchable;
 use crate::{
+    AppState,
     services::{
         discord::DiscordPresenceMode,
         stores::{
@@ -9,12 +12,12 @@ use crate::{
         vndb::Vndb,
     },
     util::{self},
-    AppState,
 };
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
+use tokio;
 #[cfg(windows)]
 use windows_icons;
 
@@ -43,12 +46,16 @@ pub async fn save_game(
 
     // Save image (skip when no image was provided).
     let _path: Option<String> = if game.image_url.is_empty() {
-        debug!("No image URL provided for game {}, skipping image save", game_id);
+        debug!(
+            "No image URL provided for game {}, skipping image save",
+            game_id
+        );
         None
     } else {
         // For local paths generate a unique dest name; for remote URLs derive from the URL.
         let dest_name = util::is_local_path(&game.image_url).then(|| {
-            let filename = util::extract_image(&game.image_url).unwrap_or_else(|_| "cover.jpg".to_owned());
+            let filename =
+                util::extract_image(&game.image_url).unwrap_or_else(|_| "cover.jpg".to_owned());
             format!("{}_{}", game_id, filename)
         });
         let source = game.image_url.clone();
@@ -89,7 +96,14 @@ pub async fn save_game(
         game.icon_url = None;
     }
 
-    game.characters = if options.include_characters {
+    let jiten_char_count_fut = jiten::fetch_jiten_char_count(app_handle.clone(), game_id.clone());
+
+    let characters_fut = async {
+        if !options.include_characters {
+            debug!("Skipping character fetching for game {}", game_id);
+            return Ok::<_, String>(None);
+        }
+
         info!("Fetching characters for game {}", game_id);
         let chars = Vndb::get_vn_characters(&game_id).await.map_err(|e| {
             error!("Error fetching characters for game {}: {}", game_id, e);
@@ -104,10 +118,14 @@ pub async fn save_game(
             let path = match char.image {
                 Some(p) => {
                     debug!("Saving character image for {} ({})", char.name, p.url);
-                    Some(util::save_image(&app_handle, &p.url, None).await.map_err(|e| {
-                        error!("Error saving character image for {}: {:?}", char.name, e);
-                        "Error happened while saving image"
-                    })?)
+                    Some(
+                        util::save_image(&app_handle, &p.url, None)
+                            .await
+                            .map_err(|e| {
+                                error!("Error saving character image for {}: {:?}", char.name, e);
+                                "Error happened while saving image".to_string()
+                            })?,
+                    )
                 }
                 None => {
                     debug!("No image found for character: {}", char.name);
@@ -128,11 +146,30 @@ pub async fn save_game(
             new_chars.len(),
             game_id
         );
-        Some(new_chars)
-    } else {
-        debug!("Skipping character fetching for game {}", game_id);
-        None
+        Ok(Some(new_chars))
     };
+
+    let (jiten_result, characters_result) = tokio::join!(jiten_char_count_fut, characters_fut);
+
+    game.jiten_char_count = match jiten_result {
+        Ok(Some(count)) => {
+            info!(
+                "Successfully fetched Jiten character count ({}) for game {}",
+                count, game_id
+            );
+            Fetchable::Available(count)
+        }
+        Ok(None) => {
+            info!("No Jiten character count found for game {}", game_id);
+            Fetchable::NotFound
+        }
+        Err(e) => {
+            warn!("Jiten fetch failed for {}: {}", game_id, e);
+            Fetchable::NotFetched
+        }
+    };
+
+    game.characters = characters_result?;
 
     let store = GamesStore::new(&app_handle).map_err(|e| {
         error!("Error accessing games store for {}: {:?}", game_id, e);
@@ -335,10 +372,14 @@ pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<()
         let path = match char.image {
             Some(p) => {
                 debug!("Saving character image for {} ({})", char.name, p.url);
-                Some(util::save_image(&app_handle, &p.url, None).await.map_err(|e| {
-                    error!("Error saving character image for {}: {:?}", char.name, e);
-                    "Error happened while saving image"
-                })?)
+                Some(
+                    util::save_image(&app_handle, &p.url, None)
+                        .await
+                        .map_err(|e| {
+                            error!("Error saving character image for {}: {:?}", char.name, e);
+                            "Error happened while saving image"
+                        })?,
+                )
             }
             None => {
                 debug!("No image found for character: {}", char.name);

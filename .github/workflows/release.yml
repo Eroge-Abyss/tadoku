@@ -1,12 +1,10 @@
-name: 'publish'
+name: 'Publish Release'
 
 on:
   workflow_dispatch:
   push:
     tags:
       - 'app-v*'
-    # branches:
-    #   - release
 
 jobs:
   publish-tauri:
@@ -37,9 +35,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Tadoku ${{ github.ref_name }}'
-          releaseBody: 'See the assets to download this version and install.'
+          tagName: app-v__VERSION__
+          releaseName: 'Tadoku v__VERSION__'
           releaseDraft: true
           prerelease: false
           args: ''

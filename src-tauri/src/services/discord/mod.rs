@@ -2,8 +2,8 @@ mod game_details;
 use crate::prelude::Result;
 pub use crate::services::discord::game_details::DiscordGameDetails;
 use discord_rich_presence::{
-    activity::{Activity, Assets, Button, Timestamps},
     DiscordIpc, DiscordIpcClient,
+    activity::{Activity, Assets, Button, Timestamps},
 };
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};

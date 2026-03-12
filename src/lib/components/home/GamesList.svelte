@@ -129,7 +129,7 @@
   }
 
   .total-playtime {
-    font-size: 0.875rem;
+    font-size: 1rem;
     color: var(--secondary-text);
     display: flex;
     align-items: center;

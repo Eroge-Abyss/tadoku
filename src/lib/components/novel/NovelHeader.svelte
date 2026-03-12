@@ -107,13 +107,17 @@
     <div class="novel-image">
       {#if novel.is_nsfw && appState.hideNsfwImages}
         <NsfwPlaceholder />
-      {:else}
+      {:else if novel.image_url}
         <img
           src={convertFileSrc(novel.image_url)}
           alt={novel.title}
           class:blur={novel.is_nsfw}
           in:fly={{ y: 50, duration: 500, delay: 300 }}
         />
+      {:else}
+        <div class="no-image">
+          <i class="fa-solid fa-image"></i>
+        </div>
       {/if}
     </div>
     <div class="novel-text">
@@ -304,6 +308,22 @@
     object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  .no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--accent);
+    color: var(--secondary);
+    border-radius: 8px;
+  }
+
+  .no-image i {
+    font-size: 3rem;
+    opacity: 0.5;
   }
 
   h1 {

@@ -18,8 +18,12 @@
   <div class="card-image">
     {#if isNsfw && appState?.hideNsfwImages}
       <NsfwPlaceholder />
-    {:else}
+    {:else if image}
       <img src={image_url} alt={title} class:blur={isNsfw} />
+    {:else}
+      <div class="no-image">
+        <i class="fa-solid fa-image"></i>
+      </div>
     {/if}
   </div>
 
@@ -77,6 +81,21 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  .no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--accent);
+    color: var(--secondary);
+  }
+
+  .no-image i {
+    font-size: 3rem;
+    opacity: 0.5;
   }
 
   .card-content {

@@ -4,12 +4,19 @@
   import { appState } from '$lib/state.svelte';
   import InfoNote from '../InfoNote.svelte';
 
+  type Props = {
+    isOpen: boolean;
+    gameId: string;
+    processList: Process[];
+    title?: string;
+  };
+
   let {
     isOpen = $bindable(),
     gameId,
     processList,
     title = 'Select game process',
-  } = $props();
+  }: Props = $props();
 
   let isDropdownOpen = $state(false);
   let loading = $state(false);

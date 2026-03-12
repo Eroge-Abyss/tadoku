@@ -9,6 +9,20 @@
   import StatusSelector from '../StatusSelector.svelte';
   import NsfwPlaceholder from '../NsfwPlaceholder.svelte';
 
+  type Props = {
+    novel: Novel;
+    playing: boolean;
+    activeMenu: boolean;
+    onStartGame: () => void;
+    onStopGame: () => void;
+    onTogglePin: () => void;
+    onEditExe: () => void;
+    onProcessDialog: () => void;
+    onResetStats: () => void;
+    onDeleteDialog: () => void;
+    onDownloadCharacters: () => void;
+  };
+
   let {
     novel,
     playing,
@@ -21,7 +35,7 @@
     onResetStats,
     onDeleteDialog,
     onDownloadCharacters,
-  }: { novel: Novel; [key: string]: any } = $props();
+  }: Props = $props();
 
   let menuToggleRef: HTMLButtonElement;
   // svelte-ignore non_reactive_update

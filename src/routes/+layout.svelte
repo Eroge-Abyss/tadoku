@@ -4,27 +4,28 @@
   import '../app.css';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import { getCurrentWindow } from '@tauri-apps/api/window';
-  import { onMount } from 'svelte';
+  import { onMount, type Snippet } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
   import UpdateDialog from '$lib/components/UpdateDialog.svelte';
-  import { appState, type CurrentGame } from '$lib/state.svelte';
+  import { appState } from '$lib/state.svelte';
   import { type Event } from '@tauri-apps/api/event';
+  import type { CurrentGame } from '$lib/types';
 
-  const { children } = $props();
+  const { children }: { children: Snippet } = $props();
   const appWindow = getCurrentWindow();
-  let refreshInterval: number;
-
-  document
-    .getElementById('titlebar-minimize')
-    ?.addEventListener('click', () => appWindow.minimize());
-  document
-    .getElementById('titlebar-maximize')
-    ?.addEventListener('click', () => appWindow.toggleMaximize());
-  document
-    .getElementById('titlebar-close')
-    ?.addEventListener('click', () => appWindow.close());
+  let refreshInterval: ReturnType<typeof setInterval>;
 
   onMount(() => {
+    document
+      .getElementById('titlebar-minimize')
+      ?.addEventListener('click', () => appWindow.minimize());
+    document
+      .getElementById('titlebar-maximize')
+      ?.addEventListener('click', () => appWindow.toggleMaximize());
+    document
+      .getElementById('titlebar-close')
+      ?.addEventListener('click', () => appWindow.close());
+
     listen('current_game', (e: Event<CurrentGame | null>) => {
       appState.currentGame = e.payload;
       clearInterval(refreshInterval);

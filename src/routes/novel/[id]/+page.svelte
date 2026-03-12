@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -11,6 +11,7 @@
   import { appState } from '$lib/state.svelte';
   import { debounce } from '$lib/util';
   import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
+  import type { Process, Tab } from '$lib/types';
 
   const novel = $derived(appState.loadGame(page.params.id));
 
@@ -50,7 +51,7 @@
   let playing = $state(false);
   let activeMenu = $state(false);
   let editingNotes = $state(false);
-  let processList = $state();
+  let processList = $state<Process[]>([]);
   let processDialog = $state(false);
   let deleteDialog = $state(false);
   let resetStatsDialog = $state(false);
@@ -62,12 +63,13 @@
   // Jiten character count is now pre-fetched at startup and stored in game data
   const jitenCharCount = $derived(novel.jiten_char_count ?? null);
 
-  const TABS = $derived([
+  const TABS: Tab[] = $derived([
     {
       label: 'Progress Overview',
       id: 'progress',
       visible: true,
       disabled: false,
+      loading: false,
     },
     {
       label: 'Characters',
@@ -81,6 +83,7 @@
       id: 'notes',
       visible: true,
       disabled: false,
+      loading: false,
     },
   ]);
 
@@ -195,14 +198,9 @@
     }
   };
 
-  /** @param {MouseEvent} e */
-  function handleMenuClick(e) {
+  function handleMenuClick(e: MouseEvent) {
     // Check if the click occurred directly on the modal backdrop
-    if (
-      /** @type {HTMLElement} */ (e.target)?.classList.contains(
-        'secondary-menu',
-      )
-    ) {
+    if ((e.target as HTMLElement)?.classList.contains('secondary-menu')) {
       activeMenu = false;
     }
   }

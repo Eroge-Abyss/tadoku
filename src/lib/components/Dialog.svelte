@@ -1,11 +1,19 @@
-<script>
+<script lang="ts">
+  import type { Snippet } from 'svelte';
   import CloseIcon from '$lib/components/CloseIcon.svelte';
-  let { show, close, header, children } = $props(); // Prop to control visibility
 
-  // @ts-ignore
-  function handleModalClick(e) {
+  type Props = {
+    show: boolean;
+    close: () => void;
+    header: Snippet;
+    children: Snippet;
+  };
+
+  let { show, close, header, children }: Props = $props();
+
+  function handleModalClick(e: MouseEvent) {
     // Check if the click occurred directly on the modal backdrop
-    if (e.target?.classList.contains('modal')) {
+    if ((e.target as HTMLElement)?.classList.contains('modal')) {
       close();
     }
   }

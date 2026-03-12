@@ -1,12 +1,20 @@
 <script lang="ts">
   import { GAME_STATUSES } from '$lib/constants';
+  import Checkbox from './Checkbox.svelte';
+
+  type Props = {
+    categories: string[] | undefined;
+    toggleStatus: (status: string) => void;
+    clearStatuses: () => void;
+    showUncategorized?: boolean;
+  };
+
   let {
     categories,
     toggleStatus,
     clearStatuses,
     showUncategorized = false,
-  } = $props();
-  import Checkbox from './Checkbox.svelte';
+  }: Props = $props();
 </script>
 
 {#each GAME_STATUSES as statusItem}
@@ -14,7 +22,7 @@
     {statusItem}
     <Checkbox
       id={`checkbox-${statusItem}`}
-      checked={categories?.includes(statusItem)}
+      checked={categories ? categories.includes(statusItem) : false}
       onchange={() => toggleStatus(statusItem)}
     />
   </label>
@@ -24,7 +32,7 @@
     Uncategorized
     <Checkbox
       id="checkbox-Uncategorized"
-      checked={categories?.includes('Uncategorized')}
+      checked={categories ? categories.includes('Uncategorized') : false}
       onchange={() => toggleStatus('Uncategorized')}
     />
   </label>

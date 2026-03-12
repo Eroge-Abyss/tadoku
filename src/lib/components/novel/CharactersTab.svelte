@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
   import { convertFileSrc } from '@tauri-apps/api/core';
   import { fly } from 'svelte/transition';
   import { openUrl } from '@tauri-apps/plugin-opener';
+  import type { Character } from '$lib/types';
 
-  let { characters = $bindable() } = $props();
+  let { characters = $bindable() }: { characters: Character[] } = $props();
 </script>
 
 <div class="characters" in:fly={{ y: 20, duration: 300 }}>

@@ -1,6 +1,20 @@
-<script>
+<script lang="ts">
   import { formatTime } from '$lib/util';
   import { fly } from 'svelte/transition';
+  import type { PlaytimeMode } from '$lib/types';
+
+  type Props = {
+    hoursPlayed: number;
+    minutesPlayed: number;
+    todayHoursPlayed: number;
+    todayMinutesPlayed: number;
+    firstPlayedDate: Date | null;
+    lastPlayedDate: Date | null;
+    formatRelativeDate: (date: Date) => string;
+    jitenCharCount?: number | null;
+    charsRead?: number;
+    playtimeMode?: PlaytimeMode;
+  };
 
   let {
     hoursPlayed,
@@ -13,16 +27,7 @@
     jitenCharCount = null,
     charsRead = 0,
     playtimeMode = 'classic',
-  } = $props();
-
-  /**
-   * Formats a number with thousands separators.
-   * @param {number} n
-   * @returns {string}
-   */
-  function formatNumber(n) {
-    return n.toLocaleString();
-  }
+  }: Props = $props();
 
   const progressPercent = $derived(
     jitenCharCount !== null && jitenCharCount > 0
@@ -68,7 +73,7 @@
       in:fly={{ y: 20, duration: 500, delay: 100 }}
     >
       <p class="stat-label">Chars Read</p>
-      <span class="stat-value">{formatNumber(charsRead)}</span>
+      <span class="stat-value">{charsRead.toLocaleString()}</span>
       {#if jitenCharCount !== null && charsRead > 0}
         <span class="progress-badge">{progressPercent.toFixed(1)}%</span>
         <div class="bottom-progress">
@@ -83,7 +88,7 @@
       <p class="stat-label">Total Chars (Jiten)</p>
       <span class="stat-value">
         {#if jitenCharCount !== null}
-          {formatNumber(jitenCharCount)}
+          {jitenCharCount.toLocaleString()}
         {:else}
           <span class="na-text">N/A</span>
         {/if}

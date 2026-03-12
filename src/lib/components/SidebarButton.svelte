@@ -1,10 +1,12 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   interface Props {
     text?: string;
     image?: string | null;
     style?: string;
     tooltip: string;
-    children?: any;
+    children?: Snippet;
     onclick: (event: MouseEvent) => void;
   }
 

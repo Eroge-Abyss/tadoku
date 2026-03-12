@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import GamesList from '$lib/components/home/GamesList.svelte';
   import { onMount } from 'svelte';
   import { appState } from '$lib/state.svelte';

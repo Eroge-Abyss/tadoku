@@ -114,7 +114,7 @@
       appState.setDisablePresenceOnNsfw(true);
       appState.setDiscordPresenceMode('All');
     } catch (error) {
-      console.error('Error resetting settings:', error);
+      console.error('Error resetting settings:', error as Error);
     }
   }
 
@@ -123,7 +123,7 @@
       const logsDir = await appLogDir();
       await revealItemInDir(logsDir);
     } catch (error) {
-      console.error('Error opening logs directory:', error);
+      console.error('Error opening logs directory:', error as Error);
     }
   }
 

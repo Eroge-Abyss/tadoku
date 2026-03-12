@@ -1,0 +1,12 @@
+{
+  "packages": {
+    ".": { "release-type": "node" },
+    "src-tauri": {
+      "release-type": "rust",
+      "component": "app",
+      "package-name": "tadoku"
+    }
+  },
+  "include-component-in-tag": true,
+  "tag-separator": "-"
+}

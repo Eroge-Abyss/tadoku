@@ -16,3 +16,6 @@ jobs:
           # This tells it to handle both Rust and Node
           manifest-config: .release-please-manifest.json
           config-file: release-please-config.json
+    permissions:
+      pull-requests: write
+      contents: write

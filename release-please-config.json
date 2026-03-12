@@ -1,6 +1,5 @@
 {
   "packages": {
-    ".": { "release-type": "node" },
     "src-tauri": {
       "release-type": "rust",
       "component": "app",

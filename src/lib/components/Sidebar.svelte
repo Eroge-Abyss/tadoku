@@ -12,7 +12,9 @@
       .filter(([_, v]) => v.is_pinned)
       .map(([k, v]) => ({
         id: k,
-        char: v.title[0],
+        char: (appState.useJpForTitleTime && v.alt_title
+          ? v.alt_title
+          : v.title)[0],
         title: v.title,
         altTitle: v.alt_title,
         icon: v.icon_url ? convertFileSrc(v.icon_url) : null,

@@ -5,3 +5,4 @@ publish = false
 
 [[package]]
 name = "tadoku"
+path = "src-tauri"

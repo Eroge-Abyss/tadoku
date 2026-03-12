@@ -3,7 +3,8 @@
     "src-tauri": {
       "release-type": "rust",
       "component": "app",
-      "package-name": "tadoku"
+      "package-name": "tadoku",
+      "release-name": "Tadoku v{{version}}"
     }
   },
   "include-component-in-tag": true,

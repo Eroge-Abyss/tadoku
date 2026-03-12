@@ -36,7 +36,6 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
           tagName: app-v__VERSION__
-          releaseName: 'Tadoku v__VERSION__'
           releaseDraft: true
           prerelease: false
           args: ''

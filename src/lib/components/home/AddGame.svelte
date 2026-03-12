@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type VndbResult } from '$lib/types';
+  import { type Fetchable, type VndbResult } from '$lib/types';
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
   import Dialog from '$lib/components/Dialog.svelte';
@@ -129,7 +129,10 @@
     try {
       const gameData = {
         title: vn.title,
-        alt_title: vn.alttitle,
+        alt_title: {
+          type: 'available',
+          value: vn.alttitle,
+        } as Fetchable<string>,
         description: vn.description || 'No Description',
         exe_file_path: exe_path,
         process_file_path: exe_path,
@@ -172,7 +175,10 @@
 
       const gameData = {
         title: manualTitle.trim(),
-        alt_title: manualAltTitle.trim() || null,
+        alt_title: {
+          type: 'available',
+          value: manualAltTitle.trim() || { type: 'notFound' },
+        } as Fetchable<string>,
         description: manualDescription.trim(),
         exe_file_path: exe_path,
         process_file_path: exe_path,

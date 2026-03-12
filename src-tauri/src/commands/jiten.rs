@@ -44,10 +44,7 @@ pub async fn fetch_jiten_char_count(
     let base_url = base_url.trim_end_matches('/');
 
     // Step 1: Look up deck IDs by VNDB link type (2 = Vndb)
-    let lookup_url = format!(
-        "{}/api/media-deck/by-link-id/2/{}",
-        base_url, game_id
-    );
+    let lookup_url = format!("{}/api/media-deck/by-link-id/2/{}", base_url, game_id);
     debug!("Jiten lookup URL: {}", lookup_url);
 
     let client = reqwest::Client::new();
@@ -116,7 +113,9 @@ pub async fn fetch_jiten_char_count(
         }
     }
 
-    info!("No character count data in Jiten response for game {}", game_id);
+    info!(
+        "No character count data in Jiten response for game {}",
+        game_id
+    );
     Ok(None)
 }
-

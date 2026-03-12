@@ -1,5 +1,5 @@
 use super::super::stores::games::GamesStore;
-use crate::{services::stores::settings::PlaytimeMode, AppState};
+use crate::{AppState, services::stores::settings::PlaytimeMode};
 use log::{debug, error, info, warn};
 use std::{sync::Mutex, thread, time::Duration};
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};

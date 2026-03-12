@@ -1,9 +1,30 @@
-<script>
+<script lang="ts">
   import { fly } from 'svelte/transition';
   import { formatRelativeDate } from '$lib/util';
   import ProgressOverview from './ProgressOverview.svelte';
   import CharactersTab from './CharactersTab.svelte';
   import NotesTab from './NotesTab.svelte';
+  import type { Novel, PlaytimeMode, Tab } from '$lib/types';
+
+  type Props = {
+    novel: Novel;
+    selectedTab: string;
+    tabs: Tab[];
+    hoursPlayed: number;
+    minutesPlayed: number;
+    todayHoursPlayed: number;
+    todayMinutesPlayed: number;
+    firstPlayedDate: Date | null;
+    lastPlayedDate: Date | null;
+    jitenCharCount?: number | null;
+    charsRead?: number;
+    playtimeMode?: PlaytimeMode;
+    notes: string;
+    editingNotes: boolean;
+    onSaveNotes: () => void;
+    onCancelEdit: () => void;
+    onStartEdit: () => void;
+  };
 
   let {
     novel,
@@ -15,12 +36,15 @@
     todayMinutesPlayed,
     firstPlayedDate,
     lastPlayedDate,
+    jitenCharCount = null,
+    charsRead = 0,
+    playtimeMode = 'classic',
     notes = $bindable(),
     editingNotes = $bindable(),
     onSaveNotes,
     onCancelEdit,
     onStartEdit,
-  } = $props();
+  }: Props = $props();
 </script>
 
 {#snippet spinner()}
@@ -63,6 +87,9 @@
         {firstPlayedDate}
         {lastPlayedDate}
         {formatRelativeDate}
+        {jitenCharCount}
+        {charsRead}
+        {playtimeMode}
       />
     {:else if selectedTab == 'characters'}
       {#if novel.characters && novel.characters.length > 0}

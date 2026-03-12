@@ -43,6 +43,9 @@ impl GamesStore {
         let mut games: Games = serde_json::from_value(self.get_store_value())?;
 
         for game in games.values_mut() {
+            if game.image_url.is_empty() {
+                continue;
+            }
             game.image_url = util::construct_image_path(&self.base_app_path, &game.image_url)?
                 .to_str()
                 .ok_or("Error happened while constructing image path")?
@@ -57,11 +60,13 @@ impl GamesStore {
         let mut games: Games = serde_json::from_value(self.get_store_value())?;
 
         if let Some(removed_game) = games.remove(game_id) {
-            fs::remove_file(util::construct_image_path(
-                &self.base_app_path,
-                &removed_game.image_url,
-            )?)
-            .map_err(|err| err.to_string())?;
+            if !removed_game.image_url.is_empty() {
+                fs::remove_file(util::construct_image_path(
+                    &self.base_app_path,
+                    &removed_game.image_url,
+                )?)
+                .map_err(|err| err.to_string())?;
+            }
 
             if let Some(characters) = removed_game.characters {
                 for character in characters {
@@ -89,6 +94,7 @@ impl GamesStore {
             game.last_played = None;
             game.first_played = None;
             game.last_play_date = None;
+            game.chars_read = 0;
         })
     }
 

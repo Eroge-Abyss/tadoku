@@ -8,6 +8,21 @@
   import { appState } from '$lib/state.svelte';
   import StatusSelector from '../StatusSelector.svelte';
   import NsfwPlaceholder from '../NsfwPlaceholder.svelte';
+  import { getAvailable } from '$lib/util';
+
+  type Props = {
+    novel: Novel;
+    playing: boolean;
+    activeMenu: boolean;
+    onStartGame: () => void;
+    onStopGame: () => void;
+    onTogglePin: () => void;
+    onEditExe: () => void;
+    onProcessDialog: () => void;
+    onResetStats: () => void;
+    onDeleteDialog: () => void;
+    onDownloadCharacters: () => void;
+  };
 
   let {
     novel,
@@ -21,7 +36,9 @@
     onResetStats,
     onDeleteDialog,
     onDownloadCharacters,
-  }: { novel: Novel; [key: string]: any } = $props();
+  }: Props = $props();
+
+  const altTitle = $derived(getAvailable(novel.alt_title));
 
   let menuToggleRef: HTMLButtonElement;
   // svelte-ignore non_reactive_update
@@ -29,6 +46,7 @@
   // svelte-ignore non_reactive_update
   let statusMenuRef: HTMLDivElement;
   let showStatusMenu = $state(false);
+  let isLocalGame = $derived.by(() => novel.id.startsWith('l'));
 
   async function toggleStatus(status: string) {
     const currentStatuses = novel.categories || [];
@@ -106,18 +124,22 @@
     <div class="novel-image">
       {#if novel.is_nsfw && appState.hideNsfwImages}
         <NsfwPlaceholder />
-      {:else}
+      {:else if novel.image_url}
         <img
           src={convertFileSrc(novel.image_url)}
           alt={novel.title}
           class:blur={novel.is_nsfw}
           in:fly={{ y: 50, duration: 500, delay: 300 }}
         />
+      {:else}
+        <div class="no-image">
+          <i class="fa-solid fa-image"></i>
+        </div>
       {/if}
     </div>
     <div class="novel-text">
-      {#if appState.useJpForTitleTime && novel.alt_title}
-        <h1>{novel.alt_title}</h1>
+      {#if appState.useJpForTitleTime && altTitle}
+        <h1>{altTitle}</h1>
         <p class="alt-title">{novel.title}</p>
       {:else}
         <h1>{novel.title}</h1>
@@ -220,23 +242,25 @@
               Open Game Directory
             </button>
 
-            <button
-              onclick={withMenuClose(() =>
-                openUrl(`https://vndb.org/${novel.id}`),
-              )}
-              class="menu-item"
-            >
-              <i class="fa-solid fa-arrow-up-right-from-square"></i>
-              Open in VNDB
-            </button>
+            {#if !isLocalGame}
+              <button
+                onclick={withMenuClose(() =>
+                  openUrl(`https://vndb.org/${novel.id}`),
+                )}
+                class="menu-item"
+              >
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                Open in VNDB
+              </button>
 
-            <button
-              onclick={withMenuClose(onDownloadCharacters)}
-              class="menu-item"
-            >
-              <i class="fa-solid fa-user-plus"></i>
-              Download Characters
-            </button>
+              <button
+                onclick={withMenuClose(onDownloadCharacters)}
+                class="menu-item"
+              >
+                <i class="fa-solid fa-user-plus"></i>
+                Download Characters
+              </button>
+            {/if}
 
             <div class="menu-divider"></div>
 
@@ -301,6 +325,22 @@
     object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  .no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--accent);
+    color: var(--secondary);
+    border-radius: 8px;
+  }
+
+  .no-image i {
+    font-size: 3rem;
+    opacity: 0.5;
   }
 
   h1 {

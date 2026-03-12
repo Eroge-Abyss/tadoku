@@ -1,15 +1,16 @@
 import { invoke } from '@tauri-apps/api/core';
-import { THEMES, DEFAULT_THEME_SETTINGS } from './constants.js';
-/**
- * @typedef {import('$lib/types').Game} Game
- * @typedef {import('$lib/types').Novel} Novel
- * @typedef {import('$lib/types').Options} Options
- * @typedef {import('$lib/types').CurrentGame} CurrentGame
- * @typedef {import('$lib/types').ThemeSettings} ThemeSettings
- * @typedef {import('$lib/types').SortOrder} SortOrder
- * @typedef {import('$lib/types').DiscordPresenceMode} DiscordPresenceMode
- * @typedef {import('$lib/types').PlaytimeMode} PlaytimeMode
- */
+import { THEMES, DEFAULT_THEME_SETTINGS } from './constants';
+import type { Options } from 'prettier';
+import type {
+  CurrentGame,
+  DiscordPresenceMode,
+  Game,
+  GameDto,
+  Novel,
+  PlaytimeMode,
+  SortOrder,
+  ThemeSettings,
+} from './types';
 
 /**
  * Manages the global application state, including the games list,
@@ -21,65 +22,65 @@ class AppState {
    * The list of games, keyed by game ID.
    * @type {Record<string, Game>}
    */
-  #gamesList = $state({});
+  #gamesList: Record<string, Game> = $state({});
 
   /**
    * The currently selected or active game.
    * @type {CurrentGame | null}
    */
-  #currentGame = $state(null);
+  #currentGame: CurrentGame | null = $state(null);
 
   /**
    * The user's theme settings.
    * @type {ThemeSettings}
    */
-  #themeSettings = $state({ ...DEFAULT_THEME_SETTINGS });
+  #themeSettings: ThemeSettings = $state({ ...DEFAULT_THEME_SETTINGS });
 
   /**
    * The current sort order for the games list.
    * @type {SortOrder | null}
    */
-  #sortOrder = $state(null);
+  #sortOrder: SortOrder | null = $state(null);
 
   /**
    * Whether Discord presence should be disabled for NSFW games.
    * @type {boolean}
    */
-  #disablePresenceOnNsfw = $state(true);
+  #disablePresenceOnNsfw: boolean = $state(true);
 
   /**
    * Whether the random game picker button should be shown.
    * @type {boolean}
    */
-  #showRandomButton = $state(false);
+  #showRandomButton: boolean = $state(false);
 
   /**
    * The current Discord presence mode setting.
    * @type {DiscordPresenceMode}
    */
-  #discordPresenceMode = $state('All');
+  #discordPresenceMode: DiscordPresenceMode = $state('All');
 
   /**
    * The current playtime mode setting.
    * @type {PlaytimeMode}
    */
-  #playtimeMode = $state('classic');
+  #playtimeMode: PlaytimeMode = $state('classic');
 
   /**
    * Whether to use Japanese for title and time display.
    * @type {boolean}
    */
-  #useJpForTitleTime = $state(false);
+  #useJpForTitleTime: boolean = $state(false);
 
   /**
    * @type {boolean}
    */
-  #hideNsfwImages = $state(false);
+  #hideNsfwImages: boolean = $state(false);
 
   /**
    * @type {string[]}
    */
-  #selectedCategories = $state([]);
+  #selectedCategories: string[] = $state([]);
 
   /**
    * Creates an instance of AppState and loads initial settings.
@@ -102,7 +103,7 @@ class AppState {
    * Gets the currently active game.
    * @returns {CurrentGame | null}
    */
-  get currentGame() {
+  get currentGame(): CurrentGame | null {
     return this.#currentGame;
   }
 
@@ -110,7 +111,7 @@ class AppState {
    * Gets whether Discord presence is disabled for NSFW games.
    * @returns {boolean}
    */
-  get disablePresenceOnNsfw() {
+  get disablePresenceOnNsfw(): boolean {
     return this.#disablePresenceOnNsfw;
   }
 
@@ -118,7 +119,7 @@ class AppState {
    * Gets the current Discord presence mode.
    * @returns {DiscordPresenceMode}
    */
-  get discordPresenceMode() {
+  get discordPresenceMode(): DiscordPresenceMode {
     return this.#discordPresenceMode;
   }
 
@@ -126,7 +127,7 @@ class AppState {
    * Gets the current playtime mode setting.
    * @returns {PlaytimeMode} The current playtime mode.
    */
-  get playtimeMode() {
+  get playtimeMode(): PlaytimeMode {
     return this.#playtimeMode;
   }
 
@@ -134,7 +135,7 @@ class AppState {
    * Gets the state of the random game picker button.
    * @returns {boolean}
    */
-  get showRandomButton() {
+  get showRandomButton(): boolean {
     return this.#showRandomButton;
   }
 
@@ -142,7 +143,7 @@ class AppState {
    * Gets whether to use Japanese for title time display.
    * @returns {boolean}
    */
-  get useJpForTitleTime() {
+  get useJpForTitleTime(): boolean {
     return this.#useJpForTitleTime;
   }
 
@@ -150,7 +151,7 @@ class AppState {
    * Gets whether to hide NSFW images in home page.
    * @returns {boolean}
    */
-  get hideNsfwImages() {
+  get hideNsfwImages(): boolean {
     return this.#hideNsfwImages;
   }
 
@@ -158,7 +159,7 @@ class AppState {
    * Gets the list of games.
    * @returns {Record<string, Game>}
    */
-  get gamesList() {
+  get gamesList(): Record<string, Game> {
     return this.#gamesList;
   }
 
@@ -166,7 +167,7 @@ class AppState {
    * Gets the current theme settings.
    * @returns {ThemeSettings}
    */
-  get themeSettings() {
+  get themeSettings(): ThemeSettings {
     return this.#themeSettings;
   }
 
@@ -174,7 +175,7 @@ class AppState {
    * Gets the current sort order for the games list.
    * @returns {SortOrder | null}
    */
-  get sortOrder() {
+  get sortOrder(): SortOrder | null {
     return this.#sortOrder;
   }
 
@@ -182,7 +183,7 @@ class AppState {
    * Gets the currently selected filter categories for the games list.
    * @returns {string[]}
    */
-  get selectedCategories() {
+  get selectedCategories(): string[] {
     return this.#selectedCategories;
   }
 
@@ -192,7 +193,7 @@ class AppState {
    * Sets the currently active game.
    * @param {CurrentGame | null} game - The game to set as current.
    */
-  set currentGame(game) {
+  set currentGame(game: CurrentGame | null) {
     this.#currentGame = game;
   }
 
@@ -201,7 +202,7 @@ class AppState {
    *
    * @param {string[]} to - The new selected categories.
    */
-  set selectedCategories(to) {
+  set selectedCategories(to: string[]) {
     this.#selectedCategories = to;
     invoke('set_selected_categories', { categories: to }).catch((error) => {
       console.error('Error setting selected categories:', error);
@@ -216,7 +217,7 @@ class AppState {
    * This is typically called on application startup.
    * @returns {Promise<void>}
    */
-  async loadGames() {
+  async loadGames(): Promise<void> {
     await this.loadSortOrder();
     await this.loadUseJpForTitleTime();
     await this.refreshGamesList();
@@ -226,7 +227,7 @@ class AppState {
    * Loads the games list from the backend and applies the current sort order.
    * @returns {Promise<void>}
    */
-  async refreshGamesList() {
+  async refreshGamesList(): Promise<void> {
     try {
       this.#gamesList = await invoke('load_games');
       this.sortGames();
@@ -239,8 +240,9 @@ class AppState {
    * Loads the theme settings from the backend and applies them.
    * @returns {Promise<void>}
    */
-  async loadThemeSettings() {
+  async loadThemeSettings(): Promise<void> {
     try {
+      // @ts-ignore
       const { theme, accent_color, use_custom_accent } =
         await invoke('get_theme_settings');
 
@@ -260,7 +262,7 @@ class AppState {
    * Loads the sort order from the backend.
    * @returns {Promise<void>}
    */
-  async loadSortOrder() {
+  async loadSortOrder(): Promise<void> {
     try {
       this.#sortOrder = await invoke('get_sort_order');
     } catch (error) {
@@ -272,7 +274,7 @@ class AppState {
    * Loads the disable presence on NSFW setting from the backend.
    * @returns {Promise<void>}
    */
-  async loadDisablePresenceOnNsfw() {
+  async loadDisablePresenceOnNsfw(): Promise<void> {
     try {
       this.#disablePresenceOnNsfw = await invoke('get_nsfw_presence_status');
     } catch (error) {
@@ -285,7 +287,7 @@ class AppState {
    *
    * @returns {Promise<void>}
    */
-  async loadDiscordPresenceMode() {
+  async loadDiscordPresenceMode(): Promise<void> {
     try {
       this.#discordPresenceMode = await invoke('get_discord_presence_mode');
     } catch (error) {
@@ -297,7 +299,7 @@ class AppState {
    * Loads the playtime mode setting from the backend.
    * @returns {Promise<void>}
    */
-  async loadPlaytimeMode() {
+  async loadPlaytimeMode(): Promise<void> {
     try {
       this.#playtimeMode = await invoke('get_playtime_mode');
     } catch (error) {
@@ -309,7 +311,7 @@ class AppState {
    * Loads the show random button setting from the backend.
    * @returns {Promise<void>}
    */
-  async loadShowRandomButton() {
+  async loadShowRandomButton(): Promise<void> {
     try {
       this.#showRandomButton = await invoke('get_show_random_picker');
     } catch (error) {
@@ -321,7 +323,7 @@ class AppState {
    * Loads the use JP for title time setting from the backend.
    * @returns {Promise<void>}
    */
-  async loadUseJpForTitleTime() {
+  async loadUseJpForTitleTime(): Promise<void> {
     try {
       this.#useJpForTitleTime = await invoke('get_use_jp_for_title_time');
     } catch (error) {
@@ -333,7 +335,7 @@ class AppState {
    * Loads the hide NSFW images setting from the backend.
    * @returns {Promise<void>}
    */
-  async loadHideNsfwImages() {
+  async loadHideNsfwImages(): Promise<void> {
     try {
       this.#hideNsfwImages = await invoke('get_hide_nsfw_images');
     } catch (error) {
@@ -346,7 +348,7 @@ class AppState {
    * Loads the sort order from the backend.
    * @returns {Promise<void>}
    */
-  async loadSelectedCategories() {
+  async loadSelectedCategories(): Promise<void> {
     try {
       this.#selectedCategories = await invoke('get_selected_categories');
     } catch (error) {
@@ -359,11 +361,15 @@ class AppState {
   /**
    * Saves a game to the backend and refreshes the games list.
    * @param {string} gameId - The unique identifier for the game.
-   * @param {Game} game - The game object to save.
+   * @param {GameDto} game - The game object to save.
    * @param {Options} [options={ include_characters: true }] - Options for saving (e.g., include characters).
    * @returns {Promise<void>}
    */
-  async saveGame(gameId, game, options = { include_characters: true }) {
+  async saveGame(
+    gameId: string,
+    game: GameDto,
+    options: Options = { include_characters: true },
+  ): Promise<void> {
     try {
       await invoke('save_game', {
         gameId,
@@ -383,7 +389,7 @@ class AppState {
    * @param {string} gameId - The unique identifier for the game.
    * @returns {Novel | undefined} The novel object (Game with ID), or undefined if not found.
    */
-  loadGame(gameId) {
+  loadGame(gameId: string): Novel | undefined {
     const game = this.#gamesList[gameId];
     if (game) {
       return {
@@ -399,7 +405,7 @@ class AppState {
    * @param {string} gameId - The unique identifier for the game.
    * @returns {Promise<void>}
    */
-  async deleteGame(gameId) {
+  async deleteGame(gameId: string): Promise<void> {
     try {
       await invoke('delete_game', { gameId });
       await this.refreshGamesList();
@@ -414,7 +420,7 @@ class AppState {
    * @param {string} gameId - The unique identifier for the game.
    * @returns {Promise<void>}
    */
-  async togglePinned(gameId) {
+  async togglePinned(gameId: string): Promise<void> {
     try {
       await invoke('toggle_pin', { gameId });
       await this.refreshGamesList();
@@ -429,7 +435,7 @@ class AppState {
    * @param {string} gameId - The unique identifier for the game.
    * @returns {Promise<void>}
    */
-  async resetStats(gameId) {
+  async resetStats(gameId: string): Promise<void> {
     try {
       await invoke('reset_stats', { gameId });
       await this.refreshGamesList();
@@ -444,7 +450,7 @@ class AppState {
    * @param {string} gameId - The unique identifier for the game.
    * @returns {Promise<void>}
    */
-  async setCharacters(gameId) {
+  async setCharacters(gameId: string): Promise<void> {
     try {
       await invoke('set_characters', { gameId });
       await this.refreshGamesList();
@@ -460,7 +466,7 @@ class AppState {
    * @param {string} newExePath - The new executable path.
    * @returns {Promise<void>}
    */
-  async updateExePath(gameId, newExePath) {
+  async updateExePath(gameId: string, newExePath: string): Promise<void> {
     try {
       await invoke('update_exe', { gameId, newExePath });
       await this.refreshGamesList();
@@ -476,7 +482,7 @@ class AppState {
    * @param {string[]} categories - The new list of categories.
    * @returns {Promise<void>}
    */
-  async setGameCategories(gameId, categories) {
+  async setGameCategories(gameId: string, categories: string[]): Promise<void> {
     try {
       await invoke('set_game_categories', { gameId, categories });
       await this.refreshGamesList();
@@ -493,7 +499,10 @@ class AppState {
    * @param {string} newProcessPath - The new process path.
    * @returns {Promise<void>}
    */
-  async updateGameProcessPath(gameId, newProcessPath) {
+  async updateGameProcessPath(
+    gameId: string,
+    newProcessPath: string,
+  ): Promise<void> {
     try {
       await invoke('update_process', {
         gameId,
@@ -511,7 +520,7 @@ class AppState {
    * @param {string} gameId - The unique identifier for the game.
    * @returns {Promise<void>}
    */
-  async startGame(gameId) {
+  async startGame(gameId: string): Promise<void> {
     try {
       await invoke('open_game', { gameId });
     } catch (error) {
@@ -524,7 +533,7 @@ class AppState {
    * Closes the currently opened game process.
    * @returns {Promise<void>}
    */
-  async closeGame() {
+  async closeGame(): Promise<void> {
     try {
       await invoke('close_game', {});
     } catch (error) {
@@ -540,7 +549,7 @@ class AppState {
    * @param {Partial<ThemeSettings>} settings - The settings to update.
    * @returns {Promise<void>}
    */
-  async updateThemeSettings(settings) {
+  async updateThemeSettings(settings: Partial<ThemeSettings>): Promise<void> {
     try {
       this.#themeSettings = {
         ...this.#themeSettings,
@@ -599,7 +608,7 @@ class AppState {
    * Resets theme settings to defaults, saves them to the backend, and applies them.
    * @returns {Promise<void>}
    */
-  async resetThemeSettings() {
+  async resetThemeSettings(): Promise<void> {
     this.#themeSettings = { ...DEFAULT_THEME_SETTINGS };
     // Re-call updateThemeSettings to save and apply defaults via the standard method
     await this.updateThemeSettings(DEFAULT_THEME_SETTINGS);
@@ -636,7 +645,7 @@ class AppState {
    * @param {SortOrder} sortOrder - The desired sort order ('title', 'playtime', 'last_played').
    * @returns {Promise<void>}
    */
-  async setSortOrder(sortOrder) {
+  async setSortOrder(sortOrder: SortOrder): Promise<void> {
     try {
       await invoke('set_sort_order', { sortOrder });
       this.#sortOrder = sortOrder;
@@ -652,7 +661,7 @@ class AppState {
    * @param {boolean} to - The desired state (true to show, false to hide).
    * @returns {Promise<void>}
    */
-  async setShowRandomButton(to) {
+  async setShowRandomButton(to: boolean): Promise<void> {
     try {
       this.#showRandomButton = to;
       await invoke('set_show_random_picker', { to });
@@ -667,7 +676,7 @@ class AppState {
    * @param {boolean} to - The desired state (true to disable, false to enable).
    * @returns {Promise<void>}
    */
-  async setDisablePresenceOnNsfw(to) {
+  async setDisablePresenceOnNsfw(to: boolean): Promise<void> {
     try {
       this.#disablePresenceOnNsfw = to;
       await invoke('set_nsfw_presence_status', { to });
@@ -683,7 +692,7 @@ class AppState {
    * @param {DiscordPresenceMode} to - The desired presence mode ('All', 'SafeOnly', 'Disabled').
    * @returns {Promise<void>}
    */
-  async setDiscordPresenceMode(to) {
+  async setDiscordPresenceMode(to: DiscordPresenceMode): Promise<void> {
     try {
       this.#discordPresenceMode = to;
       await invoke('set_discord_presence_mode', { to });
@@ -699,7 +708,7 @@ class AppState {
    * @param {boolean} to - Whether to use Japanese for title time.
    * @returns {Promise<void>}
    */
-  async setUseJpForTitleTime(to) {
+  async setUseJpForTitleTime(to: boolean): Promise<void> {
     try {
       this.#useJpForTitleTime = to;
       await invoke('set_use_jp_for_title_time', { to });
@@ -715,7 +724,7 @@ class AppState {
    * @param {boolean} to - Whether to hide NSFW images in home page.
    * @returns {Promise<void>}
    */
-  async setHideNsfwImages(to) {
+  async setHideNsfwImages(to: boolean): Promise<void> {
     try {
       this.#hideNsfwImages = to;
       await invoke('set_hide_nsfw_images', { to });
@@ -731,7 +740,7 @@ class AppState {
    * @param {PlaytimeMode} to - The desired playtime mode.
    * @returns {Promise<void>}
    */
-  async setPlaytimeMode(to) {
+  async setPlaytimeMode(to: PlaytimeMode): Promise<void> {
     try {
       this.#playtimeMode = to;
       await invoke('set_playtime_mode', { to });
@@ -748,7 +757,7 @@ class AppState {
    * @private
    * @returns {[string, Game][]} Sorted entries.
    */
-  sortByPlaytime() {
+  sortByPlaytime(): [string, Game][] {
     return Object.entries(this.#gamesList).sort(([, a], [, b]) => {
       // Sort by playtime descending
       if (b.playtime !== a.playtime) {
@@ -764,7 +773,7 @@ class AppState {
    * @private
    * @returns {[string, Game][]} Sorted entries.
    */
-  sortByTitle() {
+  sortByTitle(): [string, Game][] {
     return Object.entries(this.#gamesList).sort(([, a], [, b]) =>
       a.title.localeCompare(b.title),
     );
@@ -775,7 +784,7 @@ class AppState {
    * @private
    * @returns {[string, Game][]} Sorted entries.
    */
-  sortByLastPlayed() {
+  sortByLastPlayed(): [string, Game][] {
     return Object.entries(this.#gamesList).sort(([, a], [, b]) => {
       // Sort by last_played descending
       if (b.last_played !== a.last_played) {

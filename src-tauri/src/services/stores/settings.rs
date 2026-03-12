@@ -48,6 +48,7 @@ pub struct Settings {
     pub show_random_picker: bool,
     pub discord_presence_mode: DiscordPresenceMode,
     pub hide_nsfw_images: bool,
+    pub jiten_base_url: String,
 }
 
 impl Default for Settings {
@@ -61,6 +62,7 @@ impl Default for Settings {
             show_random_picker: true,
             discord_presence_mode: DiscordPresenceMode::default(),
             hide_nsfw_images: false,
+            jiten_base_url: "https://api.jiten.moe".to_string(),
         }
     }
 }

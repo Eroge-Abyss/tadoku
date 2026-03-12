@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -11,16 +11,16 @@
   import { appState } from '$lib/state.svelte';
   import { debounce } from '$lib/util';
   import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
+  import type { Process, Tab } from '$lib/types';
+  import { getAvailable } from '$lib/util';
 
   const novel = $derived(appState.loadGame(page.params.id));
 
+  // svelte-ignore state_referenced_locally
   if (!novel) {
     throw goto('/');
   }
 
-  // Should I use derived?
-  // yes
-  // oki uwu
   // Derived values
   const hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
   const minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
@@ -53,21 +53,27 @@
   let playing = $state(false);
   let activeMenu = $state(false);
   let editingNotes = $state(false);
-  let processList = $state();
+  let processList = $state<Process[]>([]);
   let processDialog = $state(false);
   let deleteDialog = $state(false);
   let resetStatsDialog = $state(false);
   let selectedTab = $state('progress');
+  // svelte-ignore state_referenced_locally
   let notes = $state(novel.notes);
+  // svelte-ignore state_referenced_locally
   let originalNotes = novel.notes;
   let downloadingCharacters = $state(false);
 
-  const TABS = $derived([
+  // Jiten character count is now pre-fetched at startup and stored in game data
+  const jitenCharCount = $derived(getAvailable(novel.jiten_char_count));
+
+  const TABS: Tab[] = $derived([
     {
       label: 'Progress Overview',
       id: 'progress',
       visible: true,
       disabled: false,
+      loading: false,
     },
     {
       label: 'Characters',
@@ -81,6 +87,7 @@
       id: 'notes',
       visible: true,
       disabled: false,
+      loading: false,
     },
   ]);
 
@@ -195,10 +202,9 @@
     }
   };
 
-  // @ts-ignore
-  function handleMenuClick(e) {
+  function handleMenuClick(e: MouseEvent) {
     // Check if the click occurred directly on the modal backdrop
-    if (e.target?.classList.contains('secondary-menu')) {
+    if ((e.target as HTMLElement)?.classList.contains('secondary-menu')) {
       activeMenu = false;
     }
   }
@@ -257,6 +263,9 @@
       {todayMinutesPlayed}
       {firstPlayedDate}
       {lastPlayedDate}
+      {jitenCharCount}
+      charsRead={novel.chars_read || 0}
+      playtimeMode={appState.playtimeMode}
       bind:notes
       bind:editingNotes
       onSaveNotes={handleSaveNotes}

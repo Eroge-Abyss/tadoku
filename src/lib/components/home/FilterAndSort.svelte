@@ -26,14 +26,16 @@
     appState.selectedCategories = [];
   }
 
-  function handleClickOutside(event: any) {
+  function handleClickOutside(event: MouseEvent) {
+    const target = event.target as Node;
+
     // Close primary menu if click is outside it
     if (
       activeMenu &&
       filterSortMenuRef &&
-      !filterSortMenuRef.contains(event.target) &&
+      !filterSortMenuRef.contains(target) &&
       menuToggleRef &&
-      !menuToggleRef.contains(event.target)
+      !menuToggleRef.contains(target)
     ) {
       activeMenu = false;
       showStatusMenu = false; // Also close status menu if primary closes
@@ -45,12 +47,12 @@
     if (
       showStatusMenu &&
       filterSortMenuRef &&
-      !filterSortMenuRef.contains(event.target)
+      !filterSortMenuRef.contains(target)
     ) {
       const statusToggleButton = filterSortMenuRef.querySelector(
         '.status-menu-item-toggle',
       );
-      if (statusToggleButton && !statusToggleButton.contains(event.target)) {
+      if (statusToggleButton && !statusToggleButton.contains(target)) {
         showStatusMenu = false;
       }
     }
@@ -59,12 +61,12 @@
     if (
       showSortMenu &&
       filterSortMenuRef &&
-      !filterSortMenuRef.contains(event.target)
+      !filterSortMenuRef.contains(target)
     ) {
       const sortToggleButton = filterSortMenuRef.querySelector(
         '.sort-menu-item-toggle',
       );
-      if (sortToggleButton && !sortToggleButton.contains(event.target)) {
+      if (sortToggleButton && !sortToggleButton.contains(target)) {
         showSortMenu = false;
       }
     }

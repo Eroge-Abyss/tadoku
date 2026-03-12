@@ -1,5 +1,6 @@
-use crate::prelude::Result;
-use crate::services::vndb::{Vndb, VndbAltTitleGame, VNDB_MAX_PAGE_SIZE};
+use crate::prelude::{Fetchable, Result};
+use crate::services::stores::games::GamesStore;
+use crate::services::vndb::{VNDB_MAX_PAGE_SIZE, Vndb};
 use crate::services::{
     discord::DiscordPresence,
     stores::games::Game,
@@ -54,60 +55,73 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
         error!("Failed to access store.json: {:?}", e);
         e
     })?;
-    let mut binding = store.get("gamesData");
+    let mut binding = match store.get("gamesData") {
+        Some(data) => data.clone(),
+        None => {
+            info!("No gamesData found in store, skipping schema setup");
+            return Ok(());
+        }
+    };
 
-    if binding.is_none() {
-        info!("No gamesData found in store, skipping schema setup");
-        return Ok(());
-    }
+    let games = binding.as_object_mut().ok_or_else(|| {
+        error!("Failed to get gamesData as an object from store");
+        "Failed to get gamesData as an object"
+    })?;
 
-    let games = binding
-        .as_mut()
-        .and_then(|v| v.as_object_mut())
-        .ok_or_else(|| {
-            error!("Failed to get gamesData as an object from store");
-            "Failed to get gamesData as an object"
-        })?;
-
-    let binding = serde_json::to_value(Game::default()).map_err(|e| {
+    let default_game_val = serde_json::to_value(Game::default()).map_err(|e| {
         error!("Failed to serialize default Game struct: {:?}", e);
         e
     })?;
-    let default_game = binding.as_object().ok_or_else(|| {
+    let default_game = default_game_val.as_object().ok_or_else(|| {
         error!("Failed to get default Game as an object");
         "Failed to get default Game as an object"
     })?;
 
     let mut updated_games = 0;
     let mut updated_fields = 0;
-    let mut missing_alt_title_ids: Vec<String> = vec![];
 
-    for (game_id, game) in games.iter_mut() {
+    for (game_id, game_value) in games.iter_mut() {
         debug!("Checking game schema for: {}", game_id);
-        let game = game.as_object_mut().ok_or_else(|| {
+        let game = game_value.as_object_mut().ok_or_else(|| {
             error!("Failed to get game {} as an object", game_id);
             "Failed to get game as an object"
         })?;
 
         let mut game_updated = false;
 
-        let alt_title = game.get("alt_title");
-        if alt_title.is_none()
-            || (alt_title.is_some() && alt_title.expect("Should not happen, already checked") == "")
-        {
-            missing_alt_title_ids.push(game_id.clone());
-            game_updated = true;
+        // Migrate old alt_title: "", null, or string to Fetchable enum
+        if let Some(alt_title_val) = game.get_mut("alt_title") {
+            if alt_title_val.is_null() {
+                *alt_title_val = serde_json::to_value(Fetchable::<String>::NotFound)?;
+                game_updated = true;
+                updated_fields += 1;
+            } else if let Some(s) = alt_title_val.as_str() {
+                if s.is_empty() {
+                    *alt_title_val = serde_json::to_value(Fetchable::<String>::NotFetched)?;
+                } else {
+                    *alt_title_val = serde_json::to_value(Fetchable::Available(s.to_string()))?;
+                }
+                game_updated = true;
+                updated_fields += 1;
+            }
+        }
+
+        // Migrate old jiten_char_count: null to Fetchable::NotFetched
+        if let Some(jiten_val) = game.get_mut("jiten_char_count") {
+            if jiten_val.is_null() {
+                *jiten_val = serde_json::to_value(Fetchable::<u64>::NotFetched)?;
+                game_updated = true;
+                updated_fields += 1;
+            } else if let Some(n) = jiten_val.as_u64() {
+                *jiten_val = serde_json::to_value(Fetchable::Available(n))?;
+                game_updated = true;
+                updated_fields += 1;
+            }
         }
 
         for (k, v) in default_game {
-            if game.get(k).is_none() {
-                debug!("Adding missing field '{}' to game {}", k, game_id);
-                if k == "alt_title" {
-                    game.insert(k.clone(), "".into());
-                } else {
-                    game.insert(k.clone(), v.clone());
-                }
-
+            if !game.contains_key(k) {
+                game.insert(k.clone(), v.clone());
                 game_updated = true;
                 updated_fields += 1;
             }
@@ -134,24 +148,12 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
         }
     }
 
-    if !missing_alt_title_ids.is_empty() {
-        tauri::async_runtime::block_on(async {
-            let _ = add_missing_alt_titles(games, &missing_alt_title_ids).await;
-        });
-    }
-
-    let games = serde_json::to_value(games).map_err(|e| {
-        error!("Failed to serialize updated games data: {:?}", e);
-        e
-    })?;
-
-    store.set("gamesData", games);
-    store.save().map_err(|e| {
-        error!("Failed to save updated games data to store: {:?}", e);
-        format!("Failed to save store: {:?}", e)
-    })?;
-
     if updated_games > 0 {
+        store.set("gamesData", binding);
+        store.save().map_err(|e| {
+            error!("Failed to save updated games data to store: {:?}", e);
+            format!("Failed to save store: {:?}", e)
+        })?;
         info!(
             "Store schema setup completed: updated {} games with {} fields",
             updated_games, updated_fields
@@ -282,34 +284,146 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-/// Adds missing alt title for provided VN IDs
-pub async fn add_missing_alt_titles(
-    games: &mut serde_json::Map<String, serde_json::Value>,
-    ids: &[String],
-) -> Result<()> {
-    info!(
-        "Attempting to add missing alt titles for {} games",
-        ids.len()
-    );
-    let mut games_with_title: Vec<VndbAltTitleGame> = vec![];
+pub fn spawn_background_tasks(app_handle: &AppHandle) {
+    info!("Spawning background task for data fetching");
+    fetch_missing_game_data(app_handle);
+}
 
-    let total_ids = ids.len();
-    let fetch_iterations = total_ids.div_ceil(VNDB_MAX_PAGE_SIZE);
+/// Fetches missing alt titles and Jiten character counts for all games in the store.
+pub fn fetch_missing_game_data(app_handle: &AppHandle) {
+    let app_handle = app_handle.clone();
+    tauri::async_runtime::spawn(async move {
+        let store = match GamesStore::new(&app_handle) {
+            Ok(s) => s,
+            Err(e) => {
+                error!("Failed to create GamesStore for background fetch: {}", e);
+                return;
+            }
+        };
 
-    for i in 0..fetch_iterations {
-        let start = i * VNDB_MAX_PAGE_SIZE;
-        let end = std::cmp::min(start + VNDB_MAX_PAGE_SIZE, total_ids);
-        let current_ids_slice = &ids[start..end];
-        let games_chunk = Vndb::get_vns_alt_title(current_ids_slice).await?;
-        games_with_title.extend(games_chunk);
-    }
+        let all_games = match store.get_all() {
+            Ok(games) => games,
+            Err(e) => {
+                error!("Failed to get games for background fetch: {}", e);
+                return;
+            }
+        };
 
-    for game_title in games_with_title {
-        let game = games.get_mut(&game_title.id).expect("Should be there");
-        debug!("Updating alt_title for game ID: {}", game_title.id);
-        game["alt_title"] = game_title.alttitle.into();
-    }
+        let alt_titles_to_fetch: Vec<String> = all_games
+            .iter()
+            .filter(|(_, game)| game.alt_title == Fetchable::NotFetched)
+            .map(|(id, _)| id.clone())
+            .collect();
 
-    info!("Successfully added missing alt titles.");
-    Ok(())
+        let jiten_counts_to_fetch: Vec<String> = all_games
+            .iter()
+            .filter(|(_, game)| game.jiten_char_count == Fetchable::NotFetched)
+            .map(|(id, _)| id.clone())
+            .collect();
+
+        if alt_titles_to_fetch.is_empty() && jiten_counts_to_fetch.is_empty() {
+            info!("Background fetch: all games are up to date.");
+            return;
+        }
+
+        // Fetch Alt Titles
+        let alt_title_results = async {
+            if alt_titles_to_fetch.is_empty() {
+                return Vec::new();
+            }
+            info!(
+                "Attempting to fetch missing alt titles for {} games",
+                alt_titles_to_fetch.len()
+            );
+
+            let mut results = Vec::new();
+            let total_ids = alt_titles_to_fetch.len();
+            let fetch_iterations = total_ids.div_ceil(VNDB_MAX_PAGE_SIZE);
+
+            for i in 0..fetch_iterations {
+                let start = i * VNDB_MAX_PAGE_SIZE;
+                let end = std::cmp::min(start + VNDB_MAX_PAGE_SIZE, total_ids);
+                let ids_slice = &alt_titles_to_fetch[start..end];
+
+                match Vndb::get_vns_alt_title(ids_slice).await {
+                    Ok(games_chunk) => {
+                        for fetched_game in games_chunk {
+                            let state = match fetched_game.alttitle {
+                                Some(title) if !title.is_empty() => Fetchable::Available(title),
+                                _ => Fetchable::NotFound,
+                            };
+                            results.push((fetched_game.id, state));
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Failed to fetch a chunk of alt titles: {}", e);
+                    }
+                }
+            }
+            info!("Alt title fetch completed.");
+            results
+        }
+        .await;
+
+        // Fetch Jiten Counts
+        let jiten_results = async {
+            use crate::commands::jiten::fetch_jiten_char_count;
+            if jiten_counts_to_fetch.is_empty() {
+                return Vec::new();
+            }
+            info!(
+                "Attempting to fetch missing Jiten counts for {} games",
+                jiten_counts_to_fetch.len()
+            );
+
+            let mut results = Vec::new();
+            for game_id in &jiten_counts_to_fetch {
+                match fetch_jiten_char_count(app_handle.clone(), game_id.clone()).await {
+                    Ok(Some(count)) => {
+                        results.push((game_id, Fetchable::Available(count)));
+                    }
+                    Ok(None) => {
+                        results.push((game_id, Fetchable::NotFound));
+                    }
+                    Err(e) => {
+                        warn!("Failed to fetch Jiten count for {}: {}", game_id, e);
+                    }
+                }
+            }
+            info!("Jiten fetch completed.");
+            results
+        }
+        .await;
+
+        // Apply all updates sequentially
+        info!("Applying fetched data to the store.");
+        for (id, alt_title) in alt_title_results {
+            if let Err(e) = store.update_game(&id, |g| g.alt_title = alt_title) {
+                error!("Failed to save alt title for {}: {}", id, e);
+            }
+        }
+
+        let mut jiten_updated_count = 0;
+        let jiten_to_fetch_count = jiten_counts_to_fetch.len();
+        for (id, jiten_count) in jiten_results {
+            if let Err(e) = store.update_game(id, |g| g.jiten_char_count = jiten_count) {
+                error!("Failed to save Jiten count for {}: {}", id, e);
+            } else {
+                jiten_updated_count += 1;
+            }
+        }
+
+        if jiten_to_fetch_count > 0 {
+            if jiten_updated_count > 0 {
+                info!(
+                    "Jiten fetch completed: updated {} games",
+                    jiten_updated_count
+                );
+            } else {
+                info!("Jiten fetch completed: No new counts found.");
+            }
+        }
+
+        info!("Background data fetch task completed.");
+    });
 }

@@ -3,6 +3,8 @@ name: 'publish'
 on:
   workflow_dispatch:
   push:
+    tags:
+      - 'app-v*'
     branches:
       - release
 
@@ -28,7 +30,7 @@ jobs:
         run: bun install
 
       - name: Check frontend code
-        run: bun run check 
+        run: bun run check
 
       - uses: tauri-apps/tauri-action@v0
         env:

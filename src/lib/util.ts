@@ -1,4 +1,10 @@
 import { appState } from './state.svelte';
+import type { Fetchable } from './types';
+
+export function getAvailable<T>(fetchable: Fetchable<T>): T | null {
+  if (fetchable.type === 'available') return fetchable.value;
+  return null;
+}
 
 export const debounce = (callback: Function, wait = 750) => {
   let timeout: ReturnType<typeof setTimeout>;

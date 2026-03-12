@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import SidebarButton from '$lib/components/SidebarButton.svelte';
   import AddGame from '$lib/components/home/AddGame.svelte';
   import { goto } from '$app/navigation';
@@ -6,16 +6,23 @@
   import SquaresIcon from '$lib/components/SquaresIcon.svelte';
   import { appState } from '$lib/state.svelte';
   import SettingsButton from '$lib/components/SettingsButton.svelte';
+  import { getAvailable } from '$lib/util';
 
   let pinnedGames = $derived.by(() =>
     Object.entries(appState.gamesList)
       .filter(([_, v]) => v.is_pinned)
-      .map(([k, v]) => ({
-        id: k,
-        char: v.title[0],
-        title: v.title,
-        image: v.icon_url ? convertFileSrc(v.icon_url) : null,
-      })),
+      .map(([k, v]) => {
+        const altTitle = getAvailable(v.alt_title);
+        const displayTitle =
+          appState.useJpForTitleTime && altTitle ? altTitle : v.title;
+        return {
+          id: k,
+          char: displayTitle[0],
+          title: v.title,
+          altTitle: altTitle,
+          icon: v.icon_url ? convertFileSrc(v.icon_url) : null,
+        };
+      }),
   );
 </script>
 
@@ -27,12 +34,12 @@
         <SquaresIcon style="font-size: 24px;" />
       </SidebarButton>
 
-      {#each pinnedGames as { id, image, char, title } (id)}
+      {#each pinnedGames as { id, icon, char, title, altTitle } (id)}
         <SidebarButton
           onclick={() => invoke('open_game', { gameId: id })}
-          image={image ? image : undefined}
-          text={image ? undefined : char}
-          tooltip={title}
+          image={icon ? icon : undefined}
+          text={icon ? undefined : char}
+          tooltip={appState.useJpForTitleTime && altTitle ? altTitle : title}
         />
       {/each}
 

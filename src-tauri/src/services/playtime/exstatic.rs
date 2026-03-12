@@ -1,9 +1,9 @@
-use crate::{prelude::Result, services::stores::settings::PlaytimeMode, util, AppState};
+use crate::{AppState, prelude::Result, services::stores::settings::PlaytimeMode, util};
 use futures_util::StreamExt;
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::sync::Mutex;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::net::TcpListener;
 use tokio_tungstenite::accept_async;
 
@@ -13,6 +13,7 @@ const SERVER_ADDRESS: &str = "127.0.0.1:6969";
 struct ExStaticData {
     time: f64,
     process_path: String,
+    chars_read: Option<u64>,
 }
 
 pub struct ExStaticPlaytime;
@@ -50,6 +51,15 @@ impl ExStaticPlaytime {
                 info!("Updating playtime for game {} by {} seconds", game.id, time);
                 game.current_playtime += time;
                 util::flush_playtime(app_handle, &game.id, time)?;
+
+                // Update chars_read if provided by exSTATic
+                if let Some(chars_read) = data.chars_read {
+                    debug!("Updating chars_read for game {} to {}", game.id, chars_read);
+                    util::flush_chars_read(app_handle, &game.id, chars_read)?;
+                    if let Err(e) = app_handle.emit("chars_read_updated", chars_read) {
+                        error!("Error emitting chars_read_updated event: {}", e);
+                    }
+                }
             } else {
                 warn!(
                     "PID mismatch: data PID {} != game PID {}",
@@ -107,7 +117,7 @@ impl ExStaticPlaytime {
                                         .into_text()
                                         .expect("Shouldn't happen, already made an if check");
 
-                                    match Self::process_input(msg) {
+                                    match Self::process_input(msg.to_string()) {
                                         Ok(data) => {
                                             if let Err(e) = Self::handle(&app_handle, data) {
                                                 error!("Error handling ExStatic data: {}", e);

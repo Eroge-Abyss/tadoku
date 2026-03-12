@@ -1,6 +1,8 @@
 use crate::{
+    AppState, GameState,
+    prelude::Fetchable,
     services::{discord::DiscordGameDetails, playtime, stores::games::GamesStore},
-    util, AppState, GameState,
+    util,
 };
 use log::{debug, error, info, warn};
 use serde::Serialize;
@@ -158,10 +160,11 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
             );
 
             let disable_presence_on_nsfw = state.settings.disable_presence_on_nsfw;
-            let game_title = if state.settings.use_jp_for_title_time {
-                game.alt_title.unwrap_or(game.title)
-            } else {
-                game.title
+            let game_title = match game.alt_title {
+                Fetchable::Available(alt_title) if state.settings.use_jp_for_title_time => {
+                    alt_title
+                }
+                _ => game.title,
             };
 
             if let Some(pres) = &mut state.presence {

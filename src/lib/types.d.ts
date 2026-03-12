@@ -1,27 +1,37 @@
 export interface Novel extends Game {
   id: string;
 }
-export interface Theme {
-  id: string;
-  name: string;
-  primary: string;
-  background: string;
-  accent: string;
-}
 
 type ColorSwatch = {
   color: string;
   index: number;
 };
 
-export interface Game {
+export type Fetchable<T> =
+  | { type: 'notFetched' }
+  | { type: 'notFound' }
+  | { type: 'available'; value: T };
+
+export interface GameDto {
   title: string;
-  alt_title: string | null;
+  alt_title: Fetchable<string>;
   description: string;
   /** Is a local file path when loading games only, otherwise it's VNDB image URL.*/
   image_url: string;
   exe_file_path: string;
   process_file_path: string;
+  is_nsfw: boolean;
+  characters: Character[] | null;
+}
+
+export interface Character {
+  id: string;
+  en_name: string;
+  og_name: string | null;
+  image_url: string | null;
+}
+
+export interface Game extends GameDto {
   /** Play time in seconds. */
   playtime: number;
   today_playtime: number;
@@ -29,16 +39,13 @@ export interface Game {
   last_played: number | null;
   first_played: number | null;
   is_pinned: boolean;
-  is_nsfw: boolean;
-  icon_url: string | null;
   categories: string[];
   notes: string;
-  characters: {
-    id: string;
-    en_name: string;
-    og_name: string | null;
-    image_url: string | null;
-  }[];
+  icon_url: string | null;
+  /** Cumulative characters read (from exSTATic) */
+  chars_read: number;
+  /** Total character count from Jiten API (pre-fetched at startup) */
+  jiten_char_count: Fetchable<number>;
 }
 
 export interface Options {
@@ -88,3 +95,11 @@ export type SortOrder = 'title' | 'last_played' | 'playtime';
 export type DiscordPresenceMode = 'All' | 'None' | 'Menus';
 
 export type PlaytimeMode = 'classic' | 'ex_static';
+
+export type Tab = {
+  id: string;
+  label: string;
+  visible: boolean;
+  disabled: boolean;
+  loading: boolean;
+};

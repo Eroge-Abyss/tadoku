@@ -1,15 +1,23 @@
-<script>
+<script lang="ts">
   import { convertFileSrc } from '@tauri-apps/api/core';
   import { goto } from '$app/navigation';
   import { formatTime } from '$lib/util';
   import { appState } from '$lib/state.svelte';
   import NsfwPlaceholder from './NsfwPlaceholder.svelte';
-  const { id, title, image, playtime, isNsfw } = $props();
+
+  type Props = {
+    id: string;
+    title: string;
+    image: string | null;
+    playtime: number;
+    isNsfw: boolean;
+  };
+  const { id, title, image, playtime, isNsfw }: Props = $props();
 
   const hoursPlayed = $derived(Math.floor(playtime / 3600));
   const minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
 
-  const image_url = $derived(convertFileSrc(image));
+  const image_url = $derived(image ? convertFileSrc(image) : '');
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -18,8 +26,12 @@
   <div class="card-image">
     {#if isNsfw && appState?.hideNsfwImages}
       <NsfwPlaceholder />
-    {:else}
+    {:else if image}
       <img src={image_url} alt={title} class:blur={isNsfw} />
+    {:else}
+      <div class="no-image">
+        <i class="fa-solid fa-image"></i>
+      </div>
     {/if}
   </div>
 
@@ -70,12 +82,28 @@
 
   .card-image {
     aspect-ratio: 3/4;
+    position: relative;
   }
 
   .card-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  .no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--accent);
+    color: var(--secondary);
+  }
+
+  .no-image i {
+    font-size: 3rem;
+    opacity: 0.5;
   }
 
   .card-content {
@@ -90,6 +118,7 @@
     transition: color 0.2s ease-in-out;
     display: -webkit-box;
     -webkit-line-clamp: 2; /* Number of lines before ellipsis */
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;

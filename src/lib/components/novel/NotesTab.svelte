@@ -1,6 +1,14 @@
-<script>
+<script lang="ts">
   import { fly } from 'svelte/transition';
   import { formatNotes } from '$lib/util';
+
+  type Props = {
+    notes: string;
+    editingNotes: boolean;
+    onSaveNotes: () => void;
+    onCancelEdit: () => void;
+    onStartEdit: () => void;
+  };
 
   let {
     notes = $bindable(),
@@ -8,7 +16,7 @@
     onSaveNotes,
     onCancelEdit,
     onStartEdit,
-  } = $props();
+  }: Props = $props();
 </script>
 
 <div class="notes" in:fly={{ y: 20, duration: 300 }}>

@@ -1,6 +1,5 @@
-<script>
-  /** @typedef {import('$lib/types').VndbResult} VndbResult */
-
+<script lang="ts">
+  import { type VndbResult } from '$lib/types';
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
   import Dialog from '$lib/components/Dialog.svelte';
@@ -14,30 +13,48 @@
   const NSFW_RATE = 0.5;
 
   let showModal = $state(false);
-  let search = $state();
-  let exe_path = $state();
 
-  /**
-   * @type {VndbResult[]}
-   */
-  let results = $state.raw([]);
-  let selectedVn = $state.raw();
-  let showImage = $state(false);
-  let charactersDownload = $state(false);
+  // shared state
+  let mode: 'vndb' | 'manual' = $state('vndb');
+  let exe_path = $state<string | null>(null);
   let loading = $state(false);
 
-  // @ts-ignore
+  // VNDB mode state
+  let search = $state('');
+  let results = $state.raw<VndbResult[]>([]);
+  let selectedVn = $state.raw<VndbResult | null>(null);
+  let showImage = $state(false);
+  let charactersDownload = $state(false);
+
+  // Manual mode state
+  let manualTitle = $state('');
+  let manualAltTitle = $state('');
+  let manualDescription = $state('');
+  let manualImagePath = $state('');
+  let manualIsNsfw = $state(false);
+
   async function updateSearch() {
-    const data = await invoke('fetch_vn_info', { key: search });
+    const data = await invoke<VndbResult[]>('fetch_vn_info', { key: search });
     results = search ? data : [];
   }
 
   const openModal = () => (showModal = true);
   const closeModal = () => {
     showModal = false;
+    // VNDB state
     results = [];
     search = '';
-    selectedVn = '';
+    selectedVn = null;
+    // Manual state
+    manualTitle = '';
+    manualAltTitle = '';
+    manualDescription = '';
+    manualImagePath = '';
+    manualIsNsfw = false;
+    // Shared
+    exe_path = null;
+    mode = 'vndb';
+    loading = false;
   };
 
   const pickFile = async () => {
@@ -53,7 +70,7 @@
     });
     exe_path = file;
 
-    if (!search && !results.length && !selectedVn) {
+    if (mode === 'vndb' && !search && !results.length && !selectedVn) {
       // Split by both Windows and Unix path separators
       const pathParts = file?.split(/[\\\/]/) || [];
       if (pathParts.length >= 2) {
@@ -74,18 +91,30 @@
     }
   };
 
-  // @ts-ignore
-  const selectGame = (game) => {
+  const pickImage = async () => {
+    const file = await open({
+      multiple: false,
+      directory: false,
+      filters: [
+        {
+          name: 'Image',
+          extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'],
+        },
+      ],
+    });
+    if (file) {
+      manualImagePath = file;
+    }
+  };
+
+  const selectGame = (game: VndbResult) => {
     selectedVn = game;
     showImage = false;
     results = [];
     search = '';
   };
 
-  /**
-   * @param {VndbResult} vn
-   */
-  const saveGame = async (vn) => {
+  const saveVndbGame = async (vn: VndbResult | null) => {
     if (!vn || vn.id === undefined) {
       alert('Please select a game from the list.');
       return;
@@ -105,17 +134,9 @@
         exe_file_path: exe_path,
         process_file_path: exe_path,
         categories: [],
-        icon_url: null,
         image_url: vn.image.url,
-        is_pinned: false,
         is_nsfw: vn.image.sexual > NSFW_RATE,
-        playtime: 0,
-        today_playtime: 0,
-        last_play_date: null,
         characters: [],
-        last_played: null,
-        first_played: null,
-        notes: '',
       };
 
       await appState.saveGame(vn.id, gameData, {
@@ -125,8 +146,52 @@
       closeModal();
     } catch (error) {
       console.error('Error saving game:', error);
-      // @ts-ignore
-      alert(`Failed to save game: ${error.message || 'Unknown error'}`);
+      alert(
+        `Failed to save game: ${(error as Error).message || 'Unknown error'}`,
+      );
+    } finally {
+      loading = false;
+    }
+  };
+
+  const saveManualGame = async () => {
+    if (!manualTitle.trim()) {
+      alert('Please enter a game title.');
+      return;
+    }
+
+    if (!exe_path) {
+      alert('Please select a game executable file.');
+      return;
+    }
+
+    loading = true;
+    try {
+      // Generate a unique local ID with "l" prefix using a random UUID.
+      const gameId = `l${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
+
+      const gameData = {
+        title: manualTitle.trim(),
+        alt_title: manualAltTitle.trim() || null,
+        description: manualDescription.trim(),
+        exe_file_path: exe_path,
+        process_file_path: exe_path,
+        categories: [],
+        characters: null,
+        // Pass the raw local path; backend will copy it and store the filename.
+        image_url: manualImagePath,
+        is_nsfw: manualIsNsfw,
+        notes: '',
+      };
+
+      await appState.saveGame(gameId, gameData, { include_characters: false });
+
+      closeModal();
+    } catch (error) {
+      console.error('Error saving manual game:', error);
+      alert(
+        `Failed to save game: ${(error as Error).message || 'Unknown error'}`,
+      );
     } finally {
       loading = false;
     }
@@ -144,104 +209,213 @@
     {/snippet}
 
     <section class="game-form">
-      <div class="search-dropdown">
-        <div class="search-input-wrapper">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input
-            type="text"
-            bind:value={search}
-            autocomplete="one-time-code"
-            onkeyup={debounce(updateSearch)}
-            placeholder="Search by name or ID..."
+      <!-- Mode toggle -->
+      <div class="mode-toggle">
+        <button
+          class="mode-btn"
+          class:active={mode === 'vndb'}
+          onclick={() => (mode = 'vndb')}
+        >
+          VNDB Search
+        </button>
+        <button
+          class="mode-btn"
+          class:active={mode === 'manual'}
+          onclick={() => (mode = 'manual')}
+        >
+          Manual Entry
+        </button>
+      </div>
+
+      {#if mode === 'vndb'}
+        <!-- VNDB search mode────────────────────────────────────────── -->
+        <div class="search-dropdown">
+          <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input
+              type="text"
+              bind:value={search}
+              autocomplete="one-time-code"
+              onkeyup={debounce(updateSearch)}
+              placeholder="Search by name or ID..."
+            />
+          </div>
+
+          {#if results.length > 0}
+            <div id="suggestions" role="listbox">
+              {#each results as vn}
+                <button
+                  role="option"
+                  aria-selected={selectedVn === vn}
+                  class="suggestion-item"
+                  onclick={() => selectGame(vn)}
+                >
+                  <div class="suggestion-image">
+                    {#if vn?.image?.sexual < NSFW_RATE}
+                      <img src={vn?.image?.url} alt={vn?.title} />
+                    {:else}
+                      <img src={vn?.image?.url} alt={vn?.title} class="blur" />
+                    {/if}
+                  </div>
+                  <div class="suggestion-content">
+                    <p class="suggestion-title">{vn?.title}</p>
+                    <p class="suggestion-id">{vn?.id}</p>
+                  </div>
+                </button>
+              {/each}
+            </div>
+          {:else if search && results.length === 0}
+            <div class="empty-state">
+              <i class="fa-solid fa-circle-xmark"></i>
+              <p>No games found</p>
+              <span>Try a different search term or ID</span>
+            </div>
+          {/if}
+        </div>
+
+        {#if selectedVn}
+          <div class="selected-suggestion">
+            <div class="selected-image">
+              {#if selectedVn.image.sexual < NSFW_RATE || showImage}
+                <img src={selectedVn.image.url} alt={selectedVn.title} />
+              {:else}
+                <img
+                  src={selectedVn.image.url}
+                  alt={selectedVn.title}
+                  class="blur"
+                />
+              {/if}
+            </div>
+            <div class="selected-content">
+              <p class="selected-suggestion-title">
+                {selectedVn.title}
+              </p>
+              <p class="selected-suggestion-id">
+                {selectedVn.id}
+              </p>
+            </div>
+          </div>
+        {/if}
+
+        <div class="form-group characters">
+          <Checkbox
+            id="characters"
+            label="Include Characters"
+            bind:checked={charactersDownload}
           />
         </div>
 
-        {#if results.length > 0}
-          <div id="suggestions">
-            {#each results as vn}
-              <!-- svelte-ignore a11y_click_events_have_key_events -->
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
-              <div class="suggestion-item" onclick={() => selectGame(vn)}>
-                <div class="suggestion-image">
-                  {#if vn?.image?.sexual < NSFW_RATE}
-                    <img src={vn?.image?.url} alt={vn?.title} />
-                  {:else}
-                    <img src={vn?.image?.url} alt={vn?.title} class="blur" />
-                  {/if}
-                </div>
-                <div class="suggestion-content">
-                  <p class="suggestion-title">{vn?.title}</p>
-                  <p class="suggestion-id">{vn?.id}</p>
-                </div>
-              </div>
-            {/each}
-          </div>
-        {:else if search && results.length === 0}
-          <div class="empty-state">
-            <i class="fa-solid fa-circle-xmark"></i>
-            <p>No games found</p>
-            <span>Try a different search term or ID</span>
-          </div>
+        {#if platform() === 'linux'}
+          <InfoNote>
+            If running via a script (e.g., Lutris), add the script as the
+            executable and the original EXE as a process path in game settings
+            if not detected.
+          </InfoNote>
         {/if}
-      </div>
 
-      {#if selectedVn}
-        <div class="selected-suggestion">
-          <div class="selected-image">
-            {#if selectedVn.image.sexual < NSFW_RATE || showImage}
-              <img src={selectedVn.image.url} alt={selectedVn.title} />
+        <InfoNote>
+          If you're using a launcher for this novel, please add its process from
+          the game details page.
+        </InfoNote>
+
+        <div class="form-handler">
+          <button onclick={pickFile}>Select Game Executable</button>
+          <button
+            disabled={loading}
+            class="save-button"
+            onclick={() => saveVndbGame(selectedVn)}
+          >
+            {#if loading}
+              Saving...
             {:else}
-              <img
-                src={selectedVn.image.url}
-                alt={selectedVn.title}
-                class="blur"
-              />
+              Save
             {/if}
+          </button>
+        </div>
+      {:else}
+        <!-- Manual entry mode───────────────────────────────────────── -->
+        <div class="manual-form">
+          <label class="field-label" for="manual-title">
+            Title <span class="required">*</span>
+          </label>
+          <input
+            id="manual-title"
+            type="text"
+            bind:value={manualTitle}
+            placeholder="Game title"
+            class="text-input"
+          />
+
+          <label class="field-label" for="manual-alt-title">
+            Alt Title <span class="optional">(optional)</span>
+          </label>
+          <input
+            id="manual-alt-title"
+            type="text"
+            bind:value={manualAltTitle}
+            placeholder="Original / alternative title"
+            class="text-input"
+          />
+
+          <label class="field-label" for="manual-description">
+            Description <span class="optional">(optional)</span>
+          </label>
+          <textarea
+            id="manual-description"
+            bind:value={manualDescription}
+            placeholder="Short description…"
+            class="text-input textarea"
+            rows="3"
+          ></textarea>
+
+          <div class="form-group characters">
+            <Checkbox
+              id="manual-nsfw"
+              label="Mark as NSFW"
+              bind:checked={manualIsNsfw}
+            />
           </div>
-          <div class="selected-content">
-            <p class="selected-suggestion-title">
-              {selectedVn.title}
-            </p>
-            <p class="selected-suggestion-id">
-              {selectedVn.id}
-            </p>
+
+          <button onclick={pickImage} class="pick-image-btn">
+            <i class="fa-solid fa-image"></i>
+            {manualImagePath
+              ? 'Change Cover Image'
+              : 'Select Cover Image (optional)'}
+          </button>
+
+          {#if manualImagePath}
+            <p class="image-path-hint">{manualImagePath}</p>
+          {/if}
+
+          {#if platform() === 'linux'}
+            <InfoNote>
+              If running via a script (e.g., Lutris), add the script as the
+              executable and the original EXE as a process path in game settings
+              if not detected.
+            </InfoNote>
+          {/if}
+
+          <InfoNote>
+            If you're using a launcher for this novel, please add its process
+            from the game details page.
+          </InfoNote>
+
+          <div class="form-handler">
+            <button onclick={pickFile}>Select Game Executable</button>
+            <button
+              disabled={loading}
+              class="save-button"
+              onclick={saveManualGame}
+            >
+              {#if loading}
+                Saving...
+              {:else}
+                Save
+              {/if}
+            </button>
           </div>
         </div>
       {/if}
-
-      <div class="form-group characters">
-        <Checkbox
-          id="characters"
-          label="Include Characters"
-          bind:checked={charactersDownload}
-        />
-      </div>
-
-      {#if platform() === 'linux'}
-        <InfoNote>
-          If running via a script (e.g., Lutris), add the script as the
-          executable and the original EXE as a process path in game settings if
-          not detected.
-        </InfoNote>
-      {/if}
-
-      <InfoNote>
-        If you're using a launcher for this novel, please add its process from
-        the game details page.
-      </InfoNote>
-
-      <button onclick={pickFile}>Select Game Executable</button>
-      <button
-        disabled={loading}
-        class="save-button"
-        onclick={() => saveGame(selectedVn)}
-      >
-        {#if loading}
-          Saving...
-        {:else}
-          Save
-        {/if}
-      </button>
     </section>
   </Dialog>
 </section>
@@ -262,6 +436,99 @@
 
   .game-form {
     margin: 1rem;
+  }
+
+  .mode-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1rem;
+    border-radius: var(--small-radius);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 0.4rem 0;
+    border: 0;
+    background: var(--accent);
+    color: var(--secondary-text);
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .mode-btn.active {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .mode-btn:not(.active):hover {
+    background: color-mix(in srgb, var(--accent), white 8%);
+    color: var(--main-text);
+  }
+
+  .manual-form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .field-label {
+    font-size: 13px;
+    color: var(--secondary-text);
+    margin-bottom: 4px;
+    margin-top: 10px;
+  }
+
+  .field-label .required {
+    color: var(--primary);
+  }
+
+  .field-label .optional {
+    opacity: 0.6;
+  }
+
+  .text-input {
+    width: 100%;
+    background-color: var(--accent);
+    border: 1px solid transparent;
+    border-radius: var(--small-radius);
+    padding: 8px 12px;
+    color: var(--main-text);
+    box-sizing: border-box;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+    font-family: inherit;
+  }
+
+  .text-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--accent), white 5%);
+  }
+
+  .text-input.textarea {
+    resize: vertical;
+    min-height: 64px;
+  }
+
+  .pick-image-btn {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .image-path-hint {
+    font-size: 11px;
+    color: var(--secondary-text);
+    margin: 4px 0 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .search-dropdown {
@@ -312,6 +579,12 @@
     background: color-mix(in srgb, var(--accent), white 5%);
   }
 
+  .form-handler {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
   .game-form .form-group.characters {
     display: flex;
     align-items: center;
@@ -327,7 +600,6 @@
     width: 100%;
     padding: 0.5rem;
     font-size: 18px;
-    margin-top: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
@@ -385,7 +657,14 @@
   }
 
   /* Suggestion Item Styling */
-  .suggestion-item {
+  button.suggestion-item {
+    background: transparent;
+    border: none;
+    margin: 0;
+    font: inherit;
+    text-align: left;
+    box-sizing: border-box;
+    width: 100%;
     display: flex;
     align-items: center;
     padding: 12px;
@@ -408,6 +687,7 @@
   .suggestion-content {
     flex: 1;
     min-width: 0;
+    text-align: left;
   }
 
   .suggestion-title {
@@ -539,60 +819,4 @@
     font-size: 13px;
     color: var(--secondary-text);
   }
-
-  /*
-    The following styles were for the old custom checkbox and are no longer needed
-    since we are using the Checkbox.svelte component.
-  */
-  /*
-  .custom-checkbox {
-    position: relative;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-  }
-
-  .custom-checkbox input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 16px;
-    width: 16px;
-    background-color: #313131;
-    border: 2px solid #5d5d5d;
-    border-radius: var(--small-radius);
-    cursor: pointer;
-  }
-
-  .custom-checkbox input:checked ~ .checkmark {
-    background-color: var(--primary);
-    border-color: #5d5d5d;
-  }
-
-  .checkmark:after {
-    content: '';
-    position: absolute;
-    display: none;
-  }
-
-  .custom-checkbox input:checked ~ .checkmark:after {
-    display: block;
-  }
-
-  .custom-checkbox .checkmark:after {
-    left: 4px;
-    top: 1px;
-    width: 4px;
-    height: 8px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-  }
-  */
 </style>

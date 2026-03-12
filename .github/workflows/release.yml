@@ -5,8 +5,8 @@ on:
   push:
     tags:
       - 'app-v*'
-    branches:
-      - release
+    # branches:
+    #   - release
 
 jobs:
   publish-tauri:

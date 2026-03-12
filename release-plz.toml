@@ -2,6 +2,3 @@
 git_only = true
 git_tag_name = "app-v{{ version }}"
 publish = false
-
-[[package]]
-name = "tadoku"

@@ -118,6 +118,7 @@
     transition: color 0.2s ease-in-out;
     display: -webkit-box;
     -webkit-line-clamp: 2; /* Number of lines before ellipsis */
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;

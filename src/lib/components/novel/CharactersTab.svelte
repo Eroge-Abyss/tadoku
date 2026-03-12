@@ -9,9 +9,15 @@
 
 <div class="characters" in:fly={{ y: 20, duration: 300 }}>
   {#each characters as character}
-    <div
+    <a
+      href={`https://vndb.org/${character.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
       class="character-card"
-      onclick={() => openUrl(`https://vndb.org/${character.id}`)}
+      onclick={(e) => {
+        e.preventDefault();
+        openUrl(`https://vndb.org/${character.id}`);
+      }}
     >
       {#if character.image_url}
         <img src={convertFileSrc(character.image_url)} alt={character.id} />
@@ -23,7 +29,7 @@
         <p class="sub">{character.en_name}</p>
       </div>
       <i class="fa-solid fa-arrow-up-right-from-square"></i>
-    </div>
+    </a>
   {/each}
 </div>
 
@@ -47,6 +53,7 @@
       transform 0.3s ease;
     background: var(--accent);
     border-radius: 8px;
+    text-decoration: none;
   }
 
   .character-content {

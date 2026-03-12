@@ -242,11 +242,14 @@
           </div>
 
           {#if results.length > 0}
-            <div id="suggestions">
+            <div id="suggestions" role="listbox">
               {#each results as vn}
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div class="suggestion-item" onclick={() => selectGame(vn)}>
+                <button
+                  role="option"
+                  aria-selected={selectedVn === vn}
+                  class="suggestion-item"
+                  onclick={() => selectGame(vn)}
+                >
                   <div class="suggestion-image">
                     {#if vn?.image?.sexual < NSFW_RATE}
                       <img src={vn?.image?.url} alt={vn?.title} />
@@ -258,7 +261,7 @@
                     <p class="suggestion-title">{vn?.title}</p>
                     <p class="suggestion-id">{vn?.id}</p>
                   </div>
-                </div>
+                </button>
               {/each}
             </div>
           {:else if search && results.length === 0}
@@ -654,7 +657,14 @@
   }
 
   /* Suggestion Item Styling */
-  .suggestion-item {
+  button.suggestion-item {
+    background: transparent;
+    border: none;
+    margin: 0;
+    font: inherit;
+    text-align: left;
+    box-sizing: border-box;
+    width: 100%;
     display: flex;
     align-items: center;
     padding: 12px;
@@ -677,6 +687,7 @@
   .suggestion-content {
     flex: 1;
     min-width: 0;
+    text-align: left;
   }
 
   .suggestion-title {

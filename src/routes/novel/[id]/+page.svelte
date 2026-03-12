@@ -15,6 +15,7 @@
 
   const novel = $derived(appState.loadGame(page.params.id));
 
+  // svelte-ignore state_referenced_locally
   if (!novel) {
     throw goto('/');
   }
@@ -56,7 +57,9 @@
   let deleteDialog = $state(false);
   let resetStatsDialog = $state(false);
   let selectedTab = $state('progress');
+  // svelte-ignore state_referenced_locally
   let notes = $state(novel.notes);
+  // svelte-ignore state_referenced_locally
   let originalNotes = novel.notes;
   let downloadingCharacters = $state(false);
 

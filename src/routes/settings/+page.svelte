@@ -127,16 +127,6 @@
     }
   }
 
-  function handleThemeSelection(e: MouseEvent): void {
-    const themeItem = (e.target as HTMLElement).closest('.theme-item');
-    if (themeItem) {
-      const themeId = themeItem.getAttribute('data-theme-id');
-      if (themeId) {
-        selectTheme(themeId);
-      }
-    }
-  }
-
   let indexedColorSwatches = $derived<ColorSwatch[]>(
     COLOR_SWATCHES.map((color, index) => ({ color, index })),
   );
@@ -151,23 +141,18 @@
       </div>
     </div>
 
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="settings-section">
       <div class="section-header">
         <h2>Theme Selection</h2>
         <p class="section-description">Choose your preferred color theme</p>
       </div>
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <div class="theme-grid" onclick={handleThemeSelection}>
+      <div class="theme-grid">
         {#each THEMES as theme}
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div
+          <button
             class="theme-item"
             class:active={selectedTheme === theme.id}
             style="--preview-primary: {theme.primary}; --preview-bg: {theme.background}; --preview-accent: {theme.accent};"
-            data-theme-id={theme.id}
+            onclick={() => selectTheme(theme.id)}
           >
             <div class="theme-preview">
               <div class="preview-sidebar"></div>
@@ -177,7 +162,7 @@
               </div>
             </div>
             <div class="theme-name">{theme.name}</div>
-          </div>
+          </button>
         {/each}
       </div>
 
@@ -207,14 +192,13 @@
 
           <div class="color-swatches">
             {#each indexedColorSwatches as { color, index }}
-              <!-- svelte-ignore a11y_click_events_have_key_events -->
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
-              <div
+              <button
                 class="color-swatch"
                 style="background-color: {color}; --index: {index};"
                 class:active={customColor === color}
                 onclick={() => selectColor(color)}
-              ></div>
+                aria-label={`Select color ${color}`}
+              ></button>
             {/each}
           </div>
         </div>
@@ -531,6 +515,8 @@
   }
 
   .theme-item {
+    all: unset;
+    box-sizing: border-box;
     background-color: rgba(255, 255, 255, 0.03);
     border-radius: 10px;
     padding: 1rem;
@@ -739,6 +725,8 @@
   }
 
   .color-swatch {
+    all: unset;
+    box-sizing: border-box;
     width: 36px;
     height: 36px;
     border-radius: 50%;

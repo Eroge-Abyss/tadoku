@@ -48,5 +48,6 @@ jobs:
         uses: release-plz/action@v0.5
         with:
           command: release-pr
+          manifest-path: ./src-tauri/Cargo.toml
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}

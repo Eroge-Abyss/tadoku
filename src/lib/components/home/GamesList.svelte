@@ -5,8 +5,21 @@
   import { appState } from '$lib/state.svelte';
   import type { Game } from '$lib/types';
   import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
+  import { formatTime } from '$lib/util';
 
   let { gamesList }: { gamesList: Record<string, Game> } = $props();
+
+  const totalPlaytime = $derived.by(() => {
+    const seconds = Object.values(gamesList).reduce(
+      (sum, game) => sum + game.playtime,
+      0,
+    );
+    return {
+      seconds,
+      hours: Math.floor(seconds / 3600),
+      minutes: Math.floor((seconds % 3600) / 60),
+    };
+  });
 
   let filteredGamesList = $derived.by(() => {
     if (appState.selectedCategories.length === 0) {
@@ -34,7 +47,15 @@
 
 <div class="container">
   <div class="header">
-    <h1>Visual Novels</h1>
+    <div class="title-area">
+      <h1>Visual Novels</h1>
+      {#if totalPlaytime.seconds > 0}
+        <span class="total-playtime">
+          <i class="fa-solid fa-clock"></i>
+          {formatTime(totalPlaytime.hours, totalPlaytime.minutes)} total
+        </span>
+      {/if}
+    </div>
     <FilterAndSort />
   </div>
   <div class="grid">
@@ -99,5 +120,24 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+  }
+
+  .title-area {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .total-playtime {
+    font-size: 0.875rem;
+    color: var(--secondary-text);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .total-playtime i {
+    font-size: 0.75rem;
+    opacity: 0.8;
   }
 </style>

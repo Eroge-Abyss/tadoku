@@ -1,0 +1,3 @@
+[workspace]
+git_tag_name = "app-v{{ version }}"
+publish = false

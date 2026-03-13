@@ -7,6 +7,8 @@ permissions:
   contents: write
   pull-requests: write
 
+name: release-please
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
@@ -19,8 +21,6 @@ jobs:
           # Use a PAT so that the tag push triggers the release.yml workflow.
           # GITHUB_TOKEN does not trigger downstream workflows by design.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-          # Create releases as drafts so artifacts can be uploaded before going public
-          draft: true
     permissions:
       pull-requests: write
       contents: write

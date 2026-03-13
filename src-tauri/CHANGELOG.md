@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/Eroge-Abyss/tadoku/compare/app-v1.8.1...app-v1.8.2) (2026-03-13)
+
+
+### Bug Fixes
+
+* local add game ([bb603d6](https://github.com/Eroge-Abyss/tadoku/commit/bb603d6a7ca376920974fb2077b83b8873244cc2))
+
 ## [1.8.1](https://github.com/Eroge-Abyss/tadoku/compare/app-v1.8.0...app-v1.8.1) (2026-03-12)
 
 

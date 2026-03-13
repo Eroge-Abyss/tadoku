@@ -14,7 +14,7 @@ export type Fetchable<T> =
 
 export interface GameDto {
   title: string;
-  alt_title: Fetchable<string>;
+  alt_title: string | null;
   description: string;
   /** Is a local file path when loading games only, otherwise it's VNDB image URL.*/
   image_url: string;
@@ -32,6 +32,7 @@ export interface Character {
 }
 
 export interface Game extends GameDto {
+  alt_title: Fetchable<string>;
   /** Play time in seconds. */
   playtime: number;
   today_playtime: number;

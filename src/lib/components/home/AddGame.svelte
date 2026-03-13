@@ -129,10 +129,7 @@
     try {
       const gameData = {
         title: vn.title,
-        alt_title: {
-          type: 'available',
-          value: vn.alttitle,
-        } as Fetchable<string>,
+        alt_title: vn.alttitle,
         description: vn.description || 'No Description',
         exe_file_path: exe_path,
         process_file_path: exe_path,
@@ -175,10 +172,7 @@
 
       const gameData = {
         title: manualTitle.trim(),
-        alt_title: {
-          type: 'available',
-          value: manualAltTitle.trim() || { type: 'notFound' },
-        } as Fetchable<string>,
+        alt_title: manualAltTitle.trim() || null,
         description: manualDescription.trim(),
         exe_file_path: exe_path,
         process_file_path: exe_path,

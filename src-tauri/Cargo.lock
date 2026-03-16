@@ -5558,6 +5558,7 @@ dependencies = [
  "tauri-plugin-updater",
  "tokio",
  "tokio-tungstenite",
+ "tokio-util",
  "tungstenite 0.17.3",
  "url",
  "windows-icons",

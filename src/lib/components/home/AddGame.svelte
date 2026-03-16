@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type Fetchable, type VndbResult } from '$lib/types';
+  import { type Fetchable, type GameDto, type VndbResult } from '$lib/types';
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
   import Dialog from '$lib/components/Dialog.svelte';
@@ -170,18 +170,16 @@
       // Generate a unique local ID with "l" prefix using a random UUID.
       const gameId = `l${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
 
-      const gameData = {
+      const gameData: GameDto = {
         title: manualTitle.trim(),
         alt_title: manualAltTitle.trim() || null,
         description: manualDescription.trim(),
         exe_file_path: exe_path,
         process_file_path: exe_path,
-        categories: [],
         characters: null,
         // Pass the raw local path; backend will copy it and store the filename.
         image_url: manualImagePath,
         is_nsfw: manualIsNsfw,
-        notes: '',
       };
 
       await appState.saveGame(gameId, gameData, { include_characters: false });

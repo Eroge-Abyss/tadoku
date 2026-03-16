@@ -1,5 +1,5 @@
 use crate::{AppState, prelude::Result, services::stores::settings::PlaytimeMode, util};
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::sync::Mutex;
@@ -74,7 +74,7 @@ impl ExStaticPlaytime {
         Ok(())
     }
 
-    pub fn spawn(app_handle: &AppHandle) {
+    pub fn spawn(app_handle: &AppHandle, token: tokio_util::sync::CancellationToken) {
         info!("Spawning ExStatic playtime tracking task");
         let app_handle = app_handle.clone();
         tauri::async_runtime::spawn(async move {
@@ -94,51 +94,73 @@ impl ExStaticPlaytime {
             };
             info!("WebSocket server listening on {}", SERVER_ADDRESS);
 
-            while let Ok((stream, _)) = listener.accept().await {
-                let app_handle = app_handle.clone(); // Clone for each connection
-                tauri::async_runtime::spawn(async move {
-                    let ws_stream = match accept_async(stream).await {
-                        Ok(ws) => {
-                            info!("New WebSocket connection established!");
-                            ws
-                        }
-                        Err(e) => {
-                            error!("Error during WebSocket handshake: {}", e);
-                            return;
-                        }
-                    };
+            let mut connection_handlers = tokio::task::JoinSet::new();
 
-                    let (_, mut read) = ws_stream.split();
-                    while let Some(message) = read.next().await {
-                        match message {
-                            Ok(msg) => {
-                                if msg.is_text() {
-                                    let msg = msg
-                                        .into_text()
-                                        .expect("Shouldn't happen, already made an if check");
+            loop {
+                tokio::select! {
+                    _ = token.cancelled() => {
+                        info!("Shutdown signal received, closing WebSocket server.");
+                        break;
+                    }
+                    Ok((stream, _)) = listener.accept() => {
+                        let app_handle = app_handle.clone();
+                        let conn_token = token.clone();
+                        connection_handlers.spawn(async move {
+                            let ws_stream = match accept_async(stream).await {
+                                Ok(ws) => {
+                                    info!("New WebSocket connection established!");
+                                    ws
+                                }
+                                Err(e) => {
+                                    error!("Error during WebSocket handshake: {}", e);
+                                    return;
+                                }
+                            };
 
-                                    match Self::process_input(msg.to_string()) {
-                                        Ok(data) => {
-                                            if let Err(e) = Self::handle(&app_handle, data) {
-                                                error!("Error handling ExStatic data: {}", e);
+                            let (mut write, mut read) = ws_stream.split();
+                            loop {
+                                tokio::select! {
+                                    _ = conn_token.cancelled() => {
+                                        info!("Closing WebSocket connection due to shutdown signal.");
+                                        let _ = write.send(tokio_tungstenite::tungstenite::Message::Close(None)).await;
+                                        break;
+                                    }
+                                    message = read.next() => {
+                                        match message {
+                                            Some(Ok(msg)) => {
+                                                if msg.is_text() {
+                                                    let msg_text = msg.into_text().expect("already checked for text");
+                                                    match Self::process_input(msg_text.to_string()) {
+                                                        Ok(data) => {
+                                                            if let Err(e) = Self::handle(&app_handle, data) {
+                                                                error!("Error handling ExStatic data: {}", e);
+                                                            }
+                                                        }
+                                                        Err(e) => error!("Error processing input: {}", e),
+                                                    }
+                                                }
                                             }
-                                        }
-                                        Err(e) => {
-                                            error!("Error processing input: {}", e);
+                                            Some(Err(e)) => {
+                                                error!("Error processing message: {}", e);
+                                                break;
+                                            }
+                                            None => break, // Connection closed by client
                                         }
                                     }
                                 }
                             }
-                            Err(e) => {
-                                error!("Error processing message: {}", e);
-                                break;
-                            }
-                        }
+                            info!("WebSocket connection closed.");
+                        });
                     }
-
-                    info!("WebSocket connection closed.");
-                });
+                }
             }
+
+            info!(
+                "Waiting for {} active connection(s) to shut down...",
+                connection_handlers.len()
+            );
+            connection_handlers.shutdown().await;
+            info!("All connections closed. ExStatic server shut down completely.");
         });
     }
 }

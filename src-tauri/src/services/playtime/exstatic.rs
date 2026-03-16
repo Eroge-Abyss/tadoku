@@ -4,8 +4,9 @@ use log::{debug, error, info, warn};
 use serde::Deserialize;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::accept_async;
+use tokio_util::sync::CancellationToken;
 
 const SERVER_ADDRESS: &str = "127.0.0.1:6969";
 
@@ -105,52 +106,7 @@ impl ExStaticPlaytime {
                     Ok((stream, _)) = listener.accept() => {
                         let app_handle = app_handle.clone();
                         let conn_token = token.clone();
-                        connection_handlers.spawn(async move {
-                            let ws_stream = match accept_async(stream).await {
-                                Ok(ws) => {
-                                    info!("New WebSocket connection established!");
-                                    ws
-                                }
-                                Err(e) => {
-                                    error!("Error during WebSocket handshake: {}", e);
-                                    return;
-                                }
-                            };
-
-                            let (mut write, mut read) = ws_stream.split();
-                            loop {
-                                tokio::select! {
-                                    _ = conn_token.cancelled() => {
-                                        info!("Closing WebSocket connection due to shutdown signal.");
-                                        let _ = write.send(tokio_tungstenite::tungstenite::Message::Close(None)).await;
-                                        break;
-                                    }
-                                    message = read.next() => {
-                                        match message {
-                                            Some(Ok(msg)) => {
-                                                if msg.is_text() {
-                                                    let msg_text = msg.into_text().expect("already checked for text");
-                                                    match Self::process_input(msg_text.to_string()) {
-                                                        Ok(data) => {
-                                                            if let Err(e) = Self::handle(&app_handle, data) {
-                                                                error!("Error handling ExStatic data: {}", e);
-                                                            }
-                                                        }
-                                                        Err(e) => error!("Error processing input: {}", e),
-                                                    }
-                                                }
-                                            }
-                                            Some(Err(e)) => {
-                                                error!("Error processing message: {}", e);
-                                                break;
-                                            }
-                                            None => break, // Connection closed by client
-                                        }
-                                    }
-                                }
-                            }
-                            info!("WebSocket connection closed.");
-                        });
+                        connection_handlers.spawn(Self::handle_connection(app_handle, stream, conn_token));
                     }
                 }
             }
@@ -162,5 +118,56 @@ impl ExStaticPlaytime {
             connection_handlers.shutdown().await;
             info!("All connections closed. ExStatic server shut down completely.");
         });
+    }
+
+    async fn handle_connection(
+        app_handle: AppHandle,
+        stream: TcpStream,
+        conn_token: CancellationToken,
+    ) {
+        let ws_stream = match accept_async(stream).await {
+            Ok(ws) => {
+                info!("New WebSocket connection established!");
+                ws
+            }
+            Err(e) => {
+                error!("Error during WebSocket handshake: {}", e);
+                return;
+            }
+        };
+
+        let (mut write, mut read) = ws_stream.split();
+        loop {
+            tokio::select! {
+                _ = conn_token.cancelled() => {
+                    info!("Closing WebSocket connection due to shutdown signal.");
+                    let _ = write.send(tokio_tungstenite::tungstenite::Message::Close(None)).await;
+                    break;
+                }
+                message = read.next() => {
+                    match message {
+                        Some(Ok(msg)) => {
+                            if msg.is_text() {
+                                let msg_text = msg.into_text().expect("already checked for text");
+                                match Self::process_input(msg_text.to_string()) {
+                                    Ok(data) => {
+                                        if let Err(e) = Self::handle(&app_handle, data) {
+                                            error!("Error handling ExStatic data: {}", e);
+                                        }
+                                    }
+                                    Err(e) => error!("Error processing input: {}", e),
+                                }
+                            }
+                        }
+                        Some(Err(e)) => {
+                            error!("Error processing message: {}", e);
+                            break;
+                        }
+                        None => break, // Connection closed by client
+                    }
+                }
+            }
+        }
+        info!("WebSocket connection closed.");
     }
 }

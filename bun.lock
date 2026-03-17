@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "seikou",
@@ -20,6 +19,7 @@
         "@tauri-apps/plugin-shell": "~2",
         "@tauri-apps/plugin-store": "~2",
         "@tauri-apps/plugin-updater": "^2.6.1",
+        "svelte-sonner": "^1.1.0",
       },
       "devDependencies": {
         "@sveltejs/adapter-static": "^3.0.6",
@@ -332,6 +332,8 @@
 
     "rollup": ["rollup@4.34.7", "", { "dependencies": { "@types/estree": "1.0.6" }, "optionalDependencies": { "@rollup/rollup-android-arm-eabi": "4.34.7", "@rollup/rollup-android-arm64": "4.34.7", "@rollup/rollup-darwin-arm64": "4.34.7", "@rollup/rollup-darwin-x64": "4.34.7", "@rollup/rollup-freebsd-arm64": "4.34.7", "@rollup/rollup-freebsd-x64": "4.34.7", "@rollup/rollup-linux-arm-gnueabihf": "4.34.7", "@rollup/rollup-linux-arm-musleabihf": "4.34.7", "@rollup/rollup-linux-arm64-gnu": "4.34.7", "@rollup/rollup-linux-arm64-musl": "4.34.7", "@rollup/rollup-linux-loongarch64-gnu": "4.34.7", "@rollup/rollup-linux-powerpc64le-gnu": "4.34.7", "@rollup/rollup-linux-riscv64-gnu": "4.34.7", "@rollup/rollup-linux-s390x-gnu": "4.34.7", "@rollup/rollup-linux-x64-gnu": "4.34.7", "@rollup/rollup-linux-x64-musl": "4.34.7", "@rollup/rollup-win32-arm64-msvc": "4.34.7", "@rollup/rollup-win32-ia32-msvc": "4.34.7", "@rollup/rollup-win32-x64-msvc": "4.34.7", "fsevents": "~2.3.2" }, "bin": { "rollup": "dist/bin/rollup" } }, "sha512-8qhyN0oZ4x0H6wmBgfKxJtxM7qS98YJ0k0kNh5ECVtuchIJ7z9IVVvzpmtQyT10PXKMtBxYr1wQ5Apg8RS8kXQ=="],
 
+    "runed": ["runed@0.28.0", "", { "dependencies": { "esm-env": "^1.0.0" }, "peerDependencies": { "svelte": "^5.7.0" } }, "sha512-k2xx7RuO9hWcdd9f+8JoBeqWtYrm5CALfgpkg2YDB80ds/QE4w0qqu34A7fqiAwiBBSBQOid7TLxwxVC27ymWQ=="],
+
     "sade": ["sade@1.8.1", "", { "dependencies": { "mri": "^1.1.0" } }, "sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A=="],
 
     "semver": ["semver@7.7.1", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA=="],
@@ -351,6 +353,8 @@
     "svelte-check": ["svelte-check@4.1.4", "", { "dependencies": { "@jridgewell/trace-mapping": "^0.3.25", "chokidar": "^4.0.1", "fdir": "^6.2.0", "picocolors": "^1.0.0", "sade": "^1.7.4" }, "peerDependencies": { "svelte": "^4.0.0 || ^5.0.0-next.0", "typescript": ">=5.0.0" }, "bin": { "svelte-check": "bin/svelte-check" } }, "sha512-v0j7yLbT29MezzaQJPEDwksybTE2Ups9rUxEXy92T06TiA0cbqcO8wAOwNUVkFW6B0hsYHA+oAX3BS8b/2oHtw=="],
 
     "svelte-parse-markup": ["svelte-parse-markup@0.1.5", "", { "peerDependencies": { "svelte": "^3.0.0 || ^4.0.0 || ^5.0.0-next.1" } }, "sha512-T6mqZrySltPCDwfKXWQ6zehipVLk4GWfH1zCMGgRtLlOIFPuw58ZxVYxVvotMJgJaurKi1i14viB2GIRKXeJTQ=="],
+
+    "svelte-sonner": ["svelte-sonner@1.1.0", "", { "dependencies": { "runed": "^0.28.0" }, "peerDependencies": { "svelte": "^5.0.0" } }, "sha512-3lYM6ZIqWe+p9vwwWHGWP/ZdvHiUtzURsud2quIxivrX4rvpXh6i+geBGn0m3JS6KwW6W8VgbOl3xQMcDuh6gg=="],
 
     "totalist": ["totalist@3.0.1", "", {}, "sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ=="],
 

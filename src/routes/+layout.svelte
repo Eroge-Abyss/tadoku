@@ -7,6 +7,7 @@
   import { onMount, type Snippet } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
   import UpdateDialog from '$lib/components/UpdateDialog.svelte';
+  import { Toaster } from 'svelte-sonner';
   import { appState } from '$lib/state.svelte';
   import { type Event } from '@tauri-apps/api/event';
   import type { CurrentGame } from '$lib/types';
@@ -49,6 +50,14 @@
   {@render children()}
   <Sidebar />
   <UpdateDialog />
+  <Toaster
+    position="top-right"
+    visibleToasts={1}
+    toastOptions={{
+      style:
+        'background: var(--accent); color: var(--main-text); border: 1px solid rgba(255, 255, 255, 0.1); font-family: "Noto Sans JP Variable", sans-serif;',
+    }}
+  />
 </main>
 
 <style>

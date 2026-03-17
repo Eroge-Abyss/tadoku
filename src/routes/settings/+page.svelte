@@ -12,6 +12,7 @@
   import { appLogDir } from '@tauri-apps/api/path';
   import { revealItemInDir } from '@tauri-apps/plugin-opener';
   import InfoNote from '$lib/components/InfoNote.svelte';
+  import { toast } from 'svelte-sonner';
 
   const EXSTATIC_GITHUB_URL = 'https://github.com/kofta999/exSTATic';
 
@@ -113,8 +114,10 @@
       appState.setShowRandomButton(true);
       appState.setDisablePresenceOnNsfw(true);
       appState.setDiscordPresenceMode('All');
+      toast.success('Settings reset to defaults');
     } catch (error) {
       console.error('Error resetting settings:', error as Error);
+      toast.error(`Failed to reset settings: ${error}`);
     }
   }
 
@@ -124,6 +127,7 @@
       await revealItemInDir(logsDir);
     } catch (error) {
       console.error('Error opening logs directory:', error as Error);
+      toast.error(`Failed to open logs directory: ${error}`);
     }
   }
 

@@ -9,6 +9,7 @@
   import StatusSelector from '../StatusSelector.svelte';
   import NsfwPlaceholder from '../NsfwPlaceholder.svelte';
   import { getAvailable } from '$lib/util';
+  import { toast } from 'svelte-sonner';
 
   type Props = {
     novel: Novel;
@@ -233,9 +234,13 @@
             </button>
 
             <button
-              onclick={withMenuClose(() =>
-                revealItemInDir(novel.exe_file_path),
-              )}
+              onclick={withMenuClose(async () => {
+                try {
+                  await revealItemInDir(novel.exe_file_path);
+                } catch (error) {
+                  toast.error(`Failed to open game directory: ${error}`);
+                }
+              })}
               class="menu-item"
             >
               <i class="fa-solid fa-folder-open"></i>
@@ -244,9 +249,13 @@
 
             {#if !isLocalGame}
               <button
-                onclick={withMenuClose(() =>
-                  openUrl(`https://vndb.org/${novel.id}`),
-                )}
+                onclick={withMenuClose(async () => {
+                  try {
+                    await openUrl(`https://vndb.org/${novel.id}`);
+                  } catch (error) {
+                    toast.error(`Failed to open VNDB page: ${error}`);
+                  }
+                })}
                 class="menu-item"
               >
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>

@@ -3,6 +3,7 @@
   import Dialog from '$lib/components/Dialog.svelte';
   import { appState } from '$lib/state.svelte';
   import InfoNote from '../InfoNote.svelte';
+  import { toast } from 'svelte-sonner';
 
   type Props = {
     isOpen: boolean;
@@ -24,7 +25,12 @@
   let searchTerm = $state(''); // Reactive search term
 
   async function onConfirm(selectedProcessPath: string) {
-    appState.updateGameProcessPath(gameId, selectedProcessPath);
+    try {
+      await appState.updateGameProcessPath(gameId, selectedProcessPath);
+      toast.success('Process path updated');
+    } catch (error) {
+      // Error handled in appState
+    }
 
     process = null;
     searchTerm = '';

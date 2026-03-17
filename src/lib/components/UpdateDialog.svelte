@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import Dialog from '$lib/components/Dialog.svelte';
   import InfoNote from './InfoNote.svelte';
+  import { toast } from 'svelte-sonner';
 
   const GITHUB_RELEASE_URL =
     'https://github.com/Eroge-Abyss/tadoku/releases/latest';
@@ -49,6 +50,7 @@
       await update.install();
     } catch (error) {
       console.error('Failed to install update:', error as Error);
+      toast.error(`Failed to install update: ${error}`);
     } finally {
       loading = false;
       closeModal();

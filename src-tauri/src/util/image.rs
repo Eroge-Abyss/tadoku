@@ -1,4 +1,4 @@
-use crate::{prelude::Result, scripts};
+use crate::prelude::Result;
 use anyhow::Context;
 use std::{
     fs,
@@ -56,8 +56,6 @@ pub async fn save_image(
     dest_name: Option<&str>,
 ) -> Result<String> {
     let base_path = app_handle.path().app_local_data_dir()?;
-
-    scripts::create_images_folder(app_handle)?;
 
     let filename = dest_name
         .map(str::to_owned)

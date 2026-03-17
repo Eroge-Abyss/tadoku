@@ -67,34 +67,29 @@
       {/if}
     </span>
   </div>
-  {#if playtimeMode === 'ex_static'}
-    <div
-      class="stat-item has-progress"
-      in:fly={{ y: 20, duration: 500, delay: 100 }}
-    >
-      <p class="stat-label">Chars Read</p>
-      <span class="stat-value">{charsRead.toLocaleString()}</span>
-      {#if jitenCharCount !== null && charsRead > 0}
-        <span class="progress-badge">{progressPercent.toFixed(1)}%</span>
-        <div class="bottom-progress">
-          <div
-            class="bottom-progress-fill"
-            style="width: {progressPercent}%;"
-          ></div>
-        </div>
+  <div class="stat-item has-progress" in:fly={{ y: 20, duration: 500 }}>
+    <p class="stat-label">Characters Read</p>
+    <span class="stat-value">{charsRead.toLocaleString()}</span>
+    {#if jitenCharCount !== null && charsRead > 0}
+      <span class="progress-badge">{progressPercent.toFixed(1)}%</span>
+      <div class="bottom-progress">
+        <div
+          class="bottom-progress-fill"
+          style="width: {progressPercent}%;"
+        ></div>
+      </div>
+    {/if}
+  </div>
+  <div class="stat-item" in:fly={{ y: 20, duration: 500 }}>
+    <p class="stat-label">Total JP Characters (Jiten)</p>
+    <span class="stat-value">
+      {#if jitenCharCount !== null}
+        {jitenCharCount.toLocaleString()}
+      {:else}
+        <span class="na-text">N/A</span>
       {/if}
-    </div>
-    <div class="stat-item" in:fly={{ y: 20, duration: 500, delay: 100 }}>
-      <p class="stat-label">Total Chars (Jiten)</p>
-      <span class="stat-value">
-        {#if jitenCharCount !== null}
-          {jitenCharCount.toLocaleString()}
-        {:else}
-          <span class="na-text">N/A</span>
-        {/if}
-      </span>
-    </div>
-  {/if}
+    </span>
+  </div>
 </div>
 
 <style>

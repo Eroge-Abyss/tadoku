@@ -1,9 +1,12 @@
-use crate::{AppState, prelude::Result, services::stores::settings::PlaytimeMode, util};
+use crate::{
+    prelude::Result,
+    services::{state::ManagedState, stores::settings::PlaytimeMode},
+    util,
+};
 use anyhow::Context;
 use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info, warn};
 use serde::Deserialize;
-use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::accept_async;
@@ -29,8 +32,8 @@ impl ExStaticPlaytime {
     fn handle(app_handle: &AppHandle, data: ExStaticData) -> Result<()> {
         debug!("Handling ExStatic data: {:?}", data);
 
-        let binding = app_handle.state::<Mutex<AppState>>();
-        let mut state = binding
+        let managed = app_handle.state::<ManagedState>();
+        let mut state = managed
             .lock()
             .map_err(|e| anyhow::anyhow!("Error acquiring mutex lock: {}", e))?;
 

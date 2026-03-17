@@ -1,10 +1,9 @@
 use crate::prelude::{Fetchable, Result};
+use crate::services::state::{AppState, ManagedState};
 use crate::services::stores::games::GamesStore;
 use crate::services::vndb::{VNDB_MAX_PAGE_SIZE, Vndb};
 use crate::services::{
-    discord::DiscordPresence,
-    stores::games::Game,
-    stores::settings::{Settings, SettingsStore},
+    discord::DiscordPresence, stores::games::Game, stores::settings::SettingsStore,
 };
 use anyhow::{Context, bail};
 use log::{debug, error, info, warn};
@@ -12,34 +11,6 @@ use std::{fs, sync::Mutex};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
 use tauri_plugin_store::StoreExt;
-
-#[derive(Default, Clone)]
-pub struct GameState {
-    pub id: String,
-    pub pid: u32,
-    pub current_playtime: u64,
-}
-
-#[derive(Default)]
-pub struct AppState {
-    pub game: Option<GameState>,
-    pub presence: Option<DiscordPresence>,
-    pub settings: Settings,
-}
-
-impl AppState {
-    pub fn update_settings<F>(&mut self, app_handle: &AppHandle, update_fn: F) -> Result<()>
-    where
-        F: FnOnce(&mut Settings),
-    {
-        update_fn(&mut self.settings);
-
-        let store = SettingsStore::new(app_handle)?;
-        store.save(&self.settings)?;
-
-        Ok(())
-    }
-}
 
 // This script should be able to
 // 1. Get the store
@@ -214,7 +185,7 @@ pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
         ..Default::default()
     };
 
-    app_handle.manage(Mutex::new(state));
+    app_handle.manage(Mutex::new(ManagedState::new(state)));
     info!("Application state initialized successfully");
 
     Ok(())

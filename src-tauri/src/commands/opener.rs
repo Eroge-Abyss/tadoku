@@ -1,8 +1,12 @@
 use crate::{
-    AppState, GameState,
     commands::cmd_result::CmdResult,
     prelude::Fetchable,
-    services::{discord::DiscordGameDetails, playtime, stores::games::GamesStore},
+    services::{
+        discord::DiscordGameDetails,
+        playtime,
+        state::{GameState, ManagedState},
+        stores::games::GamesStore,
+    },
     util,
 };
 use anyhow::Context;
@@ -12,7 +16,6 @@ use serde_json::json;
 use std::{
     fs::{self},
     path::PathBuf,
-    sync::Mutex,
     time::Duration,
 };
 use sysinfo::{Pid, System};
@@ -101,7 +104,7 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> CmdResult<()> {
 
         tauri::async_runtime::spawn(async move {
             debug!("Starting game monitoring task for {}", game_id);
-            let binding = app_handle.state::<Mutex<AppState>>();
+            let binding = app_handle.state::<ManagedState>();
 
             let pid;
             let mut counter: u8 = 0;
@@ -244,15 +247,13 @@ pub fn get_active_windows() -> CmdResult<Vec<ActiveWindow>> {
 pub fn close_game(app_handle: AppHandle) -> CmdResult<()> {
     info!("Attempting to close current game");
 
-    let binding = app_handle.state::<Mutex<AppState>>();
-    let state = binding
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let managed = app_handle.state::<ManagedState>();
+    let state = managed.lock()?;
 
     let mut system = System::new_all();
     system.refresh_all();
 
-    if let Some(game) = &state.game {
+    if let Some(ref game) = state.game {
         info!("Closing game {} with PID {}", game.id, game.pid);
         let pid = Pid::from_u32(game.pid);
         if let Some(process) = system.process(pid) {

@@ -1,8 +1,8 @@
 use crate::commands::cmd_result::CmdResult;
 use crate::commands::jiten;
 use crate::prelude::Fetchable;
+use crate::services::state::ManagedState;
 use crate::{
-    AppState,
     services::{
         discord::DiscordPresenceMode,
         stores::{
@@ -17,7 +17,6 @@ use crate::{
 use anyhow::Context;
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
 use tokio;
 #[cfg(windows)]
@@ -426,20 +425,19 @@ pub fn set_game_categories(
 /// Gets theme settings from storage
 #[tauri::command]
 pub fn get_theme_settings(app_handle: AppHandle) -> CmdResult<ThemeSettings> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.theme_settings.clone())
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .theme_settings
+        .clone())
 }
 
 /// Saves theme settings to storage
 #[tauri::command]
 pub fn set_theme_settings(app_handle: AppHandle, theme_settings: ThemeSettings) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.theme_settings = theme_settings)
         .context("Failed to update theme settings")?;
     Ok(())
@@ -448,20 +446,18 @@ pub fn set_theme_settings(app_handle: AppHandle, theme_settings: ThemeSettings) 
 /// Gets nsfw presence toggle status
 #[tauri::command]
 pub fn get_nsfw_presence_status(app_handle: AppHandle) -> CmdResult<bool> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.disable_presence_on_nsfw)
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .disable_presence_on_nsfw)
 }
 
 /// Saves theme settings to storage
 #[tauri::command]
 pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.disable_presence_on_nsfw = to)
         .context("Failed to update nsfw presence status")?;
     Ok(())
@@ -470,20 +466,18 @@ pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> CmdResult<()
 /// Gets sort order
 #[tauri::command]
 pub fn get_sort_order(app_handle: AppHandle) -> CmdResult<SortOrder> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.sort_order)
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .sort_order)
 }
 
 /// Saves theme settings to storage
 #[tauri::command]
 pub fn set_sort_order(app_handle: AppHandle, sort_order: SortOrder) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.sort_order = sort_order)
         .context("Failed to update sort order")?;
     Ok(())
@@ -492,20 +486,18 @@ pub fn set_sort_order(app_handle: AppHandle, sort_order: SortOrder) -> CmdResult
 /// Gets show random picker
 #[tauri::command]
 pub fn get_show_random_picker(app_handle: AppHandle) -> CmdResult<bool> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.show_random_picker)
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .show_random_picker)
 }
 
 /// Saves show random picker setting to storage
 #[tauri::command]
 pub fn set_show_random_picker(app_handle: AppHandle, to: bool) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.show_random_picker = to)
         .context("Failed to update show random picker")?;
     Ok(())
@@ -514,20 +506,18 @@ pub fn set_show_random_picker(app_handle: AppHandle, to: bool) -> CmdResult<()> 
 /// Gets discord presence mode
 #[tauri::command]
 pub fn get_discord_presence_mode(app_handle: AppHandle) -> CmdResult<DiscordPresenceMode> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.discord_presence_mode)
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .discord_presence_mode)
 }
 
 /// Saves Discord presence mode setting to storage
 #[tauri::command]
 pub fn set_discord_presence_mode(app_handle: AppHandle, to: DiscordPresenceMode) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
 
     lock.update_settings(&app_handle, |s| s.discord_presence_mode = to)
         .context("Failed to update discord presence mode")?;
@@ -542,20 +532,18 @@ pub fn set_discord_presence_mode(app_handle: AppHandle, to: DiscordPresenceMode)
 /// Gets playtime mode
 #[tauri::command]
 pub fn get_playtime_mode(app_handle: AppHandle) -> CmdResult<PlaytimeMode> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.playtime_mode)
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .playtime_mode)
 }
 
 /// Saves new playtime mode to disk
 #[tauri::command]
 pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.playtime_mode = to)
         .context("Failed to update playtime mode")?;
     Ok(())
@@ -563,19 +551,17 @@ pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> CmdResult<(
 
 #[tauri::command]
 pub fn get_use_jp_for_title_time(app_handle: AppHandle) -> CmdResult<bool> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.use_jp_for_title_time)
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .use_jp_for_title_time)
 }
 
 #[tauri::command]
 pub fn set_use_jp_for_title_time(app_handle: AppHandle, to: bool) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.use_jp_for_title_time = to)
         .context("Failed to update use jp for title time")?;
     Ok(())
@@ -583,19 +569,17 @@ pub fn set_use_jp_for_title_time(app_handle: AppHandle, to: bool) -> CmdResult<(
 
 #[tauri::command]
 pub fn get_hide_nsfw_images(app_handle: AppHandle) -> CmdResult<bool> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.hide_nsfw_images)
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .hide_nsfw_images)
 }
 
 #[tauri::command]
 pub fn set_hide_nsfw_images(app_handle: AppHandle, to: bool) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.hide_nsfw_images = to)
         .context("Failed to update hide nsfw images")?;
     Ok(())
@@ -604,20 +588,19 @@ pub fn set_hide_nsfw_images(app_handle: AppHandle, to: bool) -> CmdResult<()> {
 /// Gets the Jiten API base URL
 #[tauri::command]
 pub fn get_jiten_base_url(app_handle: AppHandle) -> CmdResult<String> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-    Ok(lock.settings.jiten_base_url.clone())
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .jiten_base_url
+        .clone())
 }
 
 /// Sets the Jiten API base URL
 #[tauri::command]
 pub fn set_jiten_base_url(app_handle: AppHandle, url: String) -> CmdResult<()> {
-    let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state
-        .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.jiten_base_url = url)
         .context("Failed to update jiten base url")?;
     Ok(())

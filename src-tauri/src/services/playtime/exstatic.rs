@@ -1,4 +1,5 @@
 use crate::{AppState, prelude::Result, services::stores::settings::PlaytimeMode, util};
+use anyhow::Context;
 use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info, warn};
 use serde::Deserialize;
@@ -22,21 +23,16 @@ pub struct ExStaticPlaytime;
 impl ExStaticPlaytime {
     fn process_input(input: String) -> Result<ExStaticData> {
         debug!("Processing input: {}", input);
-        let v: ExStaticData = serde_json::from_str(&input).map_err(|e| {
-            error!("Failed to deserialize input: {}", e);
-            e.to_string()
-        })?;
-        Ok(v)
+        serde_json::from_str(&input).context("Failed to deserialize exstatic input")
     }
 
     fn handle(app_handle: &AppHandle, data: ExStaticData) -> Result<()> {
         debug!("Handling ExStatic data: {:?}", data);
 
         let binding = app_handle.state::<Mutex<AppState>>();
-        let mut state = binding.lock().map_err(|e| {
-            error!("Error acquiring mutex lock: {}", e);
-            "Error acquiring mutex lock".to_string()
-        })?;
+        let mut state = binding
+            .lock()
+            .map_err(|e| anyhow::anyhow!("Error acquiring mutex lock: {}", e))?;
 
         if !matches!(&state.settings.playtime_mode, PlaytimeMode::ExStatic) {
             debug!("PlaytimeMode is not ExStatic, ignoring data");
@@ -79,21 +75,19 @@ impl ExStaticPlaytime {
         info!("Spawning ExStatic playtime tracking task");
         let app_handle = app_handle.clone();
         tauri::async_runtime::spawn(async move {
-            info!("Binding WebSocket server to {}", SERVER_ADDRESS);
-            let listener = match TcpListener::bind(SERVER_ADDRESS).await {
+            let listener = match TcpListener::bind(SERVER_ADDRESS).await.context(format!(
+                "Failed to bind WebSocket server to {}",
+                SERVER_ADDRESS
+            )) {
                 Ok(l) => {
-                    info!("Successfully bound WebSocket server to {}", SERVER_ADDRESS);
+                    info!("WebSocket server listening on {}", SERVER_ADDRESS);
                     l
                 }
                 Err(e) => {
-                    error!(
-                        "Failed to bind WebSocket server to {}: {}",
-                        SERVER_ADDRESS, e
-                    );
+                    error!("{:?}", e);
                     return;
                 }
             };
-            info!("WebSocket server listening on {}", SERVER_ADDRESS);
 
             let mut connection_handlers = tokio::task::JoinSet::new();
 

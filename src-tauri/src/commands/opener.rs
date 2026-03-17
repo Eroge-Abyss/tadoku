@@ -1,9 +1,11 @@
 use crate::{
     AppState, GameState,
+    commands::cmd_result::CmdResult,
     prelude::Fetchable,
     services::{discord::DiscordGameDetails, playtime, stores::games::GamesStore},
     util,
 };
+use anyhow::Context;
 use log::{debug, error, info, warn};
 use serde::Serialize;
 use serde_json::json;
@@ -11,7 +13,6 @@ use std::{
     fs::{self},
     path::PathBuf,
     sync::Mutex,
-    thread,
     time::Duration,
 };
 use sysinfo::{Pid, System};
@@ -25,30 +26,27 @@ pub struct ActiveWindow {
     icon: Option<String>,
 }
 
-fn handle_open_lnk(exe_path: &mut PathBuf, args: &mut String) -> Result<(), String> {
+fn handle_open_lnk(exe_path: &mut PathBuf, args: &mut String) -> anyhow::Result<()> {
     debug!("Handling .lnk file: {:?}", exe_path);
-    let lnk = lnk::ShellLink::open(&exe_path).map_err(|e| {
-        error!("Error opening .lnk file {:?}: {:?}", exe_path, e);
-        "Error opening .lnk file"
-    })?;
+    let lnk = lnk::ShellLink::open(&exe_path)
+        .map_err(|e| anyhow::anyhow!("LNK error: {:?}", e))
+        .context(format!("Error opening .lnk file {:?}", exe_path))?;
 
-    let working_dir = lnk.working_dir().as_ref().ok_or_else(|| {
-        error!("Missing working directory in .lnk file: {:?}", exe_path);
-        "Missing working directory in .lnk file"
-    })?;
-    let relative_path = lnk.relative_path().as_ref().ok_or_else(|| {
-        error!("Missing relative path in .lnk file: {:?}", exe_path);
-        "Missing relative path in .lnk file"
-    })?;
+    let working_dir = lnk.working_dir().as_ref().context(format!(
+        "Missing working directory in .lnk file: {:?}",
+        exe_path
+    ))?;
+    let relative_path = lnk.relative_path().as_ref().context(format!(
+        "Missing relative path in .lnk file: {:?}",
+        exe_path
+    ))?;
     *args = lnk
         .arguments()
         .as_ref()
         .unwrap_or(&String::new())
         .to_owned();
-    *exe_path = fs::canonicalize(PathBuf::from(working_dir).join(relative_path)).map_err(|e| {
-        error!("Error resolving canonical path for .lnk file: {}", e);
-        format!("Error resolving canonical path: {}", e)
-    })?;
+    *exe_path = fs::canonicalize(PathBuf::from(working_dir).join(relative_path))
+        .context("Error resolving canonical path for .lnk file")?;
 
     debug!(
         "Successfully processed .lnk file. Resolved exe_path: {:?}, args: {:?}",
@@ -59,13 +57,10 @@ fn handle_open_lnk(exe_path: &mut PathBuf, args: &mut String) -> Result<(), Stri
 
 /// Opens a game and sets its PID in local state
 #[tauri::command]
-pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+pub fn open_game(app_handle: AppHandle, game_id: String) -> CmdResult<()> {
     info!("Attempting to open game with ID: {}", game_id);
 
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing store for game {}: {}", game_id, e);
-        format!("Error accessing store: {}", e)
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error accessing store")?;
 
     if let Some(game) = store.get(&game_id) {
         info!(
@@ -77,39 +72,36 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
 
         if exe_path.extension().unwrap_or_default() == "lnk" {
             debug!("Game {} uses .lnk file, processing...", game_id);
-            handle_open_lnk(&mut exe_path, &mut args)?;
+            handle_open_lnk(&mut exe_path, &mut args)
+                .context("Error happened while handling .lnk file")?;
         }
 
-        tauri::async_runtime::block_on(async {
-            let mut command = app_handle
-                .shell()
-                .command(&exe_path)
-                .current_dir(exe_path.parent().ok_or("Failed to get parent directory")?);
+        let current_dir = exe_path
+            .parent()
+            .context("Failed to get parent directory")?;
 
-            if !args.is_empty() {
-                debug!("Starting game {} with arguments: {}", game_id, args);
-                command = command.arg(args);
-            } else {
-                debug!("Starting game {} without arguments", game_id);
-            }
+        let mut command = app_handle
+            .shell()
+            .command(&exe_path)
+            .current_dir(current_dir);
 
-            let _ = command.spawn().map_err(|e| {
-                error!("Error spawning game process for {}: {:?}", game_id, e);
-                "Error happened while running the game".to_string()
-            })?;
+        if !args.is_empty() {
+            debug!("Starting game {} with arguments: {}", game_id, args);
+            command = command.arg(args);
+        } else {
+            debug!("Starting game {} without arguments", game_id);
+        }
 
-            info!("Successfully spawned game process for {}", game_id);
+        // Spawn is synchronous in Tauri 2.0 shell plugin, no block_on needed.
+        command
+            .spawn()
+            .context("Error happened while running the game")?;
 
-            Result::<(), String>::Ok(())
-        })?;
+        info!("Successfully spawned game process for {}", game_id);
 
         tauri::async_runtime::spawn(async move {
             debug!("Starting game monitoring task for {}", game_id);
             let binding = app_handle.state::<Mutex<AppState>>();
-            let mut state = binding.lock().map_err(|e| {
-                error!("Error acquiring mutex lock for game {}: {:?}", game_id, e);
-                "Error acquiring mutex lock".to_string()
-            })?;
 
             let pid;
             let mut counter: u8 = 0;
@@ -136,16 +128,24 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
                                 "Timeout: Couldn't find game process for {} after 60 attempts",
                                 game_id
                             );
-                            return Err(String::from("Couldn't find game process"));
+                            return;
                         }
                         debug!(
                             "Game process not found yet for {}, retrying in 1 second...",
                             game_id
                         );
-                        thread::sleep(Duration::from_secs(1))
+                        tokio::time::sleep(Duration::from_secs(1)).await;
                     }
                 }
             }
+
+            let mut state = match binding.lock() {
+                Ok(s) => s,
+                Err(e) => {
+                    error!("Error acquiring mutex lock for game {}: {:?}", game_id, e);
+                    return;
+                }
+            };
 
             state.game = Some(GameState {
                 pid: pid.as_u32(),
@@ -160,50 +160,42 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
             );
 
             let disable_presence_on_nsfw = state.settings.disable_presence_on_nsfw;
-            let game_title = match game.alt_title {
-                Fetchable::Available(alt_title) if state.settings.use_jp_for_title_time => {
-                    alt_title
-                }
-                _ => game.title,
+            let current_game_title = match &game.alt_title {
+                Fetchable::Available(alt) if state.settings.use_jp_for_title_time => alt.clone(),
+                _ => game.title.clone(),
             };
 
             if let Some(pres) = &mut state.presence {
-                debug!("Setting Discord presence for game: {}", game_title);
-                pres.set_presence(DiscordGameDetails::new(
+                debug!("Setting Discord presence for game: {}", current_game_title);
+                if let Err(e) = pres.set_presence(DiscordGameDetails::new(
                     &game_id,
-                    &game_title,
+                    &current_game_title,
                     &game.image_url,
                     game.is_nsfw && disable_presence_on_nsfw,
-                ))
-                .map_err(|e| {
+                )) {
                     error!("Error setting Discord presence for {}: {:?}", game_id, e);
-                    "Error setting presence".to_string()
-                })?;
-                info!("Discord presence set for game: {}", game_title);
+                } else {
+                    info!("Discord presence set for game: {}", current_game_title);
+                }
             }
 
             debug!("Starting playtime tracking for {}", game_id);
             playtime::ClassicPlaytime::spawn(&app_handle);
 
-            store.set_first_played(&game_id).map_err(|e| {
+            if let Err(e) = store.set_first_played(&game_id) {
                 error!("Error setting first played for {}: {:?}", game_id, e);
-                "Error happened while setting first played"
-            })?;
+            }
 
-            app_handle
-                .emit("current_game", json!({"id": game_id, "status": "playing"}))
-                .map_err(|e| {
-                    error!("Error emitting current_game event for {}: {:?}", game_id, e);
-                    "Error happened while emitting"
-                })?;
+            if let Err(e) =
+                app_handle.emit("current_game", json!({"id": game_id, "status": "playing"}))
+            {
+                error!("Error emitting current_game event for {}: {:?}", game_id, e);
+            }
 
             info!("Game {} is now running and being tracked", game_id);
-
-            Result::<(), String>::Ok(())
         });
     } else {
-        error!("Game not found in store: {}", game_id);
-        return Err("Game not found in store".to_string());
+        return Err(anyhow::anyhow!("Game not found in store: {}", game_id).into());
     }
 
     Ok(())
@@ -211,21 +203,15 @@ pub fn open_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
 
 /// Gets a list of open windows
 #[tauri::command]
-pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
+pub fn get_active_windows() -> CmdResult<Vec<ActiveWindow>> {
     debug!("Getting active windows list");
 
     #[cfg(windows)]
     {
-        let open_windows = match x_win::get_open_windows() {
-            Ok(open_windows) => {
-                debug!("Found {} active windows", open_windows.len());
-                open_windows
-            }
-            Err(x_win::XWinError) => {
-                error!("Error occurred while getting open windows");
-                return Err(String::from("error"));
-            }
-        };
+        let open_windows = x_win::get_open_windows()
+            .map_err(|_| anyhow::anyhow!("Error occurred while getting open windows"))?;
+
+        debug!("Found {} active windows", open_windows.len());
 
         let active_windows: Vec<ActiveWindow> = open_windows
             .iter()
@@ -255,14 +241,13 @@ pub fn get_active_windows() -> Result<Vec<ActiveWindow>, String> {
 
 /// Closes a game and clears local state
 #[tauri::command]
-pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
+pub fn close_game(app_handle: AppHandle) -> CmdResult<()> {
     info!("Attempting to close current game");
 
     let binding = app_handle.state::<Mutex<AppState>>();
-    let state = binding.lock().map_err(|e| {
-        error!("Error acquiring mutex lock for close_game: {:?}", e);
-        "Error acquiring mutex lock".to_string()
-    })?;
+    let state = binding
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
 
     let mut system = System::new_all();
     system.refresh_all();
@@ -283,17 +268,6 @@ pub fn close_game(app_handle: AppHandle) -> Result<(), String> {
         } else {
             warn!("Process with PID {} not found in system", game.pid);
         }
-
-        // TODO: Uncomment these lines when ready to clear game state
-        // debug!("Clearing game state and Discord presence");
-        // state.game = None;
-
-        // if let Some(pres) = &mut state.presence {
-        //     pres.reset()
-        //         .map_err(|_| "Error happened while clearing presence")?;
-        // }
-
-        // app_handle.emit("current_game", json!(null)).expect("here");
     }
 
     Ok(())

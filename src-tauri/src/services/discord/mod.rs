@@ -1,6 +1,7 @@
 mod game_details;
 use crate::prelude::Result;
 pub use crate::services::discord::game_details::DiscordGameDetails;
+use anyhow::anyhow;
 use discord_rich_presence::{
     DiscordIpc, DiscordIpcClient,
     activity::{Activity, Assets, Button, Timestamps},
@@ -27,12 +28,11 @@ pub struct DiscordPresence {
 impl DiscordPresence {
     pub fn new(mode: DiscordPresenceMode) -> Result<Self> {
         info!("Initializing Discord presence with mode: {:?}", mode);
-        let mut client = DiscordIpcClient::new(DISCORD_CLIENT_ID)?;
+        let mut client = DiscordIpcClient::new(DISCORD_CLIENT_ID).map_err(|e| anyhow!("{e}"))?;
 
-        client.connect().map_err(|e| {
-            error!("Failed to connect to Discord: {}", e);
-            e.to_string()
-        })?;
+        client
+            .connect()
+            .map_err(|e| anyhow!("Failed to connect to Discord IPC {e}"))?;
 
         if mode == DiscordPresenceMode::All {
             info!("Setting default Discord activity (All mode)");
@@ -42,10 +42,7 @@ impl DiscordPresence {
                         .state("In Menus")
                         .assets(Assets::new().large_image("app_icon").large_text("Tadoku")),
                 )
-                .map_err(|e| {
-                    error!("Failed to set default Discord activity: {}", e);
-                    e.to_string()
-                })?;
+                .map_err(|e| anyhow!("{e}"))?;
         }
 
         info!("Discord presence initialized successfully");
@@ -93,33 +90,25 @@ impl DiscordPresence {
                     .timestamps(Timestamps::new().start(unix_timestamp as i64))
                     .buttons(buttons),
             )
-            .map_err(|e| {
-                error!("Failed to set Discord activity: {}", e);
-                e
-            })
+            .map_err(|e| anyhow!("Failed to set Discord activity: {e}"))
     }
 
     pub fn reset_presence(&mut self) -> Result<()> {
         info!("Resetting Discord activity");
         if self.mode == DiscordPresenceMode::All {
             debug!("Discord presence mode is All, setting default activity");
-            return self
-                .client
+            self.client
                 .set_activity(
                     Activity::new()
                         .state("In Menus")
                         .assets(Assets::new().large_image("app_icon").large_text("Tadoku")),
                 )
-                .map_err(|e| {
-                    error!("Failed to set default Discord activity: {}", e);
-                    e
-                });
+                .map_err(|_| anyhow!("Failed to set default Discord activity"))?;
         } else {
             debug!("Discord presence mode is not All, clearing activity");
-            self.client.clear_activity().map_err(|e| {
-                error!("Failed to clear Discord activity: {}", e);
-                e
-            })?;
+            self.client
+                .clear_activity()
+                .map_err(|_| anyhow!("Failed to clear Discord activity"))?;
         }
 
         info!("Discord activity reset successfully");

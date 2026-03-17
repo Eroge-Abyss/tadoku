@@ -121,3 +121,20 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--secondary);
 }
+
+/* Toast Styles */
+[data-sonner-toast][data-type='success'] [data-icon] {
+  color: var(--primary);
+}
+
+[data-sonner-toast][data-type='error'] [data-icon] {
+  color: #f7768e;
+}
+
+[data-sonner-toast][data-type='info'] [data-icon] {
+  color: #7aa2f7;
+}
+
+[data-sonner-toast][data-type='warning'] [data-icon] {
+  color: #e0af68;
+}

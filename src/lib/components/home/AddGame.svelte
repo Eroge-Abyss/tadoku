@@ -2,6 +2,7 @@
   import { type Fetchable, type GameDto, type VndbResult } from '$lib/types';
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
+  import { toast } from 'svelte-sonner';
   import Dialog from '$lib/components/Dialog.svelte';
   import { platform } from '@tauri-apps/plugin-os';
   import { appState } from '$lib/state.svelte';
@@ -34,8 +35,13 @@
   let manualIsNsfw = $state(false);
 
   async function updateSearch() {
-    const data = await invoke<VndbResult[]>('fetch_vn_info', { key: search });
-    results = search ? data : [];
+    try {
+      const data = await invoke<VndbResult[]>('fetch_vn_info', { key: search });
+      results = search ? data : [];
+    } catch (error) {
+      console.error('Error fetching VN info:', error);
+      toast.error(`Search failed: ${error}`);
+    }
   }
 
   const openModal = () => (showModal = true);
@@ -116,12 +122,12 @@
 
   const saveVndbGame = async (vn: VndbResult | null) => {
     if (!vn || vn.id === undefined) {
-      alert('Please select a game from the list.');
+      toast.error('Please select a game from the list.');
       return;
     }
 
     if (!exe_path) {
-      alert('Please select a game executable file.');
+      toast.error('Please select a game executable file.');
       return;
     }
 
@@ -143,12 +149,11 @@
         include_characters: charactersDownload,
       });
 
+      toast.success('Game saved successfully!');
+
       closeModal();
     } catch (error) {
       console.error('Error saving game:', error);
-      alert(
-        `Failed to save game: ${(error as Error).message || 'Unknown error'}`,
-      );
     } finally {
       loading = false;
     }
@@ -156,12 +161,12 @@
 
   const saveManualGame = async () => {
     if (!manualTitle.trim()) {
-      alert('Please enter a game title.');
+      toast.error('Please enter a game title.');
       return;
     }
 
     if (!exe_path) {
-      alert('Please select a game executable file.');
+      toast.error('Please select a game executable file.');
       return;
     }
 
@@ -184,12 +189,10 @@
 
       await appState.saveGame(gameId, gameData, { include_characters: false });
 
+      toast.success('Game saved successfully!');
       closeModal();
     } catch (error) {
       console.error('Error saving manual game:', error);
-      alert(
-        `Failed to save game: ${(error as Error).message || 'Unknown error'}`,
-      );
     } finally {
       loading = false;
     }

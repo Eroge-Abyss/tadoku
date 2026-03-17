@@ -36,7 +36,7 @@
 
       {#each pinnedGames as { id, icon, char, title, altTitle } (id)}
         <SidebarButton
-          onclick={() => invoke('open_game', { gameId: id })}
+          onclick={() => appState.startGame(id)}
           image={icon ? icon : undefined}
           text={icon ? undefined : char}
           tooltip={appState.useJpForTitleTime && altTitle ? altTitle : title}

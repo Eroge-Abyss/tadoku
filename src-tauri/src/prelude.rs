@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 use tauri::Wry;
 
-pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub type Result<T> = anyhow::Result<T>;
 pub type Store = Arc<tauri_plugin_store::Store<Wry>>;
 
 #[derive(Serialize, Debug, PartialEq, Default)]

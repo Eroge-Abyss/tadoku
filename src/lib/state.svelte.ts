@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { THEMES, DEFAULT_THEME_SETTINGS } from './constants';
+import { toast } from 'svelte-sonner';
 import type { Options } from 'prettier';
 import type {
   CurrentGame,
@@ -206,6 +207,7 @@ class AppState {
     this.#selectedCategories = to;
     invoke('set_selected_categories', { categories: to }).catch((error) => {
       console.error('Error setting selected categories:', error);
+      toast.error(`Failed to save selected categories: ${error}`);
       throw error; // Re-throw to allow UI to handle
     });
   }
@@ -379,6 +381,7 @@ class AppState {
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to save game ${gameId}:`, error);
+      toast.error(`Failed to save game: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -411,6 +414,7 @@ class AppState {
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to delete game ${gameId}:`, error);
+      toast.error(`Failed to delete game: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -426,6 +430,7 @@ class AppState {
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to toggle pin for game ${gameId}:`, error);
+      toast.error(`Failed to toggle pin: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -441,6 +446,7 @@ class AppState {
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to reset stats for game ${gameId}:`, error);
+      toast.error(`Failed to reset stats: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -456,6 +462,7 @@ class AppState {
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to set characters for game ${gameId}:`, error);
+      toast.error(`Failed to set characters: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -472,6 +479,7 @@ class AppState {
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to update exe path for game ${gameId}:`, error);
+      toast.error(`Failed to update exe path: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -488,6 +496,7 @@ class AppState {
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to set categories for game ${gameId}:`, error);
+      toast.error(`Failed to set categories: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -511,6 +520,7 @@ class AppState {
       await this.refreshGamesList();
     } catch (error) {
       console.error(`Failed to update process path for game ${gameId}:`, error);
+      toast.error(`Failed to update process path: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -525,6 +535,7 @@ class AppState {
       await invoke('open_game', { gameId });
     } catch (error) {
       console.error(`Failed to start game ${gameId}:`, error);
+      toast.error(`Failed to start game: ${error}`);
       throw error; // Re-throw to allow UI to handle
     }
   }
@@ -538,7 +549,38 @@ class AppState {
       await invoke('close_game', {});
     } catch (error) {
       console.error('Failed to close game:', error);
+      toast.error(`Failed to close game: ${error}`);
       throw error; // Re-throw to allow UI to handle
+    }
+  }
+
+  /**
+   * Gets a list of currently active windows from the backend.
+   * @returns {Promise<any[]>} A list of active window objects.
+   */
+  async getActiveWindows(): Promise<any[]> {
+    try {
+      return await invoke('get_active_windows');
+    } catch (error) {
+      console.error('Failed to get active windows:', error);
+      toast.error(`Failed to get active windows: ${error}`);
+      return [];
+    }
+  }
+
+  /**
+   * Sets the notes for a specific game in the backend.
+   * @param {string} gameId - The unique identifier for the game.
+   * @param {string} notes - The new notes content.
+   * @returns {Promise<void>}
+   */
+  async setGameNotes(gameId: string, notes: string): Promise<void> {
+    try {
+      await invoke('set_game_notes', { gameId, notes });
+    } catch (error) {
+      console.error(`Failed to set notes for game ${gameId}:`, error);
+      toast.error(`Failed to save notes: ${error}`);
+      throw error;
     }
   }
 

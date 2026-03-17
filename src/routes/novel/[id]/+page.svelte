@@ -13,6 +13,7 @@
   import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
   import type { Process, Tab } from '$lib/types';
   import { getAvailable } from '$lib/util';
+  import { toast } from 'svelte-sonner';
 
   const novel = $derived(appState.loadGame(page.params.id));
 
@@ -116,9 +117,10 @@
 
       if (newPath) {
         await appState.updateGameProcessPath(novel.id, newPath);
+        toast.success('Process path updated');
       }
     } else {
-      processList = await invoke('get_active_windows');
+      processList = await appState.getActiveWindows();
       processDialog = true;
     }
   };
@@ -142,7 +144,9 @@
     },
 
     togglePin: async () => {
-      appState.togglePinned(novel.id);
+      const wasPinned = novel.is_pinned;
+      await appState.togglePinned(novel.id);
+      toast.success(wasPinned ? 'Game unpinned' : 'Game pinned');
     },
 
     editExe: async () => {
@@ -159,27 +163,32 @@
 
       if (newPath) {
         await appState.updateExePath(novel.id, newPath);
+        toast.success('Executable path updated');
       }
     },
 
     deleteGame: async () => {
       await appState.deleteGame(novel.id);
+      toast.success('Game deleted');
       goto('/');
     },
 
-    setNotes: debounce(invoke.bind(null, 'set_game_notes'), 300),
-
-    resetStats: () => appState.resetStats(novel.id),
+    resetStats: async () => {
+      await appState.resetStats(novel.id);
+      toast.success('Stats reset successfully');
+    },
   };
 
   // Notes handlers
-  const handleSaveNotes = () => {
-    gameActions.setNotes({
-      gameId: novel.id,
-      notes,
-    });
-    originalNotes = notes;
-    editingNotes = false;
+  const handleSaveNotes = async () => {
+    try {
+      await appState.setGameNotes(novel.id, notes);
+      toast.success('Notes saved successfully');
+      originalNotes = notes;
+      editingNotes = false;
+    } catch (error) {
+      // Error is handled in appState
+    }
   };
 
   const handleCancelEdit = () => {
@@ -195,6 +204,7 @@
     downloadingCharacters = true;
     try {
       await appState.setCharacters(novel.id);
+      toast.success('Characters downloaded successfully');
     } catch (error) {
       console.error('Failed to download characters:', error);
     } finally {

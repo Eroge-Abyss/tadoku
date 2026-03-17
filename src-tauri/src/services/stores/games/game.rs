@@ -27,6 +27,7 @@ pub struct Game {
     pub icon_url: Option<String>,
     #[serde(default)]
     pub notes: String,
+    #[serde(default)]
     pub categories: Categories,
     // TODO: Make its own struct?
     pub characters: Option<Vec<Character>>,

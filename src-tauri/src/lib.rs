@@ -1,5 +1,6 @@
 use log::{error, info};
-use tauri::Manager;
+use tauri::{Manager, RunEvent};
+use tokio_util::sync::CancellationToken;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod commands;
@@ -11,6 +12,8 @@ mod util;
 pub use scripts::{AppState, GameState};
 use services::playtime;
 
+struct ShutdownToken(CancellationToken);
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let default_log_level = if util::is_debug_mode() {
@@ -19,7 +22,7 @@ pub fn run() {
         log::LevelFilter::Info
     };
 
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -36,6 +39,7 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(prevent_default())
+        .manage(ShutdownToken(CancellationToken::new()))
         .setup(|app| {
             info!("Starting Tadoku application");
 
@@ -59,7 +63,8 @@ pub fn run() {
                 return Err(Box::new(e));
             }
 
-            playtime::ExStaticPlaytime::spawn(app.app_handle());
+            let token = app.state::<ShutdownToken>().0.clone();
+            playtime::ExStaticPlaytime::spawn(app.app_handle(), token);
             scripts::spawn_background_tasks(app.app_handle());
             info!("Tadoku application setup completed successfully");
 
@@ -103,8 +108,18 @@ pub fn run() {
             commands::opener::close_game,
             commands::opener::get_active_windows
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    app.run(|app_handle, event| {
+        if let RunEvent::ExitRequested { .. } = event {
+            info!("Exit requested, signaling shutdown.");
+            let token = app_handle.state::<ShutdownToken>().0.clone();
+            token.cancel();
+            // Give tasks a moment to shut down before the app forcefully closes.
+            std::thread::sleep(std::time::Duration::from_millis(500));
+        }
+    });
 }
 
 #[cfg(debug_assertions)]

@@ -14,7 +14,6 @@ export type Fetchable<T> =
 
 export interface GameDto {
   title: string;
-  alt_title: string | null;
   description: string;
   /** Is a local file path when loading games only, otherwise it's VNDB image URL.*/
   image_url: string;
@@ -22,6 +21,7 @@ export interface GameDto {
   process_file_path: string;
   is_nsfw: boolean;
   characters: Character[] | null;
+  alt_title: string | null;
 }
 
 export interface Character {

@@ -3,8 +3,8 @@ use crate::{
     services::{
         state::ManagedState,
         stores::{games::GamesStore, settings::PlaytimeMode},
+        system::SystemService,
     },
-    util,
 };
 use anyhow::Context;
 use futures_util::{SinkExt, StreamExt};
@@ -47,7 +47,7 @@ impl ExStaticPlaytime {
 
         if let (Some(game), Some(pid)) = (
             state.game.as_mut(),
-            util::get_pid_from_process_path(&data.process_path),
+            SystemService::get_pid_from_process_path(&data.process_path),
         ) {
             if pid.as_u32() == game.pid {
                 let time = data.time.round() as u64;

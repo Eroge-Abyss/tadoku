@@ -7,7 +7,7 @@ use crate::services::{
 };
 use anyhow::{Context, bail};
 use log::{debug, error, info, warn};
-use std::{fs, sync::Mutex};
+use std::fs;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
 use tauri_plugin_store::StoreExt;
@@ -185,7 +185,7 @@ pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
         ..Default::default()
     };
 
-    app_handle.manage(Mutex::new(ManagedState::new(state)));
+    app_handle.manage(ManagedState::new(state));
     info!("Application state initialized successfully");
 
     Ok(())
@@ -197,7 +197,7 @@ pub fn initialize_discord(app_handle: &AppHandle) -> tauri::Result<()> {
 
     tauri::async_runtime::spawn(async move {
         debug!("Starting Discord initialization background task");
-        let app_state_mutex = app_handle_clone.state::<Mutex<AppState>>();
+        let app_state_mutex = app_handle_clone.state::<ManagedState>();
 
         let mut state = match app_state_mutex.lock() {
             Ok(s) => {

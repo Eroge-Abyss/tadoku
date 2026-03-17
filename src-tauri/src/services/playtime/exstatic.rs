@@ -1,6 +1,9 @@
 use crate::{
     prelude::Result,
-    services::{state::ManagedState, stores::settings::PlaytimeMode},
+    services::{
+        state::ManagedState,
+        stores::{games::GamesStore, settings::PlaytimeMode},
+    },
     util,
 };
 use anyhow::Context;
@@ -48,14 +51,15 @@ impl ExStaticPlaytime {
         ) {
             if pid.as_u32() == game.pid {
                 let time = data.time.round() as u64;
+                let store = GamesStore::new(app_handle)?;
                 info!("Updating playtime for game {} by {} seconds", game.id, time);
                 game.current_playtime += time;
-                util::flush_playtime(app_handle, &game.id, time)?;
+                store.update_playtime(&game.id, time)?;
 
                 // Update chars_read if provided by exSTATic
                 if let Some(chars_read) = data.chars_read {
                     debug!("Updating chars_read for game {} to {}", game.id, chars_read);
-                    util::flush_chars_read(app_handle, &game.id, chars_read)?;
+                    store.update_game(&game.id, |g| g.chars_read = chars_read)?;
                     if let Err(e) = app_handle.emit("chars_read_updated", chars_read) {
                         error!("Error emitting chars_read_updated event: {}", e);
                     }

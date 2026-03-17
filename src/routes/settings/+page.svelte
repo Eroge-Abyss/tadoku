@@ -14,7 +14,7 @@
   import InfoNote from '$lib/components/InfoNote.svelte';
   import { toast } from 'svelte-sonner';
 
-  const EXSTATIC_GITHUB_URL = 'https://github.com/kofta999/exSTATic';
+  const EXSTATIC_GITHUB_URL = 'https://github.com/Eroge-Abyss/exSTATic-REMASTERED';
 
   let appVersion = $state<string>();
   let selectedTheme = $state<string>(appState.themeSettings.theme);

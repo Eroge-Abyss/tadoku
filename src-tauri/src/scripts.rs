@@ -6,6 +6,7 @@ use crate::services::{
     stores::games::Game,
     stores::settings::{Settings, SettingsStore},
 };
+use anyhow::{Context, bail};
 use log::{debug, error, info, warn};
 use std::{fs, sync::Mutex};
 use tauri::{AppHandle, Manager};
@@ -51,10 +52,9 @@ impl AppState {
 /// Makes store in sync with latest Game struct schema
 pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
     info!("Setting up store schema compatibility");
-    let store = app_handle.store("store.json").map_err(|e| {
-        error!("Failed to access store.json: {:?}", e);
-        e
-    })?;
+    let store = app_handle
+        .store("store.json")
+        .context("Failed to access store.json")?;
     let mut binding = match store.get("gamesData") {
         Some(data) => data.clone(),
         None => {
@@ -63,29 +63,24 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
         }
     };
 
-    let games = binding.as_object_mut().ok_or_else(|| {
-        error!("Failed to get gamesData as an object from store");
-        "Failed to get gamesData as an object"
-    })?;
+    let games = binding
+        .as_object_mut()
+        .context("Failed to get gamesData as an object from store")?;
 
-    let default_game_val = serde_json::to_value(Game::default()).map_err(|e| {
-        error!("Failed to serialize default Game struct: {:?}", e);
-        e
-    })?;
-    let default_game = default_game_val.as_object().ok_or_else(|| {
-        error!("Failed to get default Game as an object");
-        "Failed to get default Game as an object"
-    })?;
+    let default_game_val =
+        serde_json::to_value(Game::default()).context("Failed to serialize default Game struct")?;
+    let default_game = default_game_val
+        .as_object()
+        .context("Failed to get default Game as an object")?;
 
     let mut updated_games = 0;
     let mut updated_fields = 0;
 
     for (game_id, game_value) in games.iter_mut() {
         debug!("Checking game schema for: {}", game_id);
-        let game = game_value.as_object_mut().ok_or_else(|| {
-            error!("Failed to get game {} as an object", game_id);
-            "Failed to get game as an object"
-        })?;
+        let game = game_value
+            .as_object_mut()
+            .context(format!("Failed to get game {} as an object", game_id))?;
 
         let mut game_updated = false;
 
@@ -150,10 +145,9 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
 
     if updated_games > 0 {
         store.set("gamesData", binding);
-        store.save().map_err(|e| {
-            error!("Failed to save updated games data to store: {:?}", e);
-            format!("Failed to save store: {:?}", e)
-        })?;
+        store
+            .save()
+            .context("Failed to save updated games data to store")?;
         info!(
             "Store schema setup completed: updated {} games with {} fields",
             updated_games, updated_fields
@@ -169,55 +163,46 @@ pub fn setup_store(app_handle: &AppHandle) -> Result<()> {
 pub fn create_images_folder(app_handle: &AppHandle) -> Result<()> {
     info!("Creating images folder");
 
-    if let Ok(app_local_data_dir) = app_handle.path().app_local_data_dir() {
-        let path = app_local_data_dir.join("images");
-        debug!("Images folder path: {:?}", path);
+    let app_local_data_dir = app_handle
+        .path()
+        .app_local_data_dir()
+        .context("Failed to get app local data directory")?;
 
-        if let Err(err) = fs::create_dir_all(&path) {
-            if err.kind() != std::io::ErrorKind::AlreadyExists {
-                error!("Failed to create images directory {:?}: {:?}", path, err);
-                return Err(Box::new(err));
-            } else {
-                debug!("Images directory already exists: {:?}", path);
-            }
+    let path = app_local_data_dir.join("images");
+    debug!("Images folder path: {:?}", path);
+
+    if let Err(err) = fs::create_dir_all(&path) {
+        if err.kind() != std::io::ErrorKind::AlreadyExists {
+            bail!("Failed to create images directory {:?}: {:?}", path, err);
         } else {
-            info!("Successfully created images directory: {:?}", path);
+            debug!("Images directory already exists: {:?}", path);
         }
-
-        let scope = app_handle.fs_scope();
-        scope.allow_directory(&path, true).map_err(|e| {
-            error!("Failed to allow images directory access: {:?}", e);
-            format!("Failed to allow directory access: {:?}", e)
-        })?;
-
-        debug!("Images directory access granted to filesystem scope");
-        Ok(())
     } else {
-        error!("Failed to get app local data directory");
-        Err("Failed to get app local data directory".into())
+        info!("Successfully created images directory: {:?}", path);
     }
+
+    let scope = app_handle.fs_scope();
+    scope
+        .allow_directory(&path, true)
+        .context("Failed to allow images directory access")?;
+
+    debug!("Images directory access granted to filesystem scope");
+    Ok(())
 }
 
 /// Initializes app state
 pub fn initialize_state(app_handle: &AppHandle) -> Result<()> {
     info!("Initializing application state");
 
-    let settings_store = SettingsStore::new(app_handle).map_err(|e| {
-        error!("Failed to create settings store: {:?}", e);
-        e
-    })?;
-
-    let settings = settings_store.load().map_err(|e| {
-        error!("Failed to load settings: {:?}", e);
-        e
-    })?;
+    let settings_store =
+        SettingsStore::new(app_handle).context("Failed to create settings store")?;
+    let settings = settings_store.load().context("Failed to load settings")?;
 
     debug!(
         "App config - disable_presence_on_nsfw: {}",
         settings.disable_presence_on_nsfw
     );
     debug!("App config - playtime_mode loaded successfully");
-
     debug!(
         "App config - use_jp_for_title_time: {}",
         settings.use_jp_for_title_time

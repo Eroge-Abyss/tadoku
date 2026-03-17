@@ -1,9 +1,12 @@
-use crate::services::vndb::{Vndb, VndbGame};
+use crate::{
+    commands::cmd_result::CmdResult,
+    services::vndb::{Vndb, VndbGame},
+};
 use log::{debug, error, info};
 
 #[tauri::command]
 // Do I even need to do the deserialize / serialize thing or return the json as-is?
-pub async fn fetch_vn_info(key: String) -> Result<Vec<VndbGame>, String> {
+pub async fn fetch_vn_info(key: String) -> CmdResult<Vec<VndbGame>> {
     info!("Fetching VN info for key: {}", key);
     debug!("Starting VNDB API request for: {}", key);
 
@@ -19,7 +22,7 @@ pub async fn fetch_vn_info(key: String) -> Result<Vec<VndbGame>, String> {
         }
         Err(e) => {
             error!("Failed to fetch VN info for key '{}': {}", key, e);
-            Err(e)
+            Err(e.into())
         }
     }
 }

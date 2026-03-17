@@ -1,7 +1,7 @@
-use crate::scripts;
 use crate::services::stores::games::GamesStore;
+use crate::{prelude::Result, scripts};
+use anyhow::Context;
 use std::{
-    error::Error,
     fs,
     io::Cursor,
     path::{Path, PathBuf},
@@ -15,7 +15,7 @@ use url::Url;
 /// For HTTP(S) URLs, parses the URL and returns the last path segment.
 /// For plain filenames (e.g. already-extracted names stored for local games),
 /// returns the value itself after stripping any directory component.
-pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
+pub fn extract_image(url: &str) -> Result<String> {
     if let Ok(parsed) = Url::parse(url) {
         if let Some(filename) = parsed.path_segments().and_then(|mut s| s.next_back()) {
             if !filename.is_empty() {
@@ -28,7 +28,7 @@ pub fn extract_image(url: &str) -> Result<String, Box<dyn Error>> {
     path.file_name()
         .and_then(|n| n.to_str())
         .map(|s| s.to_string())
-        .ok_or_else(|| "Failed to extract filename from path".into())
+        .context("Failed to extract filename from path")
 }
 
 /// Returns `true` when `url` refers to a local file rather than a remote resource.
@@ -45,7 +45,7 @@ pub fn is_local_path(url: &str) -> bool {
     false
 }
 
-pub fn construct_image_path(base_path: &Path, url: &str) -> Result<PathBuf, Box<dyn Error>> {
+pub fn construct_image_path(base_path: &Path, url: &str) -> Result<PathBuf> {
     Ok(base_path.join("images").join(extract_image(url)?))
 }
 
@@ -88,13 +88,10 @@ pub async fn save_image(
     app_handle: &AppHandle,
     source: &str,
     dest_name: Option<&str>,
-) -> Result<String, Box<dyn Error>> {
-    let base_path = app_handle
-        .path()
-        .app_local_data_dir()
-        .map_err(|err| err.to_string())?;
+) -> Result<String> {
+    let base_path = app_handle.path().app_local_data_dir()?;
 
-    scripts::create_images_folder(app_handle).map_err(|err| err.to_string())?;
+    scripts::create_images_folder(app_handle)?;
 
     let filename = dest_name
         .map(str::to_owned)
@@ -102,45 +99,37 @@ pub async fn save_image(
     let dest = base_path.join("images").join(&filename);
 
     if is_local_path(source) {
-        fs::copy(source, &dest).map_err(|e| format!("Failed to copy local image: {e}"))?;
+        fs::copy(source, &dest).context("Failed to copy local image")?;
     } else {
         let response = reqwest::get(source)
             .await
-            .map_err(|_| "Failed to fetch image")?;
-        let mut file = fs::File::create(&dest).map_err(|err| err.to_string())?;
-        let mut content = Cursor::new(response.bytes().await.map_err(|err| err.to_string())?);
-        std::io::copy(&mut content, &mut file).map_err(|_| "Failed to download image")?;
+            .context("Failed to fetch image")?;
+        let mut file = fs::File::create(&dest)?;
+        let mut content = Cursor::new(response.bytes().await?);
+        std::io::copy(&mut content, &mut file).context("Failed to download image")?;
     }
 
     Ok(dest.to_str().expect("Should not happen").to_owned())
 }
 
 /// Flushes playtime to disk
-pub fn flush_playtime(
-    app_handle: &AppHandle,
-    game_id: &str,
-    playtime: u64,
-) -> Result<(), Box<dyn Error>> {
-    let store = GamesStore::new(app_handle).map_err(|_| "Error happened while accessing store")?;
+pub fn flush_playtime(app_handle: &AppHandle, game_id: &str, playtime: u64) -> Result<()> {
+    let store = GamesStore::new(app_handle).context("Error happened while accessing store")?;
 
     store
         .update_playtime(game_id, playtime)
-        .map_err(|_| "Error happened while setting new playtime")?;
+        .context("Error happened while setting new playtime")?;
 
     Ok(())
 }
 
 /// Flushes chars_read to disk
-pub fn flush_chars_read(
-    app_handle: &AppHandle,
-    game_id: &str,
-    chars_read: u64,
-) -> Result<(), Box<dyn Error>> {
-    let store = GamesStore::new(app_handle).map_err(|_| "Error happened while accessing store")?;
+pub fn flush_chars_read(app_handle: &AppHandle, game_id: &str, chars_read: u64) -> Result<()> {
+    let store = GamesStore::new(app_handle).context("Error happened while accessing store")?;
 
     store
         .update_game(game_id, |g| g.chars_read = chars_read)
-        .map_err(|_| "Error happened while setting chars_read")?;
+        .context("Error happened while setting chars_read")?;
 
     Ok(())
 }

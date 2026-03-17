@@ -1,5 +1,6 @@
+use anyhow::Context;
 use log::{error, info};
-use tauri::{Manager, RunEvent};
+use tauri::{AppHandle, Manager, RunEvent};
 use tokio_util::sync::CancellationToken;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -13,6 +14,18 @@ pub use scripts::{AppState, GameState};
 use services::playtime;
 
 struct ShutdownToken(CancellationToken);
+
+fn setup_app(app: &AppHandle) -> anyhow::Result<()> {
+    scripts::setup_store(app).context("Failed to setup store")?;
+    scripts::create_images_folder(app).context("Failed to create images folder")?;
+    scripts::initialize_state(app).context("Failed to initialize state")?;
+    scripts::initialize_discord(app).context("Failed to initialize Discord")?;
+
+    let token = app.state::<ShutdownToken>().0.clone();
+    playtime::ExStaticPlaytime::spawn(app, token);
+    scripts::spawn_background_tasks(app);
+    Ok(())
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -42,32 +55,12 @@ pub fn run() {
         .manage(ShutdownToken(CancellationToken::new()))
         .setup(|app| {
             info!("Starting Tadoku application");
-
-            if let Err(e) = scripts::setup_store(app.app_handle()) {
-                error!("Failed to setup store: {}", e);
-                return Err(e);
+            if let Err(e) = setup_app(app.handle()) {
+                error!("Failed to setup application: {:?}", e);
+                // The returned error will be presented to the user by Tauri.
+                return Err(e.into());
             }
-
-            if let Err(e) = scripts::create_images_folder(app.app_handle()) {
-                error!("Failed to create images folder: {}", e);
-                return Err(e);
-            }
-
-            if let Err(e) = scripts::initialize_state(app.app_handle()) {
-                error!("Failed to initialize state: {}", e);
-                return Err(e);
-            }
-
-            if let Err(e) = scripts::initialize_discord(app.app_handle()) {
-                error!("Failed to initialize Discord: {}", e);
-                return Err(Box::new(e));
-            }
-
-            let token = app.state::<ShutdownToken>().0.clone();
-            playtime::ExStaticPlaytime::spawn(app.app_handle(), token);
-            scripts::spawn_background_tasks(app.app_handle());
             info!("Tadoku application setup completed successfully");
-
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

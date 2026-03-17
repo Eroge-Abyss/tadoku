@@ -1,3 +1,5 @@
+use crate::prelude::Result;
+use anyhow::Context;
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -52,9 +54,8 @@ pub struct VndbAltTitleGame {
 pub struct Vndb;
 
 impl Vndb {
-    pub async fn get_vn_info(key: &str) -> Result<Vec<VndbGame>, String> {
+    pub async fn get_vn_info(key: &str) -> Result<Vec<VndbGame>> {
         info!("Fetching game info for key: {}", key);
-        let error_message = String::from("Error happened while fetching game");
 
         let request_data = json!({
             "filters": ["search", "=", key],
@@ -68,37 +69,32 @@ impl Vndb {
             .json(&request_data)
             .send()
             .await
-            .map_err(|_| {
-                // Idk if using clone is correct but, it should be dropped from stack anyway
-                // + function will return on error
-                error_message.clone()
-            })
-            .map_err(|_| {
-                error!("Error sending request to VNDB for key: {}", key);
-                error_message.clone()
-            })?;
+            .with_context(|| format!("Failed sending VNDB request for key: {}", key))?;
 
-        if response.status() != 200 {
+        if !response.status().is_success() {
             error!(
                 "VNDB returned status code: {} for key: {}",
                 response.status(),
                 key
             );
-            return Err(error_message);
+            anyhow::bail!(
+                "VNDB returned status code {} for key {}",
+                response.status(),
+                key
+            );
         }
 
-        let json: VndbResponse<VndbGame> = response.json().await.map_err(|_| {
-            error!("Error parsing VNDB response for key: {}", key);
-            error_message
-        })?;
+        let json: VndbResponse<VndbGame> = response
+            .json()
+            .await
+            .with_context(|| format!("Failed parsing VNDB response for key: {}", key))?;
 
         debug!("Successfully fetched game info for key: {}", key);
         Ok(json.results)
     }
 
-    pub async fn get_vn_characters(vn_id: &str) -> Result<Vec<VndbCharacter>, String> {
+    pub async fn get_vn_characters(vn_id: &str) -> Result<Vec<VndbCharacter>> {
         info!("Fetching characters for vn_id: {}", vn_id);
-        let error_message = String::from("Error happened while fetching game");
 
         let request_data = json!({
             "filters": ["vn", "=", ["id", "=", vn_id]],
@@ -112,40 +108,35 @@ impl Vndb {
             .json(&request_data)
             .send()
             .await
-            .map_err(|_| {
-                // Idk if using clone is correct but, it should be dropped from stack anyway
-                // + function will return on only of of the errors
-                error_message.clone()
-            })
-            .map_err(|_| {
-                error!("Error sending request to VNDB for vn_id: {}", vn_id);
-                error_message.clone()
+            .with_context(|| {
+                format!("Failed sending VNDB character request for vn_id: {}", vn_id)
             })?;
 
-        if response.status() != 200 {
+        if !response.status().is_success() {
             error!(
                 "VNDB returned status code: {} for vn_id: {}",
                 response.status(),
                 vn_id
             );
-            return Err(error_message);
+            anyhow::bail!(
+                "VNDB character request returned status code {} for vn_id {}",
+                response.status(),
+                vn_id
+            );
         }
 
-        let json: VndbResponse<VndbCharacter> = response.json().await.map_err(|e| {
-            error!(
-                "Error parsing VNDB response for vn_id: {:?}, error: {:?}",
-                vn_id, e
-            );
-            error_message
+        let json: VndbResponse<VndbCharacter> = response.json().await.with_context(|| {
+            format!(
+                "Failed parsing VNDB character response for vn_id: {}",
+                vn_id
+            )
         })?;
 
         debug!("Successfully fetched characters for vn_id: {}", vn_id);
         Ok(json.results)
     }
 
-    pub async fn get_vns_alt_title(ids: &[String]) -> Result<Vec<VndbAltTitleGame>, String> {
-        let error_message = String::from("Error happened while fetching game");
-
+    pub async fn get_vns_alt_title(ids: &[String]) -> Result<Vec<VndbAltTitleGame>> {
         let id_filters: Vec<serde_json::Value> =
             ids.iter().map(|id| json!(["id", "=", id])).collect();
 
@@ -165,23 +156,18 @@ impl Vndb {
             .json(&request_data)
             .send()
             .await
-            .map_err(|_| {
-                // Idk if using clone is correct but, it should be dropped from stack anyway
-                // + function will return on error
-                error_message.clone()
-            })
-            .map_err(|_| {
-                error!("Error sending request to VNDB for ids: {:?}", ids);
-                error_message.clone()
-            })?;
+            .with_context(|| format!("Failed sending VNDB alt-title request for ids: {:?}", ids))?;
 
-        if response.status() != 200 {
-            return Err(error_message);
+        if !response.status().is_success() {
+            anyhow::bail!(
+                "VNDB alt-title request returned status code {} for ids {:?}",
+                response.status(),
+                ids
+            );
         }
 
-        let json: VndbResponse<VndbAltTitleGame> = response.json().await.map_err(|_| {
-            error!("Error parsing VNDB response for ids: {:?}", ids);
-            error_message
+        let json: VndbResponse<VndbAltTitleGame> = response.json().await.with_context(|| {
+            format!("Failed parsing VNDB alt-title response for ids: {:?}", ids)
         })?;
 
         debug!("Successfully fetched alt titles for IDs: {:?}", ids);

@@ -2,6 +2,7 @@ mod character;
 mod game;
 use crate::prelude::*;
 use crate::util;
+use anyhow::{Context, Result};
 pub use character::Character;
 use chrono::Local;
 pub use game::Game;
@@ -46,10 +47,11 @@ impl GamesStore {
             if game.image_url.is_empty() {
                 continue;
             }
-            game.image_url = util::construct_image_path(&self.base_app_path, &game.image_url)?
+            let image_path = util::construct_image_path(&self.base_app_path, &game.image_url)?
                 .to_str()
-                .ok_or("Error happened while constructing image path")?
+                .context("Failed to construct image path")?
                 .to_string();
+            game.image_url = image_path;
         }
         Ok(games)
     }
@@ -61,11 +63,12 @@ impl GamesStore {
 
         if let Some(removed_game) = games.remove(game_id) {
             if !removed_game.image_url.is_empty() {
-                fs::remove_file(util::construct_image_path(
-                    &self.base_app_path,
-                    &removed_game.image_url,
-                )?)
-                .map_err(|err| err.to_string())?;
+                let image_path =
+                    util::construct_image_path(&self.base_app_path, &removed_game.image_url)?;
+                if image_path.exists() {
+                    fs::remove_file(&image_path)
+                        .context(format!("Failed to remove image file: {:?}", image_path))?;
+                }
             }
 
             if let Some(characters) = removed_game.characters {
@@ -105,7 +108,7 @@ impl GamesStore {
         games.insert(game_id, game_data);
 
         self.store.set("gamesData", serde_json::to_value(games)?);
-        self.store.save()?;
+        self.store.save().context("Failed to save store")?;
 
         Ok(())
     }
@@ -119,14 +122,14 @@ impl GamesStore {
         debug!("Updating game with id: {}", game_id);
         let mut games: Games = serde_json::from_value(self.get_store_value())?;
 
-        if let Some(game) = games.get_mut(game_id) {
-            update_fn(game);
-            self.store.set("gamesData", serde_json::to_value(games)?);
-            self.store.save()?;
-            Ok(())
-        } else {
-            Err(format!("Game with id {} not found", game_id).into())
-        }
+        let game = games
+            .get_mut(game_id)
+            .context(format!("Game with id {} not found", game_id))?;
+
+        update_fn(game);
+        self.store.set("gamesData", serde_json::to_value(games)?);
+        self.store.save().context("Failed to save store")?;
+        Ok(())
     }
 
     /// Gets a game by id

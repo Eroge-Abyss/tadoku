@@ -1,3 +1,4 @@
+use crate::commands::cmd_result::CmdResult;
 use crate::commands::jiten;
 use crate::prelude::Fetchable;
 use crate::{
@@ -13,7 +14,8 @@ use crate::{
     },
     util::{self},
 };
-use log::{debug, error, info, warn};
+use anyhow::Context;
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
@@ -37,7 +39,7 @@ pub async fn save_game(
     game_id: String,
     mut game: Game,
     options: Options,
-) -> Result<(), String> {
+) -> CmdResult<()> {
     info!("Saving game: {} ({})", game.title, game_id);
     debug!(
         "Game save options - include_characters: {}",
@@ -65,10 +67,7 @@ pub async fn save_game(
         }
         let path = util::save_image(&app_handle, &source, dest_name.as_deref())
             .await
-            .map_err(|e| {
-                error!("Error saving image for game {}: {:?}", game_id, e);
-                "Error happened while saving image"
-            })?;
+            .context("Error happened while saving image")?;
         debug!("Successfully saved game image for {}", game_id);
         Some(path)
     };
@@ -78,10 +77,8 @@ pub async fn save_game(
         debug!("Extracting and saving icon for game {}", game_id);
         let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
         let icon_path = format!("{}.icon.png", saved_path);
-        icon.save(&icon_path).map_err(|e| {
-            error!("Error saving icon for game {}: {:?}", game_id, e);
-            "Error happened while saving image"
-        })?;
+        icon.save(&icon_path)
+            .context("Error happened while saving image")?;
 
         game.icon_url = Some(icon_path);
         debug!("Successfully saved icon for game {}", game_id);
@@ -101,14 +98,13 @@ pub async fn save_game(
     let characters_fut = async {
         if !options.include_characters {
             debug!("Skipping character fetching for game {}", game_id);
-            return Ok::<_, String>(None);
+            return Ok::<_, anyhow::Error>(None);
         }
 
         info!("Fetching characters for game {}", game_id);
-        let chars = Vndb::get_vn_characters(&game_id).await.map_err(|e| {
-            error!("Error fetching characters for game {}: {}", game_id, e);
-            e
-        })?;
+        let chars = Vndb::get_vn_characters(&game_id)
+            .await
+            .context(format!("Error fetching characters for game {}", game_id))?;
         debug!("Found {} characters for game {}", chars.len(), game_id);
 
         let mut new_chars: Vec<Character> = Vec::new();
@@ -121,10 +117,7 @@ pub async fn save_game(
                     Some(
                         util::save_image(&app_handle, &p.url, None)
                             .await
-                            .map_err(|e| {
-                                error!("Error saving character image for {}: {:?}", char.name, e);
-                                "Error happened while saving image".to_string()
-                            })?,
+                            .context("Error happened while saving image")?,
                     )
                 }
                 None => {
@@ -171,15 +164,11 @@ pub async fn save_game(
 
     game.characters = characters_result?;
 
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing games store for {}: {:?}", game_id, e);
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
-    store.save(game_id.clone(), game).map_err(|e| {
-        error!("Error saving game {} to store: {:?}", game_id, e);
-        "Error happened while saving game"
-    })?;
+    store
+        .save(game_id.clone(), game)
+        .context("Error happened while saving game")?;
 
     info!("Successfully saved game: {}", game_id);
     Ok(())
@@ -187,17 +176,13 @@ pub async fn save_game(
 
 /// Loads all games from JSON storage
 #[tauri::command]
-pub fn load_games(app_handle: AppHandle) -> Result<Games, String> {
+pub fn load_games(app_handle: AppHandle) -> CmdResult<Games> {
     debug!("Loading all games from storage");
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing games store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
-    let games_data = store.get_all().map_err(|e| {
-        error!("Error loading games from store: {:?}", e);
-        "Error happened while getting games"
-    })?;
+    let games_data = store
+        .get_all()
+        .context("Error happened while getting games")?;
 
     debug!(
         "Successfully loaded {} games from storage",
@@ -208,20 +193,13 @@ pub fn load_games(app_handle: AppHandle) -> Result<Games, String> {
 
 /// Deletes a game from JSON storage
 #[tauri::command]
-pub fn delete_game(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+pub fn delete_game(app_handle: AppHandle, game_id: String) -> CmdResult<()> {
     info!("Deleting game: {}", game_id);
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!(
-            "Error accessing games store for deletion of {}: {:?}",
-            game_id, e
-        );
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
-    store.delete(&game_id).map_err(|e| {
-        error!("Error deleting game {} from store: {:?}", game_id, e);
-        "Error happened while deleting game"
-    })?;
+    store
+        .delete(&game_id)
+        .context("Error happened while deleting game")?;
 
     info!("Successfully deleted game: {}", game_id);
     Ok(())
@@ -229,22 +207,13 @@ pub fn delete_game(app_handle: AppHandle, game_id: String) -> Result<(), String>
 
 /// Toggles the pinned state of a game
 #[tauri::command]
-pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> CmdResult<()> {
     debug!("Toggling pin state for game: {}", game_id);
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!(
-            "Error accessing games store for pin toggle of {}: {:?}",
-            game_id, e
-        );
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
     store
         .update_game(&game_id, |g| g.is_pinned = !g.is_pinned)
-        .map_err(|e| {
-            error!("Error toggling pin for game {}: {:?}", game_id, e);
-            "Error happened while toggling pin"
-        })?;
+        .context("Error happened while toggling pin")?;
 
     info!("Successfully toggled pin state for game: {}", game_id);
     Ok(())
@@ -252,20 +221,13 @@ pub fn toggle_pin(app_handle: AppHandle, game_id: String) -> Result<(), String> 
 
 /// Resets game stats
 #[tauri::command]
-pub fn reset_stats(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+pub fn reset_stats(app_handle: AppHandle, game_id: String) -> CmdResult<()> {
     debug!("Resetting stats for game {}", game_id);
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!(
-            "Error accessing games store for resetting stats of {}: {:?}",
-            game_id, e
-        );
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
-    store.reset_stats(&game_id).map_err(|e| {
-        error!("Error resetting stats for game {}: {:?}", game_id, e);
-        "Error happened while resetting stats"
-    })?;
+    store
+        .reset_stats(&game_id)
+        .context("Error happened while resetting stats")?;
 
     info!("Successfully reset stats for game: {}", game_id);
     Ok(())
@@ -273,26 +235,13 @@ pub fn reset_stats(app_handle: AppHandle, game_id: String) -> Result<(), String>
 
 /// Updates the exe path of a game
 #[tauri::command]
-pub fn update_exe(
-    app_handle: AppHandle,
-    game_id: String,
-    new_exe_path: String,
-) -> Result<(), String> {
+pub fn update_exe(app_handle: AppHandle, game_id: String, new_exe_path: String) -> CmdResult<()> {
     info!("Updating exe path for game {}: {}", game_id, new_exe_path);
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!(
-            "Error accessing games store for exe update of {}: {:?}",
-            game_id, e
-        );
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
     store
         .update_game(&game_id, |g| g.exe_file_path = new_exe_path)
-        .map_err(|e| {
-            error!("Error updating exe path for game {}: {:?}", game_id, e);
-            "Error happened while updating exe"
-        })?;
+        .context("Error happened while updating exe")?;
 
     info!("Successfully updated exe path for game: {}", game_id);
     Ok(())
@@ -304,25 +253,16 @@ pub fn update_process(
     app_handle: AppHandle,
     game_id: String,
     new_process_path: String,
-) -> Result<(), String> {
+) -> CmdResult<()> {
     info!(
         "Updating process path for game {}: {}",
         game_id, new_process_path
     );
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!(
-            "Error accessing games store for process update of {}: {:?}",
-            game_id, e
-        );
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
     store
         .update_game(&game_id, |g| g.process_file_path = new_process_path)
-        .map_err(|e| {
-            error!("Error updating process path for game {}: {:?}", game_id, e);
-            "Error happened while updating process path"
-        })?;
+        .context("Error happened while updating process path")?;
 
     info!("Successfully updated process path for game: {}", game_id);
     Ok(())
@@ -330,26 +270,17 @@ pub fn update_process(
 
 /// Saves game notes to disk
 #[tauri::command]
-pub fn set_game_notes(app_handle: AppHandle, game_id: String, notes: String) -> Result<(), String> {
+pub fn set_game_notes(app_handle: AppHandle, game_id: String, notes: String) -> CmdResult<()> {
     debug!(
         "Setting notes for game {}: {} characters",
         game_id,
         notes.len()
     );
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!(
-            "Error accessing games store for notes update of {}: {:?}",
-            game_id, e
-        );
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
     store
         .update_game(&game_id, |g| g.notes = notes)
-        .map_err(|e| {
-            error!("Error setting notes for game {}: {:?}", game_id, e);
-            "Error happened while setting notes"
-        })?;
+        .context("Error happened while setting notes")?;
 
     info!("Successfully set notes for game: {}", game_id);
     Ok(())
@@ -357,12 +288,11 @@ pub fn set_game_notes(app_handle: AppHandle, game_id: String, notes: String) -> 
 
 /// Sets the characters of an already saved game
 #[tauri::command]
-pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<(), String> {
+pub async fn set_characters(app_handle: AppHandle, game_id: String) -> CmdResult<()> {
     info!("Setting characters for game: {}", game_id);
-    let chars = Vndb::get_vn_characters(&game_id).await.map_err(|e| {
-        error!("Error fetching characters for game {}: {}", game_id, e);
-        e
-    })?;
+    let chars = Vndb::get_vn_characters(&game_id)
+        .await
+        .context(format!("Error fetching characters for game {}", game_id))?;
     debug!("Found {} characters for game {}", chars.len(), game_id);
 
     let mut characters: Vec<Character> = Vec::new();
@@ -375,10 +305,7 @@ pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<()
                 Some(
                     util::save_image(&app_handle, &p.url, None)
                         .await
-                        .map_err(|e| {
-                            error!("Error saving character image for {}: {:?}", char.name, e);
-                            "Error happened while saving image"
-                        })?,
+                        .context("Error happened while saving image")?,
                 )
             }
             None => {
@@ -395,21 +322,12 @@ pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<()
         });
     }
 
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!(
-            "Error accessing games store for character update of {}: {:?}",
-            game_id, e
-        );
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
     let characters_len = characters.len();
     store
         .update_game(&game_id, |g| g.characters = Some(characters))
-        .map_err(|e| {
-            error!("Error setting characters for game {}: {:?}", game_id, e);
-            "Error happened while saving characters"
-        })?;
+        .context("Error happened while saving characters")?;
 
     info!(
         "Successfully set {} characters for game: {}",
@@ -420,17 +338,12 @@ pub async fn set_characters(app_handle: AppHandle, game_id: String) -> Result<()
 
 /// Gets all categories as an array
 #[tauri::command]
-pub fn get_categories(app_handle: AppHandle) -> Result<Categories, String> {
+pub fn get_categories(app_handle: AppHandle) -> CmdResult<Categories> {
     debug!("Getting all categories");
-    let store = CategoriesStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing categories store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
+    let store =
+        CategoriesStore::new(&app_handle).context("Error happened while accessing store")?;
 
-    let categories = store.get_all().map_err(|e| {
-        error!("Error loading categories: {:?}", e);
-        "Couldn't get categories"
-    })?;
+    let categories = store.get_all().context("Couldn't get categories")?;
 
     debug!("Successfully loaded {} categories", categories.len());
     Ok(categories)
@@ -438,18 +351,15 @@ pub fn get_categories(app_handle: AppHandle) -> Result<Categories, String> {
 
 /// Sets categories from an array
 #[tauri::command]
-pub fn set_categories(app_handle: AppHandle, categories: Categories) -> Result<(), String> {
+pub fn set_categories(app_handle: AppHandle, categories: Categories) -> CmdResult<()> {
     info!("Setting {} categories", categories.len());
-    let store = CategoriesStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing categories store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
+    let store =
+        CategoriesStore::new(&app_handle).context("Error happened while accessing store")?;
 
     let categories_len = categories.len();
-    store.set(categories).map_err(|e| {
-        error!("Error setting categories: {:?}", e);
-        "Error happened while setting categories"
-    })?;
+    store
+        .set(categories)
+        .context("Error happened while setting categories")?;
 
     info!("Successfully set {} categories", categories_len);
     Ok(())
@@ -457,17 +367,12 @@ pub fn set_categories(app_handle: AppHandle, categories: Categories) -> Result<(
 
 /// Gets all categories as an array
 #[tauri::command]
-pub fn get_selected_categories(app_handle: AppHandle) -> Result<Categories, String> {
+pub fn get_selected_categories(app_handle: AppHandle) -> CmdResult<Categories> {
     debug!("Getting all selected categories");
-    let store = CategoriesStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing categories store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
+    let store =
+        CategoriesStore::new(&app_handle).context("Error happened while accessing store")?;
 
-    let categories = store.get_selected().map_err(|e| {
-        error!("Error loading categories: {:?}", e);
-        "Couldn't get categories"
-    })?;
+    let categories = store.get_selected().context("Couldn't get categories")?;
 
     debug!(
         "Successfully loaded {} selected categories",
@@ -478,21 +383,15 @@ pub fn get_selected_categories(app_handle: AppHandle) -> Result<Categories, Stri
 
 /// Sets categories from an array
 #[tauri::command]
-pub fn set_selected_categories(
-    app_handle: AppHandle,
-    categories: Categories,
-) -> Result<(), String> {
+pub fn set_selected_categories(app_handle: AppHandle, categories: Categories) -> CmdResult<()> {
     info!("Setting {} selected categories", categories.len());
-    let store = CategoriesStore::new(&app_handle).map_err(|e| {
-        error!("Error accessing categories store: {:?}", e);
-        "Error happened while accessing store"
-    })?;
+    let store =
+        CategoriesStore::new(&app_handle).context("Error happened while accessing store")?;
 
     let categories_len = categories.len();
-    store.set_selected(categories).map_err(|e| {
-        error!("Error setting categories: {:?}", e);
-        "Error happened while setting categories"
-    })?;
+    store
+        .set_selected(categories)
+        .context("Error happened while setting categories")?;
 
     info!("Successfully set {} selected categories", categories_len);
     Ok(())
@@ -504,27 +403,18 @@ pub fn set_game_categories(
     app_handle: AppHandle,
     game_id: String,
     categories: Categories,
-) -> Result<(), String> {
+) -> CmdResult<()> {
     info!(
         "Setting {} categories for game: {}",
         categories.len(),
         game_id
     );
-    let store = GamesStore::new(&app_handle).map_err(|e| {
-        error!(
-            "Error accessing games store for category update of {}: {:?}",
-            game_id, e
-        );
-        "Error happened while accessing store"
-    })?;
+    let store = GamesStore::new(&app_handle).context("Error happened while accessing store")?;
 
     let categories_len = categories.len();
     store
         .update_game(&game_id, |g| g.categories = categories)
-        .map_err(|e| {
-            error!("Error setting categories for game {}: {:?}", game_id, e);
-            "Error happened while setting categories"
-        })?;
+        .context("Error happened while setting categories")?;
 
     info!(
         "Successfully set {} categories for game: {}",
@@ -535,94 +425,112 @@ pub fn set_game_categories(
 
 /// Gets theme settings from storage
 #[tauri::command]
-pub fn get_theme_settings(app_handle: AppHandle) -> Result<ThemeSettings, String> {
+pub fn get_theme_settings(app_handle: AppHandle) -> CmdResult<ThemeSettings> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.theme_settings.clone())
 }
 
 /// Saves theme settings to storage
 #[tauri::command]
-pub fn set_theme_settings(
-    app_handle: AppHandle,
-    theme_settings: ThemeSettings,
-) -> Result<(), String> {
+pub fn set_theme_settings(app_handle: AppHandle, theme_settings: ThemeSettings) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     lock.update_settings(&app_handle, |s| s.theme_settings = theme_settings)
-        .map_err(|e| e.to_string())
+        .context("Failed to update theme settings")?;
+    Ok(())
 }
 
 /// Gets nsfw presence toggle status
 #[tauri::command]
-pub fn get_nsfw_presence_status(app_handle: AppHandle) -> Result<bool, String> {
+pub fn get_nsfw_presence_status(app_handle: AppHandle) -> CmdResult<bool> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.disable_presence_on_nsfw)
 }
 
 /// Saves theme settings to storage
 #[tauri::command]
-pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> Result<(), String> {
+pub fn set_nsfw_presence_status(app_handle: AppHandle, to: bool) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     lock.update_settings(&app_handle, |s| s.disable_presence_on_nsfw = to)
-        .map_err(|e| e.to_string())
+        .context("Failed to update nsfw presence status")?;
+    Ok(())
 }
 
 /// Gets sort order
 #[tauri::command]
-pub fn get_sort_order(app_handle: AppHandle) -> Result<SortOrder, String> {
+pub fn get_sort_order(app_handle: AppHandle) -> CmdResult<SortOrder> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.sort_order)
 }
 
 /// Saves theme settings to storage
 #[tauri::command]
-pub fn set_sort_order(app_handle: AppHandle, sort_order: SortOrder) -> Result<(), String> {
+pub fn set_sort_order(app_handle: AppHandle, sort_order: SortOrder) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     lock.update_settings(&app_handle, |s| s.sort_order = sort_order)
-        .map_err(|e| e.to_string())
+        .context("Failed to update sort order")?;
+    Ok(())
 }
 
 /// Gets show random picker
 #[tauri::command]
-pub fn get_show_random_picker(app_handle: AppHandle) -> Result<bool, String> {
+pub fn get_show_random_picker(app_handle: AppHandle) -> CmdResult<bool> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.show_random_picker)
 }
 
 /// Saves show random picker setting to storage
 #[tauri::command]
-pub fn set_show_random_picker(app_handle: AppHandle, to: bool) -> Result<(), String> {
+pub fn set_show_random_picker(app_handle: AppHandle, to: bool) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     lock.update_settings(&app_handle, |s| s.show_random_picker = to)
-        .map_err(|e| e.to_string())
+        .context("Failed to update show random picker")?;
+    Ok(())
 }
 
 /// Gets discord presence mode
 #[tauri::command]
-pub fn get_discord_presence_mode(app_handle: AppHandle) -> Result<DiscordPresenceMode, String> {
+pub fn get_discord_presence_mode(app_handle: AppHandle) -> CmdResult<DiscordPresenceMode> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.discord_presence_mode)
 }
 
 /// Saves Discord presence mode setting to storage
 #[tauri::command]
-pub fn set_discord_presence_mode(
-    app_handle: AppHandle,
-    to: DiscordPresenceMode,
-) -> Result<(), String> {
+pub fn set_discord_presence_mode(app_handle: AppHandle, to: DiscordPresenceMode) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
 
     lock.update_settings(&app_handle, |s| s.discord_presence_mode = to)
-        .map_err(|e| e.to_string())?;
+        .context("Failed to update discord presence mode")?;
 
     if let Some(presence) = lock.presence.as_mut() {
         presence.set_mode(to);
@@ -633,64 +541,84 @@ pub fn set_discord_presence_mode(
 
 /// Gets playtime mode
 #[tauri::command]
-pub fn get_playtime_mode(app_handle: AppHandle) -> Result<PlaytimeMode, String> {
+pub fn get_playtime_mode(app_handle: AppHandle) -> CmdResult<PlaytimeMode> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.playtime_mode)
 }
 
 /// Saves new playtime mode to disk
 #[tauri::command]
-pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> Result<(), String> {
+pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     lock.update_settings(&app_handle, |s| s.playtime_mode = to)
-        .map_err(|e| e.to_string())
+        .context("Failed to update playtime mode")?;
+    Ok(())
 }
 
 #[tauri::command]
-pub fn get_use_jp_for_title_time(app_handle: AppHandle) -> Result<bool, String> {
+pub fn get_use_jp_for_title_time(app_handle: AppHandle) -> CmdResult<bool> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.use_jp_for_title_time)
 }
 
 #[tauri::command]
-pub fn set_use_jp_for_title_time(app_handle: AppHandle, to: bool) -> Result<(), String> {
+pub fn set_use_jp_for_title_time(app_handle: AppHandle, to: bool) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     lock.update_settings(&app_handle, |s| s.use_jp_for_title_time = to)
-        .map_err(|e| e.to_string())
+        .context("Failed to update use jp for title time")?;
+    Ok(())
 }
 
 #[tauri::command]
-pub fn get_hide_nsfw_images(app_handle: AppHandle) -> Result<bool, String> {
+pub fn get_hide_nsfw_images(app_handle: AppHandle) -> CmdResult<bool> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.hide_nsfw_images)
 }
 
 #[tauri::command]
-pub fn set_hide_nsfw_images(app_handle: AppHandle, to: bool) -> Result<(), String> {
+pub fn set_hide_nsfw_images(app_handle: AppHandle, to: bool) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     lock.update_settings(&app_handle, |s| s.hide_nsfw_images = to)
-        .map_err(|e| e.to_string())
+        .context("Failed to update hide nsfw images")?;
+    Ok(())
 }
 
 /// Gets the Jiten API base URL
 #[tauri::command]
-pub fn get_jiten_base_url(app_handle: AppHandle) -> Result<String, String> {
+pub fn get_jiten_base_url(app_handle: AppHandle) -> CmdResult<String> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     Ok(lock.settings.jiten_base_url.clone())
 }
 
 /// Sets the Jiten API base URL
 #[tauri::command]
-pub fn set_jiten_base_url(app_handle: AppHandle, url: String) -> Result<(), String> {
+pub fn set_jiten_base_url(app_handle: AppHandle, url: String) -> CmdResult<()> {
     let state = app_handle.state::<Mutex<AppState>>();
-    let mut lock = state.lock().map_err(|_| "Failed to lock state")?;
+    let mut lock = state
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
     lock.update_settings(&app_handle, |s| s.jiten_base_url = url)
-        .map_err(|e| e.to_string())
+        .context("Failed to update jiten base url")?;
+    Ok(())
 }

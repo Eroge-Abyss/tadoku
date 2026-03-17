@@ -1,7 +1,7 @@
 mod character;
 mod game;
 use crate::prelude::*;
-use crate::util;
+use crate::util::image;
 use anyhow::{Context, Result};
 pub use character::Character;
 use chrono::Local;
@@ -47,7 +47,7 @@ impl GamesStore {
             if game.image_url.is_empty() {
                 continue;
             }
-            let image_path = util::construct_image_path(&self.base_app_path, &game.image_url)?
+            let image_path = image::construct_image_path(&self.base_app_path, &game.image_url)?
                 .to_str()
                 .context("Failed to construct image path")?
                 .to_string();
@@ -64,7 +64,7 @@ impl GamesStore {
         if let Some(removed_game) = games.remove(game_id) {
             if !removed_game.image_url.is_empty() {
                 let image_path =
-                    util::construct_image_path(&self.base_app_path, &removed_game.image_url)?;
+                    image::construct_image_path(&self.base_app_path, &removed_game.image_url)?;
                 if image_path.exists() {
                     fs::remove_file(&image_path)
                         .context(format!("Failed to remove image file: {:?}", image_path))?;

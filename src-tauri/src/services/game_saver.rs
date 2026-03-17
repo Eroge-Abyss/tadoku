@@ -6,7 +6,7 @@ use crate::{
         stores::games::{Character, Game, GamesStore},
         vndb::Vndb,
     },
-    util,
+    util::image,
 };
 use anyhow::Context;
 use log::{debug, info, warn};
@@ -66,9 +66,9 @@ impl<'a> GameSaver<'a> {
             None
         } else {
             // For local paths generate a unique dest name; for remote URLs derive from the URL.
-            let dest_name = util::is_local_path(&game.image_url).then(|| {
-                let filename =
-                    util::extract_image(&game.image_url).unwrap_or_else(|_| "cover.jpg".to_owned());
+            let dest_name = image::is_local_path(&game.image_url).then(|| {
+                let filename = image::extract_image(&game.image_url)
+                    .unwrap_or_else(|_| "cover.jpg".to_owned());
                 format!("{}_{}", game_id, filename)
             });
             let source = game.image_url.clone();
@@ -76,7 +76,7 @@ impl<'a> GameSaver<'a> {
             if let Some(ref name) = dest_name {
                 game.image_url = name.clone();
             }
-            let path = util::save_image(self.app_handle, &source, dest_name.as_deref())
+            let path = image::save_image(self.app_handle, &source, dest_name.as_deref())
                 .await
                 .context("Error happened while saving image")?;
             debug!("Successfully saved game image for {}", game_id);
@@ -126,7 +126,7 @@ impl<'a> GameSaver<'a> {
                 Some(p) => {
                     debug!("Saving character image for {} ({})", char.name, p.url);
                     Some(
-                        util::save_image(self.app_handle, &p.url, None)
+                        image::save_image(self.app_handle, &p.url, None)
                             .await
                             .context("Error happened while saving image")?,
                     )

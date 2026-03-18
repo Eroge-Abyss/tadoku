@@ -5,7 +5,7 @@
       "release-type": "rust",
       "component": "app",
       "package-name": "tadoku",
-      "draft": true,
+      "prerelease": true,
       "changelog-type": "github"
     }
   },

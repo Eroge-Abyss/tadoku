@@ -1,9 +1,15 @@
-use crate::{AppState, prelude::Result, services::stores::settings::PlaytimeMode, util};
+use crate::{
+    prelude::Result,
+    services::{
+        state::ManagedState,
+        stores::{games::GamesStore, settings::PlaytimeMode},
+        system::SystemService,
+    },
+};
 use anyhow::Context;
 use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info, warn};
 use serde::Deserialize;
-use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::accept_async;
@@ -29,8 +35,8 @@ impl ExStaticPlaytime {
     fn handle(app_handle: &AppHandle, data: ExStaticData) -> Result<()> {
         debug!("Handling ExStatic data: {:?}", data);
 
-        let binding = app_handle.state::<Mutex<AppState>>();
-        let mut state = binding
+        let managed = app_handle.state::<ManagedState>();
+        let mut state = managed
             .lock()
             .map_err(|e| anyhow::anyhow!("Error acquiring mutex lock: {}", e))?;
 
@@ -41,18 +47,19 @@ impl ExStaticPlaytime {
 
         if let (Some(game), Some(pid)) = (
             state.game.as_mut(),
-            util::get_pid_from_process_path(&data.process_path),
+            SystemService::get_pid_from_process_path(&data.process_path),
         ) {
             if pid.as_u32() == game.pid {
                 let time = data.time.round() as u64;
+                let store = GamesStore::new(app_handle)?;
                 info!("Updating playtime for game {} by {} seconds", game.id, time);
                 game.current_playtime += time;
-                util::flush_playtime(app_handle, &game.id, time)?;
+                store.update_playtime(&game.id, time)?;
 
                 // Update chars_read if provided by exSTATic
                 if let Some(chars_read) = data.chars_read {
                     debug!("Updating chars_read for game {} to {}", game.id, chars_read);
-                    util::flush_chars_read(app_handle, &game.id, chars_read)?;
+                    store.update_game(&game.id, |g| g.chars_read = chars_read)?;
                     if let Err(e) = app_handle.emit("chars_read_updated", chars_read) {
                         error!("Error emitting chars_read_updated event: {}", e);
                     }

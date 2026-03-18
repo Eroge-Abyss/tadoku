@@ -1,7 +1,7 @@
 use super::super::stores::games::GamesStore;
-use crate::{AppState, services::stores::settings::PlaytimeMode};
+use crate::services::{state::ManagedState, stores::settings::PlaytimeMode};
 use log::{debug, error, info, warn};
-use std::{sync::Mutex, thread, time::Duration};
+use std::{thread, time::Duration};
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};
 use tauri::{AppHandle, Emitter, Manager};
 
@@ -26,7 +26,7 @@ impl ClassicPlaytime {
 
             loop {
                 let (pid, game_id, current_playtime, playtime_mode) = {
-                    let state = app_handle.state::<Mutex<AppState>>();
+                    let state = app_handle.state::<ManagedState>();
                     let mut state = match state.lock() {
                         Ok(s) => s,
                         Err(e) => {
@@ -96,7 +96,7 @@ impl ClassicPlaytime {
 
                         debug!("Game is active, incrementing playtime");
                         {
-                            let state = app_handle.state::<Mutex<AppState>>();
+                            let state = app_handle.state::<ManagedState>();
                             let mut state = match state.lock() {
                                 Ok(s) => s,
                                 Err(e) => {
@@ -136,7 +136,7 @@ impl ClassicPlaytime {
                             error!("Error happened while updating last played: {}", e);
                         }
 
-                        let state = app_handle.state::<Mutex<AppState>>();
+                        let state = app_handle.state::<ManagedState>();
                         let mut state = match state.lock() {
                             Ok(s) => s,
                             Err(e) => {

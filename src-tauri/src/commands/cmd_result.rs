@@ -1,6 +1,5 @@
-use std::fmt::Display;
-
 use serde::Serialize;
+use std::fmt::Display;
 
 #[derive(Debug)]
 pub struct CommandError(pub anyhow::Error);

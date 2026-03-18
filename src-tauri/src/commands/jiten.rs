@@ -1,8 +1,6 @@
-use crate::AppState;
-use crate::commands::cmd_result::CmdResult;
 use crate::services::jiten::Jiten;
+use crate::{commands::cmd_result::CmdResult, services::state::ManagedState};
 use anyhow::Context;
-use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
 
 /// Fetches the total character count for a VN from the Jiten API using its VNDB ID.
@@ -12,13 +10,12 @@ pub async fn fetch_jiten_char_count(
     app_handle: AppHandle,
     game_id: String,
 ) -> CmdResult<Option<u64>> {
-    let base_url = {
-        let state = app_handle.state::<Mutex<AppState>>();
-        let lock = state
-            .lock()
-            .map_err(|_| anyhow::anyhow!("Failed to lock state"))?;
-        lock.settings.jiten_base_url.clone()
-    };
+    let base_url = app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .jiten_base_url
+        .clone();
 
     let count = Jiten::fetch_jiten_char_count(&base_url, &game_id)
         .await

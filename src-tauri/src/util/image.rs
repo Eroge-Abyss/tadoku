@@ -1,12 +1,10 @@
-use crate::services::stores::games::GamesStore;
-use crate::{prelude::Result, scripts};
+use crate::prelude::Result;
 use anyhow::Context;
 use std::{
     fs,
     io::Cursor,
     path::{Path, PathBuf},
 };
-use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest;
 use url::Url;
@@ -49,38 +47,6 @@ pub fn construct_image_path(base_path: &Path, url: &str) -> Result<PathBuf> {
     Ok(base_path.join("images").join(extract_image(url)?))
 }
 
-/// Gets the PID of a saved game's process file path
-pub fn get_pid_from_process_path(process_file_path: &str) -> Option<Pid> {
-    let s = System::new_with_specifics(
-        RefreshKind::nothing().with_processes(ProcessRefreshKind::everything()),
-    );
-
-    for process in s.processes().values() {
-        if let Some(exe) = process.exe() {
-            if exe.to_str()? == process_file_path {
-                return Some(process.pid());
-            }
-
-            #[cfg(not(windows))]
-            {
-                let normalized_path = process
-                    .cmd()
-                    .iter()
-                    .filter_map(|s| s.to_str())
-                    .collect::<Vec<&str>>()
-                    .join(" ")
-                    .replace("\\", "/");
-
-                if normalized_path.contains(process_file_path) {
-                    return Some(process.pid());
-                }
-            }
-        }
-    }
-
-    None
-}
-
 /// Saves an image to the images directory.
 /// - `source`: HTTP(S) URL (downloaded) or local absolute path (copied).
 /// - `dest_name`: filename to store as. When `None`, the name is derived from `source`.
@@ -90,8 +56,6 @@ pub async fn save_image(
     dest_name: Option<&str>,
 ) -> Result<String> {
     let base_path = app_handle.path().app_local_data_dir()?;
-
-    scripts::create_images_folder(app_handle)?;
 
     let filename = dest_name
         .map(str::to_owned)
@@ -110,32 +74,4 @@ pub async fn save_image(
     }
 
     Ok(dest.to_str().expect("Should not happen").to_owned())
-}
-
-/// Flushes playtime to disk
-pub fn flush_playtime(app_handle: &AppHandle, game_id: &str, playtime: u64) -> Result<()> {
-    let store = GamesStore::new(app_handle).context("Error happened while accessing store")?;
-
-    store
-        .update_playtime(game_id, playtime)
-        .context("Error happened while setting new playtime")?;
-
-    Ok(())
-}
-
-/// Flushes chars_read to disk
-pub fn flush_chars_read(app_handle: &AppHandle, game_id: &str, chars_read: u64) -> Result<()> {
-    let store = GamesStore::new(app_handle).context("Error happened while accessing store")?;
-
-    store
-        .update_game(game_id, |g| g.chars_read = chars_read)
-        .context("Error happened while setting chars_read")?;
-
-    Ok(())
-}
-
-pub fn is_debug_mode() -> bool {
-    std::env::var("TADOKU_DEBUG")
-        .map(|s| s == "1" || s.to_lowercase() == "true")
-        .unwrap_or(false)
 }

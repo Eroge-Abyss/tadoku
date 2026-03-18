@@ -1,29 +1,21 @@
-use anyhow::Context;
 use log::{error, info};
+use services::playtime;
 use tauri::{AppHandle, Manager, RunEvent};
 use tokio_util::sync::CancellationToken;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod commands;
 mod prelude;
-mod scripts;
 mod services;
+mod setup;
 mod util;
-
-pub use scripts::{AppState, GameState};
-use services::playtime;
 
 struct ShutdownToken(CancellationToken);
 
 fn setup_app(app: &AppHandle) -> anyhow::Result<()> {
-    scripts::setup_store(app).context("Failed to setup store")?;
-    scripts::create_images_folder(app).context("Failed to create images folder")?;
-    scripts::initialize_state(app).context("Failed to initialize state")?;
-    scripts::initialize_discord(app).context("Failed to initialize Discord")?;
-
     let token = app.state::<ShutdownToken>().0.clone();
+    setup::run(app)?;
     playtime::ExStaticPlaytime::spawn(app, token);
-    scripts::spawn_background_tasks(app);
     Ok(())
 }
 

@@ -83,10 +83,18 @@ impl ClassicPlaytime {
                             if let Ok(active_window) = x_win::get_active_window() {
                                 if active_window.id != pid {
                                     debug!("Game is not active, pausing playtime");
+
+                                    if let Err(e) = app_handle.emit(
+                                        "playtime",
+                                        serde_json::json!({
+                                            "status": "paused",
+                                            "time": current_playtime
+                                        }),
+                                    ) {
+                                        error!("Error happened while emitting playtime: {}", e);
+                                    }
+
                                     continue;
-                                    // if let Err(e) = app_handle.emit("playtime", "paused") {
-                                    //     error!("Error happened while emitting playtime: {}", e);
-                                    // }
                                 }
                             } else {
                                 debug!("Failed to get active window");
@@ -121,9 +129,15 @@ impl ClassicPlaytime {
                             }
                         }
 
-                        // if let Err(e) = app_handle.emit("playtime", current_playtime + 1) {
-                        //     error!("Error happened while emitting playtime: {}", e);
-                        // }
+                        if let Err(e) = app_handle.emit(
+                            "playtime",
+                            serde_json::json!({
+                                "status": "playing",
+                                "time": current_playtime + 1
+                            }),
+                        ) {
+                            error!("Error happened while emitting playtime: {}", e);
+                        }
                     }
                     None => {
                         info!("Game process not found, stopping playtime tracking");

@@ -5,6 +5,7 @@
   import { appState } from '$lib/state.svelte';
   import type { Game } from '$lib/types';
   import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
+  import NowPlaying from '$lib/components/home/NowPlaying.svelte';
   import { formatTime } from '$lib/util';
   import { getAvailable } from '$lib/util';
 
@@ -65,7 +66,10 @@
         </span>
       {/if}
     </div>
-    <FilterAndSort />
+    <div class="header-actions">
+      <NowPlaying />
+      <FilterAndSort />
+    </div>
   </div>
   <div class="grid">
     {#each Object.entries(filteredGamesList) as [id, game]}

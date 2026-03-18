@@ -5,7 +5,6 @@
       "release-type": "rust",
       "component": "app",
       "package-name": "tadoku",
-      "release-name": "Tadoku v{{version}}",
       "draft": true,
       "changelog-type": "github"
     }

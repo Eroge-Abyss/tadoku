@@ -2,7 +2,6 @@ import { settingsStore } from '$lib/stores/settings.svelte';
 import * as gamesService from '$lib/services/games.service';
 import { toast } from 'svelte-sonner';
 import type { Game, GameDto, Novel, Options, ProcessItem } from '$lib/types';
-import { getAvailable } from '$lib/util';
 
 class GamesStore {
   #games: Record<string, Game> = $state({});

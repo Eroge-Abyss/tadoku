@@ -65,7 +65,7 @@ export function useGameActions(getNovel: () => Novel | undefined) {
       try {
         await gamesStore.setCharacters(novel.id);
         toast.success('Characters downloaded successfully');
-      } catch (error) {
+      } catch {
         // Error is handled by gamesStore (toast.error)
       }
     },

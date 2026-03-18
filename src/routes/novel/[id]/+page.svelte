@@ -12,16 +12,17 @@
   import type { ProcessItem, Tab } from '$lib/types';
   import { getAvailable } from '$lib/util';
   import { toast } from 'svelte-sonner';
+  import { goto } from '$app/navigation';
 
   if (!page.params.id) {
-    throw resolve('/');
+    throw goto(resolve('/'));
   }
 
   const novel = $derived(appState.loadGame(page.params.id));
 
   // svelte-ignore state_referenced_locally
   if (!novel) {
-    throw resolve('/');
+    throw goto(resolve('/'));
   }
 
   // Derived values
@@ -172,7 +173,7 @@
     deleteGame: async () => {
       await appState.deleteGame(novel.id);
       toast.success('Game deleted');
-      resolve('/');
+      goto(resolve('/'));
     },
 
     resetStats: async () => {
@@ -277,7 +278,6 @@
       {lastPlayedDate}
       {jitenCharCount}
       charsRead={novel.chars_read || 0}
-      playtimeMode={appState.playtimeMode}
       bind:notes
       bind:editingNotes
       onSaveNotes={handleSaveNotes}
@@ -289,7 +289,8 @@
 
 <style>
   .container {
-    padding: 25px 0;
+    padding: 20px;
+    padding-top: 0px;
     height: 100%;
     overflow-y: auto;
     box-sizing: border-box;

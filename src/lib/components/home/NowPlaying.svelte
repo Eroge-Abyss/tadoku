@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { appState } from '$lib/state.svelte';
-  import { resolve } from '$app/navigation';
+  import { resolve } from '$app/paths';
   import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+  import { goto } from '$app/navigation';
 
   let sessionTime = $state(0);
   let isPaused = $state(false);
@@ -57,7 +58,7 @@
   const openCurrentGame = () => {
     const id = appState.currentGame?.id;
     if (!id) return;
-    resolve(`/novel/${id}`);
+    goto(resolve(`/novel/${id}`));
   };
 </script>
 

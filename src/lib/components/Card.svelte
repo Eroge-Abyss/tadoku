@@ -4,6 +4,7 @@
   import { formatTime } from '$lib/util';
   import { appState } from '$lib/state.svelte';
   import NsfwPlaceholder from './NsfwPlaceholder.svelte';
+  import { goto } from '$app/navigation';
 
   type Props = {
     id: string;
@@ -22,7 +23,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<section onclick={() => resolve(`/novel/${id}`)} class="card">
+<section onclick={() => goto(resolve(`/novel/${id}`))} class="card">
   <div class="card-image">
     {#if isNsfw && appState?.hideNsfwImages}
       <NsfwPlaceholder />

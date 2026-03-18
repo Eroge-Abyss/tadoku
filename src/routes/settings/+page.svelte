@@ -423,7 +423,7 @@
   }
 
   .container {
-    padding: 2rem 0;
+    padding-bottom: 2rem;
     width: 100%;
     height: 100%;
     overflow-y: auto;

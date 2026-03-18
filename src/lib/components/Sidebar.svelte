@@ -7,6 +7,7 @@
   import { appState } from '$lib/state.svelte';
   import SettingsButton from '$lib/components/SettingsButton.svelte';
   import { getAvailable } from '$lib/util';
+  import { goto } from '$app/navigation';
 
   let pinnedGames = $derived.by(() =>
     Object.entries(appState.gamesList)
@@ -30,7 +31,7 @@
   <section id="sidebar__header">
     <h1>多</h1>
     <div id="sidebar__header__buttons">
-      <SidebarButton onclick={() => resolve('/')} tooltip="Library">
+      <SidebarButton onclick={() => goto(resolve('/'))} tooltip="Library">
         <SquaresIcon style="font-size: 24px;" />
       </SidebarButton>
 

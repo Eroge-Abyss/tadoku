@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.9.0 (2026-03-18)
+
+## What's Changed
+* fix: impl graceful shutdown for ws server to terminate stuck connections by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/158
+* refactor: use anyhow for error handling by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/159
+* refactor: whole backend by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/161
+* feat: add now playing by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/162
+* refactor: frontend by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/163
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.8.2...app-v1.9.0
+
 ## [1.8.2](https://github.com/Eroge-Abyss/tadoku/compare/app-v1.8.1...app-v1.8.2) (2026-03-13)
 
 

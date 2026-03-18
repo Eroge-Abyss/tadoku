@@ -7,18 +7,22 @@
   import { platform } from '@tauri-apps/plugin-os';
   import NovelHeader from '$lib/components/novel/NovelHeader.svelte';
   import TabContainer from '$lib/components/novel/TabContainer.svelte';
-  import { appState } from '$lib/state.svelte';
-  import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
+  import { sessionStore } from '$lib/stores/session.svelte';
   import type { ProcessItem, Tab } from '$lib/types';
   import { getAvailable } from '$lib/util';
+  import { useGameActions } from '$lib/composables/useGameActions.svelte';
+  import { usePlaytimeStats } from '$lib/composables/usePlaytimeStats.svelte';
+  import { useNovelNotes } from '$lib/composables/useNovelNotes.svelte';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
+  import ProcessChangerDialog from '$lib/components/novel/ProcessChangerDialog.svelte';
 
   if (!page.params.id) {
     throw goto(resolve('/'));
   }
 
-  const novel = $derived(appState.loadGame(page.params.id));
+  const novel = $derived(gamesStore.getById(page.params.id as string));
 
   // svelte-ignore state_referenced_locally
   if (!novel) {
@@ -26,47 +30,19 @@
   }
 
   // Derived values
-  const hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
-  const minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
-  // Goofy solution until I think of something better, at least it works xd
-  const todayDate = $derived(
-    new Date().getFullYear() +
-      '-' +
-      (new Date().getMonth() + 1).toString().padStart(2, '0') +
-      '-' +
-      new Date().getDate().toString().padStart(2, '0'),
-  );
-  const todayHoursPlayed = $derived(
-    todayDate === novel.last_play_date
-      ? Math.floor((novel.today_playtime || 0) / 3600)
-      : 0,
-  );
-  const todayMinutesPlayed = $derived(
-    todayDate === novel.last_play_date
-      ? Math.floor(((novel.today_playtime || 0) % 3600) / 60)
-      : 0,
-  );
-  const lastPlayedDate = $derived(
-    novel.last_played ? new Date(novel.last_played * 1000) : null,
-  );
-  const firstPlayedDate = $derived(
-    novel.first_played ? new Date(novel.first_played * 1000) : null,
-  );
+  const stats = usePlaytimeStats(() => novel);
 
   // State variables
   let playing = $state(false);
   let activeMenu = $state(false);
-  let editingNotes = $state(false);
   let processList = $state<ProcessItem[]>([]);
   let processDialog = $state(false);
-  let deleteDialog = $state(false);
+  let isDeleteDialogOpen = $state(false);
   let resetStatsDialog = $state(false);
   let selectedTab = $state('progress');
-  // svelte-ignore state_referenced_locally
-  let notes = $state(novel.notes);
-  // svelte-ignore state_referenced_locally
-  let originalNotes = novel.notes;
   let downloadingCharacters = $state(false);
+
+  const novelNotes = useNovelNotes(() => novel);
 
   // Jiten character count is now pre-fetched at startup and stored in game data
   const jitenCharCount = $derived(getAvailable(novel.jiten_char_count));
@@ -97,7 +73,11 @@
 
   // Effects
   $effect(() => {
-    if (appState.currentGame && appState.currentGame.id === novel.id) {
+    if (
+      sessionStore.currentGame &&
+      novel &&
+      sessionStore.currentGame.id === novel.id
+    ) {
       playing = true;
     } else {
       playing = false;
@@ -119,17 +99,17 @@
       });
 
       if (newPath) {
-        await appState.updateGameProcessPath(novel.id, newPath);
+        await gamesStore.updateGameProcessPath(novel.id, newPath);
         toast.success('Process path updated');
       }
     } else {
-      processList = await appState.getActiveWindows();
+      processList = await gamesStore.getActiveWindows();
       processDialog = true;
     }
   };
 
   const openDeleteDialog = () => {
-    deleteDialog = true;
+    isDeleteDialogOpen = true;
   };
 
   const openResetStatsDialog = () => {
@@ -137,82 +117,12 @@
   };
 
   // Game actions
-  const gameActions = {
-    startGame: async () => {
-      appState.startGame(novel.id);
-    },
-
-    stopGame: async () => {
-      appState.closeGame();
-    },
-
-    togglePin: async () => {
-      const wasPinned = novel.is_pinned;
-      await appState.togglePinned(novel.id);
-      toast.success(wasPinned ? 'Game unpinned' : 'Game pinned');
-    },
-
-    editExe: async () => {
-      const newPath = await open({
-        multiple: false,
-        directory: false,
-        filters: [
-          {
-            name: 'Game exe or shortcut path',
-            extensions: ['exe', 'lnk', 'bat', 'sh'],
-          },
-        ],
-      });
-
-      if (newPath) {
-        await appState.updateExePath(novel.id, newPath);
-        toast.success('Executable path updated');
-      }
-    },
-
-    deleteGame: async () => {
-      await appState.deleteGame(novel.id);
-      toast.success('Game deleted');
-      goto(resolve('/'));
-    },
-
-    resetStats: async () => {
-      await appState.resetStats(novel.id);
-      toast.success('Stats reset successfully');
-    },
-  };
-
-  // Notes handlers
-  const handleSaveNotes = async () => {
-    try {
-      await appState.setGameNotes(novel.id, notes);
-      toast.success('Notes saved successfully');
-      originalNotes = notes;
-      editingNotes = false;
-    } catch {
-      // Error is handled in appState
-    }
-  };
-
-  const handleCancelEdit = () => {
-    editingNotes = false;
-    notes = originalNotes;
-  };
-
-  const handleStartEdit = () => {
-    editingNotes = true;
-  };
+  const gameActions = useGameActions(() => novel);
 
   const handleDownloadCharacters = async () => {
     downloadingCharacters = true;
-    try {
-      await appState.setCharacters(novel.id);
-      toast.success('Characters downloaded successfully');
-    } catch (error) {
-      console.error('Failed to download characters:', error);
-    } finally {
-      downloadingCharacters = false;
-    }
+    await gameActions.downloadCharacters();
+    downloadingCharacters = false;
   };
 
   function handleMenuClick(e: MouseEvent) {
@@ -245,7 +155,7 @@
     />
 
     <ConfirmDialog
-      bind:isOpen={deleteDialog}
+      bind:isOpen={isDeleteDialogOpen}
       title="Delete Game"
       onConfirm={gameActions.deleteGame}
       isDanger
@@ -260,7 +170,7 @@
       message={`Are you sure you want to reset stats for <i class="danger-highlight">${novel.title}</i> ?`}
     />
 
-    <ChangeProcess
+    <ProcessChangerDialog
       bind:isOpen={processDialog}
       gameId={novel.id}
       {processList}
@@ -270,19 +180,19 @@
       {novel}
       bind:selectedTab
       tabs={TABS}
-      {hoursPlayed}
-      {minutesPlayed}
-      {todayHoursPlayed}
-      {todayMinutesPlayed}
-      {firstPlayedDate}
-      {lastPlayedDate}
+      hoursPlayed={stats.hoursPlayed}
+      minutesPlayed={stats.minutesPlayed}
+      todayHoursPlayed={stats.todayHoursPlayed}
+      todayMinutesPlayed={stats.todayMinutesPlayed}
+      firstPlayedDate={stats.firstPlayedDate}
+      lastPlayedDate={stats.lastPlayedDate}
       {jitenCharCount}
       charsRead={novel.chars_read || 0}
-      bind:notes
-      bind:editingNotes
-      onSaveNotes={handleSaveNotes}
-      onCancelEdit={handleCancelEdit}
-      onStartEdit={handleStartEdit}
+      bind:notes={novelNotes.notes}
+      bind:editingNotes={novelNotes.editingNotes}
+      onSaveNotes={novelNotes.handleSaveNotes}
+      onCancelEdit={novelNotes.handleCancelEdit}
+      onStartEdit={novelNotes.handleStartEdit}
     />
   </div>
 </div>

@@ -71,3 +71,7 @@ export const GAME_STATUSES = [
   'Dropped',
   'On Hold',
 ];
+
+export const REFRESH_INTERVAL_MS = 60_000;
+export const ANIMATION_DELAY_SHORT_MS = 50;
+export const ANIMATION_DELAY_LONG_MS = 300;

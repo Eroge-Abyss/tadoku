@@ -27,11 +27,23 @@ jobs:
       - name: Install frontend dependencies
         run: bun install
 
-      - name: Check frontend code
+      - name: Typecheck frontend code
         run: bun run check
 
-      - namne: Lint frontend code
+      - name: Lint frontend code
         run: bun run lint:fix
+
+      - name: Get Release Notes
+        id: get_notes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ github.ref_name }}" --json body -q .body > release_notes.md
+
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -41,4 +53,5 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseDraft: true
           prerelease: false
+          releaseBody: ${{ steps.get_notes.outputs.notes }}
           args: ''

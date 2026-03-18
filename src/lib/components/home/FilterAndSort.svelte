@@ -1,8 +1,9 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
   import StatusSelector from '$lib/components/StatusSelector.svelte';
-  import { appState } from '$lib/state.svelte';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import type { SortOrder } from '$lib/types';
+  import { withMenuClose } from '$lib/util';
 
   let menuToggleRef: HTMLButtonElement;
   // svelte-ignore non_reactive_update
@@ -10,20 +11,23 @@
   let activeMenu = $state(false);
   let showStatusMenu = $state(false);
   let showSortMenu = $state(false);
-  let currentSortOption = $state(appState.sortOrder || 'title');
+  let currentSortOption = $state(settingsStore.sortOrder || 'title');
 
   function toggleStatus(status: string) {
-    if (appState.selectedCategories.includes(status)) {
-      appState.selectedCategories = appState.selectedCategories.filter(
-        (s) => s !== status,
+    if (settingsStore.selectedCategories.includes(status)) {
+      settingsStore.setSelectedCategories(
+        settingsStore.selectedCategories.filter((s) => s !== status),
       );
     } else {
-      appState.selectedCategories = [...appState.selectedCategories, status];
+      settingsStore.setSelectedCategories([
+        ...settingsStore.selectedCategories,
+        status,
+      ]);
     }
   }
 
-  function clearAllStatuses() {
-    appState.selectedCategories = [];
+  function clearStatuses() {
+    settingsStore.setSelectedCategories([]);
   }
 
   function handleClickOutside(event: MouseEvent) {
@@ -74,14 +78,7 @@
 
   async function setSortOrder(sortOption: SortOrder) {
     currentSortOption = sortOption;
-    await appState.setSortOrder(sortOption);
-  }
-
-  function withMenuClose<T extends (..._args: unknown[]) => unknown>(fn: T): T {
-    return ((...args: Parameters<T>) => {
-      showSortMenu = false;
-      return fn(...args) as ReturnType<T>;
-    }) as T;
+    await settingsStore.setSortOrder(sortOption);
   }
 </script>
 
@@ -122,21 +119,30 @@
             in:fly={{ x: 10, duration: 200 }}
           >
             <button
-              onclick={withMenuClose(() => setSortOrder('title'))}
+              onclick={withMenuClose(
+                () => setSortOrder('title'),
+                () => (showSortMenu = false),
+              )}
               class="menu-item"
               class:active={currentSortOption === 'title'}
             >
               Title
             </button>
             <button
-              onclick={withMenuClose(() => setSortOrder('last_played'))}
+              onclick={withMenuClose(
+                () => setSortOrder('last_played'),
+                () => (showSortMenu = false),
+              )}
               class="menu-item"
               class:active={currentSortOption === 'last_played'}
             >
               Last Played
             </button>
             <button
-              onclick={withMenuClose(() => setSortOrder('playtime'))}
+              onclick={withMenuClose(
+                () => setSortOrder('playtime'),
+                () => (showSortMenu = false),
+              )}
               class="menu-item"
               class:active={currentSortOption === 'playtime'}
             >
@@ -165,9 +171,9 @@
             in:fly={{ x: 10, duration: 200 }}
           >
             <StatusSelector
-              categories={appState.selectedCategories}
+              categories={settingsStore.selectedCategories}
               {toggleStatus}
-              clearStatuses={clearAllStatuses}
+              {clearStatuses}
               showUncategorized
             />
           </div>

@@ -2,47 +2,32 @@
   import '@fontsource-variable/noto-sans-jp';
   import '@fortawesome/fontawesome-free/css/all.min.css';
   import '../app.css';
-  import { getCurrentWindow } from '@tauri-apps/api/window';
-  import { onMount, type Snippet } from 'svelte';
+  import { useWindowTitlebar } from '$lib/composables/useWindowTitlebar.svelte';
+  import { onMount, onDestroy, type Snippet } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
   import UpdateDialog from '$lib/components/UpdateDialog.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import { Toaster } from 'svelte-sonner';
-  import { appState } from '$lib/state.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
+  import { settingsStore } from '$lib/stores/settings.svelte';
+  import { sessionStore } from '$lib/stores/session.svelte';
   import { type Event } from '@tauri-apps/api/event';
   import type { CurrentGame } from '$lib/types';
 
   const { children }: { children: Snippet } = $props();
-  const appWindow = getCurrentWindow();
-  let refreshInterval: ReturnType<typeof setInterval>;
 
-  onMount(() => {
-    document
-      .getElementById('titlebar-minimize')
-      ?.addEventListener('click', () => appWindow.minimize());
-    document
-      .getElementById('titlebar-maximize')
-      ?.addEventListener('click', () => appWindow.toggleMaximize());
-    document
-      .getElementById('titlebar-close')
-      ?.addEventListener('click', () => appWindow.close());
+  useWindowTitlebar();
+
+  onMount(async () => {
+    await Promise.all([settingsStore.init(), gamesStore.init()]);
 
     listen('current_game', (e: Event<CurrentGame | null>) => {
-      appState.currentGame = e.payload;
-      clearInterval(refreshInterval);
-
-      if (e.payload != null) {
-        refreshInterval = setInterval(async () => {
-          await appState.refreshGamesList();
-        }, 60_000);
-      }
-
-      appState.refreshGamesList();
+      sessionStore.set(e.payload);
     });
+  });
 
-    // listen('chars_read_updated', () => {
-    //   appState.refreshGamesList();
-    // });
+  onDestroy(() => {
+    sessionStore.destroy();
   });
 </script>
 

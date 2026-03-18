@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { appState } from '$lib/state.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import { resolve } from '$app/paths';
   import { goto } from '$app/navigation';
 
   const getRandomGame = () => {
-    const games = Object.entries(appState.gamesList);
+    const games = Object.entries(gamesStore.list);
     if (games.length === 0) return;
     const randomIndex = Math.floor(Math.random() * games.length);
     const selectedGame = games[randomIndex][0];
@@ -12,7 +13,7 @@
   };
 </script>
 
-{#if appState.showRandomButton}
+{#if settingsStore.showRandomButton}
   <button
     class="fa-dice-shake random-button"
     onclick={getRandomGame}

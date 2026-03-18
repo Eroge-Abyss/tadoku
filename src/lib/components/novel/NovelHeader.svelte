@@ -1,12 +1,14 @@
 <script lang="ts">
+  import { withMenuClose } from '$lib/util';
   import { convertFileSrc } from '@tauri-apps/api/core';
   import bbobHTML from '@bbob/html';
   import html5Preset from '@bbob/preset-html5';
   import { fly } from 'svelte/transition';
   import { revealItemInDir, openUrl } from '@tauri-apps/plugin-opener';
   import type { Novel } from '$lib/types';
-  import { appState } from '$lib/state.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
   import StatusSelector from '../StatusSelector.svelte';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import NsfwPlaceholder from '../NsfwPlaceholder.svelte';
   import { getAvailable } from '$lib/util';
   import { toast } from 'svelte-sonner';
@@ -54,7 +56,7 @@
     const newStatuses = currentStatuses.includes(status)
       ? currentStatuses.filter((s) => s !== status)
       : [...currentStatuses, status];
-    await appState.setGameCategories(novel.id, newStatuses);
+    await gamesStore.setGameCategories(novel.id, newStatuses);
   }
 
   // Function to handle clicks outside the menu and submenu
@@ -85,12 +87,9 @@
     }
   }
 
-  function withMenuClose<T extends (..._args: unknown[]) => unknown>(fn: T): T {
-    return ((...args: Parameters<T>) => {
-      activeMenu = false;
-      showStatusMenu = false; // Close status menu too
-      return fn(...args) as ReturnType<T>;
-    }) as T;
+  function closeMenu() {
+    activeMenu = false;
+    showStatusMenu = false;
   }
 
   const customHtml5Preset = html5Preset.extend((tags) => ({
@@ -120,7 +119,7 @@
 <div class="header">
   <div class="novel-info" in:fly={{ x: 10, duration: 500 }}>
     <div class="novel-image">
-      {#if novel.is_nsfw && appState.hideNsfwImages}
+      {#if novel.is_nsfw && settingsStore.hideNsfwImages}
         <NsfwPlaceholder />
       {:else if novel.image_url}
         <img
@@ -136,7 +135,7 @@
       {/if}
     </div>
     <div class="novel-text">
-      {#if appState.useJpForTitleTime && altTitle}
+      {#if settingsStore.useJpForTitleTime && altTitle}
         <h1>{altTitle}</h1>
         <p class="alt-title">{novel.title}</p>
       {:else}
@@ -211,8 +210,9 @@
                   <StatusSelector
                     categories={novel.categories}
                     {toggleStatus}
-                    clearStatuses={withMenuClose(() =>
-                      appState.setGameCategories(novel.id, []),
+                    clearStatuses={withMenuClose(
+                      () => gamesStore.setGameCategories(novel.id, []),
+                      closeMenu,
                     )}
                   />
                 </div>
@@ -221,12 +221,18 @@
 
             <div class="menu-divider"></div>
 
-            <button onclick={withMenuClose(onEditExe)} class="menu-item">
+            <button
+              onclick={withMenuClose(onEditExe, closeMenu)}
+              class="menu-item"
+            >
               <i class="fa-regular fa-pen-to-square"></i>
               Edit Executable Path
             </button>
 
-            <button onclick={withMenuClose(onProcessDialog)} class="menu-item">
+            <button
+              onclick={withMenuClose(onProcessDialog, closeMenu)}
+              class="menu-item"
+            >
               <i class="fa-solid fa-folder-tree"></i>
               Change Process Path
             </button>
@@ -238,7 +244,7 @@
                 } catch (error) {
                   toast.error(`Failed to open game directory: ${error}`);
                 }
-              })}
+              }, closeMenu)}
               class="menu-item"
             >
               <i class="fa-solid fa-folder-open"></i>
@@ -253,7 +259,7 @@
                   } catch (error) {
                     toast.error(`Failed to open VNDB page: ${error}`);
                   }
-                })}
+                }, closeMenu)}
                 class="menu-item"
               >
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
@@ -261,7 +267,7 @@
               </button>
 
               <button
-                onclick={withMenuClose(onDownloadCharacters)}
+                onclick={withMenuClose(onDownloadCharacters, closeMenu)}
                 class="menu-item"
               >
                 <i class="fa-solid fa-user-plus"></i>
@@ -272,7 +278,7 @@
             <div class="menu-divider"></div>
 
             <button
-              onclick={withMenuClose(onResetStats)}
+              onclick={withMenuClose(onResetStats, closeMenu)}
               class="menu-item danger"
             >
               <i class="fa-solid fa-clock-rotate-left"></i>
@@ -280,7 +286,7 @@
             </button>
 
             <button
-              onclick={withMenuClose(onDeleteDialog)}
+              onclick={withMenuClose(onDeleteDialog, closeMenu)}
               class="menu-item danger"
             >
               <i class="fa-regular fa-trash-can"></i>

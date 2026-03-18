@@ -36,8 +36,9 @@ impl<'a> GameSaver<'a> {
             lock.settings.jiten_base_url.clone()
         };
 
-        game = self.prepare_image(&game_id, game).await?;
-        game = self.prepare_icon(&game_id, game)?;
+        let image_path;
+        (game, image_path) = self.prepare_image(&game_id, game).await?;
+        game = self.prepare_icon(&game_id, game, image_path)?;
         let (characters, jiten) = tokio::join!(
             self.fetch_characters(&game_id),
             self.fetch_jiten(&game_id, &jiten_base_url)
@@ -57,7 +58,7 @@ impl<'a> GameSaver<'a> {
         Ok(())
     }
 
-    async fn prepare_image(&self, game_id: &str, mut game: Game) -> Result<Game> {
+    async fn prepare_image(&self, game_id: &str, mut game: Game) -> Result<(Game, Option<String>)> {
         let _path: Option<String> = if game.image_url.is_empty() {
             debug!(
                 "No image URL provided for game {}, skipping image save",
@@ -83,12 +84,17 @@ impl<'a> GameSaver<'a> {
             Some(path)
         };
 
-        Ok(game)
+        Ok((game, _path))
     }
 
-    fn prepare_icon(&self, game_id: &str, mut game: Game) -> Result<Game> {
+    fn prepare_icon(
+        &self,
+        game_id: &str,
+        mut game: Game,
+        image_path: Option<String>,
+    ) -> Result<Game> {
         #[cfg(windows)]
-        if let Some(ref saved_path) = _path {
+        if let Some(ref saved_path) = image_path {
             debug!("Extracting and saving icon for game {}", game_id);
             let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
             let icon_path = format!("{}.icon.png", saved_path);

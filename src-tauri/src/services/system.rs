@@ -1,6 +1,14 @@
-use crate::{commands::opener::ActiveWindow, prelude::Result};
+use crate::prelude::Result;
 use log::debug;
+use serde::Serialize;
 use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
+
+#[derive(Serialize)]
+pub struct ActiveWindow {
+    pub title: String,
+    pub exe_path: String,
+    pub icon: Option<String>,
+}
 
 pub struct SystemService;
 
@@ -10,6 +18,8 @@ impl SystemService {
 
         #[cfg(windows)]
         {
+            use log::info;
+
             let open_windows = x_win::get_open_windows()
                 .map_err(|_| anyhow::anyhow!("Error occurred while getting open windows"))?;
 

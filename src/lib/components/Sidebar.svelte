@@ -54,9 +54,10 @@
 
 <style>
   nav {
-    height: 100vh;
+    height: 100%;
     width: 85px;
     padding-bottom: 1rem;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

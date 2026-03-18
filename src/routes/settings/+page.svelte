@@ -14,7 +14,8 @@
   import InfoNote from '$lib/components/InfoNote.svelte';
   import { toast } from 'svelte-sonner';
 
-  const EXSTATIC_GITHUB_URL = 'https://github.com/Eroge-Abyss/exSTATic-REMASTERED';
+  const EXSTATIC_GITHUB_URL =
+    'https://github.com/Eroge-Abyss/exSTATic-REMASTERED';
 
   let appVersion = $state<string>();
   let selectedTheme = $state<string>(appState.themeSettings.theme);
@@ -389,7 +390,7 @@
   .select-container select {
     background-color: rgba(255, 255, 255, 0.03);
     border: 1.5px solid rgba(255, 255, 255, 0.12);
-    border-radius: var(--small-radius);
+    border-radius: var(--big-radius);
     padding: 0.625rem 0.875rem;
     color: var(--main-text);
     font-size: 0.875rem;
@@ -414,19 +415,28 @@
     outline: none;
     border-color: var(--primary);
   }
+
+  .select-container select option {
+    background-color: var(--accent);
+    color: var(--main-text);
+  }
+
   .container {
-    padding: 2rem;
-    max-width: 1000px;
-    margin: 0 auto;
-    min-height: 100vh;
+    padding: 2rem 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
 
   .content {
     display: flex;
     flex-direction: column;
     width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
     gap: 1rem;
-    padding: 0;
+    padding: 0 2rem;
   }
 
   .header {

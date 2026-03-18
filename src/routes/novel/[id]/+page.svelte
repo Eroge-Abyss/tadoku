@@ -5,15 +5,17 @@
   import { open } from '@tauri-apps/plugin-dialog';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import { platform } from '@tauri-apps/plugin-os';
-  import { invoke } from '@tauri-apps/api/core';
   import NovelHeader from '$lib/components/novel/NovelHeader.svelte';
   import TabContainer from '$lib/components/novel/TabContainer.svelte';
   import { appState } from '$lib/state.svelte';
-  import { debounce } from '$lib/util';
   import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
   import type { Process, Tab } from '$lib/types';
   import { getAvailable } from '$lib/util';
   import { toast } from 'svelte-sonner';
+
+  if (!page.params.id) {
+    throw goto('/');
+  }
 
   const novel = $derived(appState.loadGame(page.params.id));
 
@@ -287,7 +289,10 @@
 
 <style>
   .container {
-    padding: 25px;
+    padding: 25px 0;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
 
   .content {
@@ -295,5 +300,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    padding: 0 25px;
+    box-sizing: border-box;
   }
 </style>

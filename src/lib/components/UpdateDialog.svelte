@@ -73,9 +73,11 @@
       <div class="update-info">
         <h4>Version {update.version} is available</h4>
 
-        {#if update.body}
-          <div class="update-notes">
-            <h5>What's new:</h5>
+        <div class="update-notes">
+          <h5>What's new:</h5>
+          {#if update.body && update.body.trim().length > 0}
+            <p>{update.body}</p>
+          {:else}
             <p>
               Check <a
                 href={GITHUB_RELEASE_URL}
@@ -83,8 +85,8 @@
                 rel="noopener noreferer">Release Notes</a
               > for details.
             </p>
-          </div>
-        {/if}
+          {/if}
+        </div>
 
         <InfoNote>
           You can install the update now, or get prompted to install the next
@@ -161,6 +163,25 @@
     padding: 10px;
     border-radius: var(--small-radius);
     margin-bottom: 1rem;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+
+  .update-notes::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .update-notes::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .update-notes::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+  }
+
+  .update-notes::-webkit-scrollbar-thumb:hover {
+    background: #777;
   }
 
   .update-notes h5 {
@@ -171,8 +192,9 @@
 
   .update-notes p {
     margin: 0;
-    white-space: pre-line;
+    white-space: pre-wrap;
     font-size: 14px;
+    word-break: break-word;
   }
 
   .btn-row {

@@ -57,7 +57,7 @@ export interface CurrentGame {
   id: string;
 }
 
-export interface Process {
+export interface ProcessItem {
   title: string;
   exe_path: string;
   icon: string | null;

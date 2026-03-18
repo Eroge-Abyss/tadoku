@@ -30,6 +30,9 @@ jobs:
       - name: Check frontend code
         run: bun run check
 
+      - namne: Lint frontend code
+        run: bun run lint:fix
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

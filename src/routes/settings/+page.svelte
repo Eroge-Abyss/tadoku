@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { SvelteMap } from 'svelte/reactivity';
   import { appState } from '$lib/state.svelte.js';
   import { getVersion } from '@tauri-apps/api/app';
   import { THEMES, COLOR_SWATCHES } from '$lib/constants';
@@ -21,7 +22,7 @@
   let selectedTheme = $state<string>(appState.themeSettings.theme);
   let customColor = $state<string>(appState.themeSettings.accentColor);
   let useCustomColor = $state<boolean>(appState.themeSettings.useCustomColor);
-  let themeMap = $state<Map<string, Theme>>(new Map());
+  let themeMap = new SvelteMap<string, Theme>();
   const selectHandlers: Record<string, () => void> = {};
 
   let colorOptionsVisible = $state<boolean>(false);
@@ -32,7 +33,7 @@
 
   $effect(() => {
     if (THEMES.length > 0) {
-      const newMap = new Map<string, Theme>();
+      const newMap = new SvelteMap<string, Theme>();
       THEMES.forEach((THEMES) => {
         newMap.set(THEMES.id, THEMES);
         selectHandlers[THEMES.id] = () => selectTheme(THEMES.id);
@@ -152,7 +153,7 @@
         <p class="section-description">Choose your preferred color theme</p>
       </div>
       <div class="theme-grid">
-        {#each THEMES as theme}
+        {#each THEMES as theme (theme.id)}
           <button
             class="theme-item"
             class:active={selectedTheme === theme.id}
@@ -196,7 +197,7 @@
           </div>
 
           <div class="color-swatches">
-            {#each indexedColorSwatches as { color, index }}
+            {#each indexedColorSwatches as { color, index } (color)}
               <button
                 class="color-swatch"
                 style="background-color: {color}; --index: {index};"

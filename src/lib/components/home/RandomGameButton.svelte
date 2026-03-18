@@ -1,13 +1,13 @@
 <script lang="ts">
   import { appState } from '$lib/state.svelte';
-  import { goto } from '$app/navigation';
+  import { resolve } from '$app/navigation';
 
   const getRandomGame = () => {
     const games = Object.entries(appState.gamesList);
     if (games.length === 0) return;
     const randomIndex = Math.floor(Math.random() * games.length);
     const selectedGame = games[randomIndex][0];
-    goto(`/novel/${selectedGame}`);
+    resolve(`/novel/${selectedGame}`);
   };
 </script>
 

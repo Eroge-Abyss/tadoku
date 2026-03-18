@@ -6,10 +6,13 @@ export function getAvailable<T>(fetchable: Fetchable<T>): T | null {
   return null;
 }
 
-export const debounce = (callback: Function, wait = 750) => {
+export const debounce = (
+  callback: (..._args: unknown[]) => void,
+  wait = 750,
+) => {
   let timeout: ReturnType<typeof setTimeout>;
 
-  return (...args: any[]) => {
+  return (...args: unknown[]) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => callback(...args), wait);
   };
@@ -18,7 +21,7 @@ export const debounce = (callback: Function, wait = 750) => {
 export const formatNotes = (text: string): string => {
   // Regex to find URLs in text. It handles http(s), ftp, and www. links.
   const urlRegex =
-    /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])|(\bwww\.[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+    /(\b(https?|ftp):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])|(\bwww\.[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gim;
 
   return text.replace(urlRegex, (url) => {
     // Check if the URL already has a protocol, if not, prepend 'http://' for proper linking

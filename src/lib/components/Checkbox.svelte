@@ -8,7 +8,7 @@
     checked: boolean;
     id: string;
     label?: string;
-    onchange?: (event: Event) => void;
+    onchange?: (_event: Event) => void;
   } = $props();
 </script>
 

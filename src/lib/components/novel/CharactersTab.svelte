@@ -8,7 +8,7 @@
 </script>
 
 <div class="characters" in:fly={{ y: 20, duration: 300 }}>
-  {#each characters as character}
+  {#each characters as character (character.id)}
     <a
       href={`https://vndb.org/${character.id}`}
       target="_blank"

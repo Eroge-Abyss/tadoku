@@ -72,7 +72,7 @@
     </div>
   </div>
   <div class="grid">
-    {#each Object.entries(filteredGamesList) as [id, game]}
+    {#each Object.entries(filteredGamesList) as [id, game] (id)}
       <div
         in:fly={{
           y: 50,

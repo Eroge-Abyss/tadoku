@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Process } from '$lib/types';
+  import type { ProcessItem } from '$lib/types';
   import Dialog from '$lib/components/Dialog.svelte';
   import { appState } from '$lib/state.svelte';
   import InfoNote from '../InfoNote.svelte';
@@ -8,7 +8,7 @@
   type Props = {
     isOpen: boolean;
     gameId: string;
-    processList: Process[];
+    processList: ProcessItem[];
     title?: string;
   };
 
@@ -21,14 +21,14 @@
 
   let isDropdownOpen = $state(false);
   let loading = $state(false);
-  let process = $state<Process | null>(null);
+  let process = $state<ProcessItem | null>(null);
   let searchTerm = $state(''); // Reactive search term
 
   async function onConfirm(selectedProcessPath: string) {
     try {
       await appState.updateGameProcessPath(gameId, selectedProcessPath);
       toast.success('Process path updated');
-    } catch (error) {
+    } catch {
       // Error handled in appState
     }
 
@@ -51,12 +51,12 @@
 
   // Filtered items based on search term
   let filteredItems = $derived(
-    processList.filter((item: Process) =>
+    processList.filter((item: ProcessItem) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()),
     ),
   );
 
-  const selectItem = (item: Process) => {
+  const selectItem = (item: ProcessItem) => {
     process = item;
     searchTerm = item.title;
     isDropdownOpen = false;
@@ -90,7 +90,7 @@
                 <span>Try a different search term</span>
               </div>
             {:else}
-              {#each filteredItems as item}
+              {#each filteredItems as item (item.exe_path)}
                 <button
                   role="option"
                   aria-selected={process === item}
@@ -141,8 +141,7 @@
 <!-- Hide dropdown when clicking outside -->
 <svelte:window
   on:click={(e) => {
-    // @ts-ignore
-    if (!e.target?.closest('.dropdown')) {
+    if (!(e.target as Element)?.closest('.dropdown')) {
       isDropdownOpen = false;
     }
   }}

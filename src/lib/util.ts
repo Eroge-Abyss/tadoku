@@ -1,6 +1,6 @@
-
 import { settingsStore } from '$lib/stores/settings.svelte';
 import type { Fetchable } from './types';
+import { open } from '@tauri-apps/plugin-dialog';
 
 export function getAvailable<T>(fetchable: Fetchable<T>): T | null {
   if (fetchable.type === 'available') return fetchable.value;
@@ -89,4 +89,32 @@ export function formatTime(hours: number, minutes: number): string {
   } else {
     return `${hours}h ${minutes}m`;
   }
+}
+
+export async function pickExecutable(): Promise<string | null> {
+  const file = await open({
+    multiple: false,
+    directory: false,
+    filters: [
+      {
+        name: 'Game exe or shortcut path',
+        extensions: ['exe', 'lnk', 'bat', 'sh'],
+      },
+    ],
+  });
+  return file as string | null;
+}
+
+export async function pickImage(): Promise<string | null> {
+  const file = await open({
+    multiple: false,
+    directory: false,
+    filters: [
+      {
+        name: 'Image',
+        extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'],
+      },
+    ],
+  });
+  return file as string | null;
 }

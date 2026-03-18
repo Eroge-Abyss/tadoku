@@ -2,7 +2,7 @@
   import '@fontsource-variable/noto-sans-jp';
   import '@fortawesome/fontawesome-free/css/all.min.css';
   import '../app.css';
-  import { getCurrentWindow } from '@tauri-apps/api/window';
+  import { useWindowTitlebar } from '$lib/composables/useWindowTitlebar.svelte';
   import { onMount, onDestroy, type Snippet } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
   import UpdateDialog from '$lib/components/UpdateDialog.svelte';
@@ -15,20 +15,11 @@
   import type { CurrentGame } from '$lib/types';
 
   const { children }: { children: Snippet } = $props();
-  const appWindow = getCurrentWindow();
+
+  useWindowTitlebar();
 
   onMount(async () => {
     await Promise.all([settingsStore.init(), gamesStore.init()]);
-
-    document
-      .getElementById('titlebar-minimize')
-      ?.addEventListener('click', () => appWindow.minimize());
-    document
-      .getElementById('titlebar-maximize')
-      ?.addEventListener('click', () => appWindow.toggleMaximize());
-    document
-      .getElementById('titlebar-close')
-      ?.addEventListener('click', () => appWindow.close());
 
     listen('current_game', (e: Event<CurrentGame | null>) => {
       sessionStore.set(e.payload);

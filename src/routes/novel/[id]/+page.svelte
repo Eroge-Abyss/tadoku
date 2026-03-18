@@ -12,6 +12,8 @@
   import type { ProcessItem, Tab } from '$lib/types';
   import { getAvailable } from '$lib/util';
   import { useGameActions } from '$lib/composables/useGameActions.svelte';
+  import { usePlaytimeStats } from '$lib/composables/usePlaytimeStats.svelte';
+  import { useNovelNotes } from '$lib/composables/useNovelNotes.svelte';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
   import ProcessChangerDialog from '$lib/components/novel/ProcessChangerDialog.svelte';
@@ -28,51 +30,19 @@
   }
 
   // Derived values
-  const hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
-  const minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
-  // Goofy solution until I think of something better, at least it works xd
-  const todayDate =
-    new Date().getFullYear() +
-    '-' +
-    (new Date().getMonth() + 1).toString().padStart(2, '0') +
-    '-' +
-    new Date().getDate().toString().padStart(2, '0');
-  const todayHoursPlayed = $derived(
-    todayDate === novel.last_play_date
-      ? Math.floor((novel.today_playtime || 0) / 3600)
-      : 0,
-  );
-  const todayMinutesPlayed = $derived(
-    todayDate === novel.last_play_date
-      ? Math.floor(((novel.today_playtime || 0) % 3600) / 60)
-      : 0,
-  );
-  const lastPlayedDate = $derived(
-    novel.last_played ? new Date(novel.last_played * 1000) : null,
-  );
-  const firstPlayedDate = $derived(
-    novel.first_played ? new Date(novel.first_played * 1000) : null,
-  );
+  const stats = usePlaytimeStats(() => novel);
 
   // State variables
   let playing = $state(false);
   let activeMenu = $state(false);
-  let editingNotes = $state(false);
   let processList = $state<ProcessItem[]>([]);
   let processDialog = $state(false);
   let isDeleteDialogOpen = $state(false);
   let resetStatsDialog = $state(false);
   let selectedTab = $state('progress');
-  let notes = $state('');
-  let originalNotes = '';
   let downloadingCharacters = $state(false);
 
-  $effect(() => {
-    if (novel && !editingNotes) {
-      notes = novel.notes ?? '';
-      originalNotes = novel.notes ?? '';
-    }
-  });
+  const novelNotes = useNovelNotes(() => novel);
 
   // Jiten character count is now pre-fetched at startup and stored in game data
   const jitenCharCount = $derived(getAvailable(novel.jiten_char_count));
@@ -149,27 +119,6 @@
   // Game actions
   const gameActions = useGameActions(() => novel);
 
-  // Notes handlers
-  const handleSaveNotes = async () => {
-    try {
-      await gamesStore.setGameNotes(novel.id, notes);
-      toast.success('Notes saved successfully');
-      originalNotes = notes;
-      editingNotes = false;
-    } catch {
-      // Error is handled in gamesStore
-    }
-  };
-
-  const handleCancelEdit = () => {
-    editingNotes = false;
-    notes = originalNotes;
-  };
-
-  const handleStartEdit = () => {
-    editingNotes = true;
-  };
-
   const handleDownloadCharacters = async () => {
     downloadingCharacters = true;
     await gameActions.downloadCharacters();
@@ -231,19 +180,19 @@
       {novel}
       bind:selectedTab
       tabs={TABS}
-      {hoursPlayed}
-      {minutesPlayed}
-      {todayHoursPlayed}
-      {todayMinutesPlayed}
-      {firstPlayedDate}
-      {lastPlayedDate}
+      hoursPlayed={stats.hoursPlayed}
+      minutesPlayed={stats.minutesPlayed}
+      todayHoursPlayed={stats.todayHoursPlayed}
+      todayMinutesPlayed={stats.todayMinutesPlayed}
+      firstPlayedDate={stats.firstPlayedDate}
+      lastPlayedDate={stats.lastPlayedDate}
       {jitenCharCount}
       charsRead={novel.chars_read || 0}
-      bind:notes
-      bind:editingNotes
-      onSaveNotes={handleSaveNotes}
-      onCancelEdit={handleCancelEdit}
-      onStartEdit={handleStartEdit}
+      bind:notes={novelNotes.notes}
+      bind:editingNotes={novelNotes.editingNotes}
+      onSaveNotes={novelNotes.handleSaveNotes}
+      onCancelEdit={novelNotes.handleCancelEdit}
+      onStartEdit={novelNotes.handleStartEdit}
     />
   </div>
 </div>

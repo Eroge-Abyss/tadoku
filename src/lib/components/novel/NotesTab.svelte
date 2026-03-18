@@ -36,6 +36,7 @@
     </div>
   {:else}
     <div class="notes-div">
+      <!-- eslint-disable svelte/no-at-html-tags -->
       {@html formatNotes(notes)}
     </div>
     <div class="notes-actions">

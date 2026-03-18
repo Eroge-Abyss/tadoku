@@ -1,9 +1,10 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
   import SidebarButton from '$lib/components/SidebarButton.svelte';
 
   function handleClick() {
-    goto('/settings');
+    goto(resolve('/settings'));
   }
 </script>
 

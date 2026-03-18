@@ -9,6 +9,7 @@ import type {
   GameDto,
   Novel,
   PlaytimeMode,
+  ProcessItem,
   SortOrder,
   ThemeSettings,
 } from './types';
@@ -244,9 +245,11 @@ class AppState {
    */
   async loadThemeSettings(): Promise<void> {
     try {
-      // @ts-ignore
-      const { theme, accent_color, use_custom_accent } =
-        await invoke('get_theme_settings');
+      const { theme, accent_color, use_custom_accent } = await invoke<{
+        theme: string;
+        accent_color: string;
+        use_custom_accent: boolean;
+      }>('get_theme_settings');
 
       this.#themeSettings = {
         theme,
@@ -556,11 +559,11 @@ class AppState {
 
   /**
    * Gets a list of currently active windows from the backend.
-   * @returns {Promise<any[]>} A list of active window objects.
+   * @returns {Promise<ProcessItem[]>} A list of active window objects.
    */
-  async getActiveWindows(): Promise<any[]> {
+  async getActiveWindows(): Promise<ProcessItem[]> {
     try {
-      return await invoke('get_active_windows');
+      return await invoke<ProcessItem[]>('get_active_windows');
     } catch (error) {
       console.error('Failed to get active windows:', error);
       toast.error(`Failed to get active windows: ${error}`);

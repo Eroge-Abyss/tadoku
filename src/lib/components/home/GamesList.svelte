@@ -5,6 +5,7 @@
   import { appState } from '$lib/state.svelte';
   import type { Game } from '$lib/types';
   import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
+  import NowPlaying from '$lib/components/home/NowPlaying.svelte';
   import { formatTime } from '$lib/util';
   import { getAvailable } from '$lib/util';
 
@@ -65,10 +66,13 @@
         </span>
       {/if}
     </div>
-    <FilterAndSort />
+    <div class="header-actions">
+      <NowPlaying />
+      <FilterAndSort />
+    </div>
   </div>
   <div class="grid">
-    {#each Object.entries(filteredGamesList) as [id, game]}
+    {#each Object.entries(filteredGamesList) as [id, game] (id)}
       <div
         in:fly={{
           y: 50,
@@ -91,9 +95,12 @@
 
 <style>
   .container {
-    padding: 2rem;
+    padding-left: 3rem;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   h1 {
@@ -107,6 +114,11 @@
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
     width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 2rem;
+    padding-right: 2rem;
+    padding-top: 1rem;
   }
 
   :global(.animate-spin) {
@@ -126,7 +138,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    padding-right: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
   }
 
   .title-area {

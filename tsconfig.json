@@ -11,7 +11,10 @@
     "strict": true,
     "moduleResolution": "bundler",
     "module": "ESNext",
-  },
+    "target": "ESNext",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true
+  }
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   // except $lib which is handled by https://kit.svelte.dev/docs/configuration#files
   //

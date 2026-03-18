@@ -4,7 +4,7 @@
   import ProgressOverview from './ProgressOverview.svelte';
   import CharactersTab from './CharactersTab.svelte';
   import NotesTab from './NotesTab.svelte';
-  import type { Novel, PlaytimeMode, Tab } from '$lib/types';
+  import type { Novel, Tab } from '$lib/types';
 
   type Props = {
     novel: Novel;
@@ -18,7 +18,6 @@
     lastPlayedDate: Date | null;
     jitenCharCount?: number | null;
     charsRead?: number;
-    playtimeMode?: PlaytimeMode;
     notes: string;
     editingNotes: boolean;
     onSaveNotes: () => void;
@@ -38,7 +37,6 @@
     lastPlayedDate,
     jitenCharCount = null,
     charsRead = 0,
-    playtimeMode = 'classic',
     notes = $bindable(),
     editingNotes = $bindable(),
     onSaveNotes,
@@ -57,7 +55,7 @@
 
 <div class="tabs" in:fly={{ y: 50, duration: 500, delay: 600 }}>
   <div class="tab">
-    {#each tabs as tab}
+    {#each tabs as tab (tab.id)}
       {#if tab.visible}
         <button
           class={selectedTab == tab.id ? 'active' : ''}
@@ -89,7 +87,6 @@
         {formatRelativeDate}
         {jitenCharCount}
         {charsRead}
-        {playtimeMode}
       />
     {:else if selectedTab == 'characters'}
       {#if novel.characters && novel.characters.length > 0}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type Fetchable, type GameDto, type VndbResult } from '$lib/types';
+  import { type GameDto, type VndbResult } from '$lib/types';
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
   import { toast } from 'svelte-sonner';
@@ -78,7 +78,7 @@
 
     if (mode === 'vndb' && !search && !results.length && !selectedVn) {
       // Split by both Windows and Unix path separators
-      const pathParts = file?.split(/[\\\/]/) || [];
+      const pathParts = file?.split(/[\\/]/) || [];
       if (pathParts.length >= 2) {
         const fileName = pathParts[pathParts.length - 1];
         const parentFolder = pathParts[pathParts.length - 2];
@@ -244,7 +244,7 @@
 
           {#if results.length > 0}
             <div id="suggestions" role="listbox">
-              {#each results as vn}
+              {#each results as vn (vn.id)}
                 <button
                   role="option"
                   aria-selected={selectedVn === vn}

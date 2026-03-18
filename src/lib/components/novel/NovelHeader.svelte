@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+  import { convertFileSrc } from '@tauri-apps/api/core';
   import bbobHTML from '@bbob/html';
   import html5Preset from '@bbob/preset-html5';
   import { fly } from 'svelte/transition';
@@ -58,14 +58,15 @@
   }
 
   // Function to handle clicks outside the menu and submenu
-  function handleClickOutside(event: any) {
+  function handleClickOutside(event: Event) {
+    const target = event.target as Node;
     // Close primary menu if click is outside it
     if (
       activeMenu &&
       secondaryMenuRef &&
-      !secondaryMenuRef.contains(event.target) &&
+      !secondaryMenuRef.contains(target) &&
       menuToggleRef &&
-      !menuToggleRef.contains(event.target)
+      !menuToggleRef.contains(target)
     ) {
       activeMenu = false;
       showStatusMenu = false; // Also close status menu if primary closes
@@ -73,26 +74,22 @@
 
     // Close status submenu if click is outside it AND the main secondary menu,
     // but only if the main menu is still active (implies click was *inside* main menu but outside status submenu)
-    if (
-      showStatusMenu &&
-      statusMenuRef &&
-      !statusMenuRef.contains(event.target)
-    ) {
+    if (showStatusMenu && statusMenuRef && !statusMenuRef.contains(target)) {
       // We need to ensure the click wasn't on the "Status" button itself
       const statusToggleButton = secondaryMenuRef.querySelector(
         '.menu-item-with-submenu > .menu-item',
       );
-      if (statusToggleButton && !statusToggleButton.contains(event.target)) {
+      if (statusToggleButton && !statusToggleButton.contains(target)) {
         showStatusMenu = false;
       }
     }
   }
 
-  function withMenuClose<T extends (...args: any[]) => any>(fn: T): T {
-    return ((...args: Parameters<T>): ReturnType<T> => {
+  function withMenuClose<T extends (..._args: unknown[]) => unknown>(fn: T): T {
+    return ((...args: Parameters<T>) => {
       activeMenu = false;
       showStatusMenu = false; // Close status menu too
-      return fn(...args);
+      return fn(...args) as ReturnType<T>;
     }) as T;
   }
 
@@ -100,7 +97,7 @@
     ...tags,
     url: (node, params) => {
       const tag = tags.url(node, params, {});
-      // @ts-ignore
+      // @ts-expect-error types mismatch
       const href = tag.attrs?.href.startsWith('/')
         ? `https://vndb.org${tag.attrs?.href}`
         : tag.attrs?.href;
@@ -146,6 +143,7 @@
         <h1>{novel.title}</h1>
       {/if}
       <p class="description">
+        <!-- eslint-disable svelte/no-at-html-tags -->
         {@html bbobHTML(novel.description, customHtml5Preset())}
       </p>
     </div>

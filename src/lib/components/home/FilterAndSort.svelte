@@ -77,10 +77,10 @@
     await appState.setSortOrder(sortOption);
   }
 
-  function withMenuClose<T extends (...args: any[]) => any>(fn: T): T {
-    return ((...args: Parameters<T>): ReturnType<T> => {
-      showSortMenu = false; // Close only the sort menu on selection
-      return fn(...args);
+  function withMenuClose<T extends (..._args: unknown[]) => unknown>(fn: T): T {
+    return ((...args: Parameters<T>) => {
+      showSortMenu = false;
+      return fn(...args) as ReturnType<T>;
     }) as T;
   }
 </script>

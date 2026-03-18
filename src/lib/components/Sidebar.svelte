@@ -1,16 +1,17 @@
 <script lang="ts">
   import SidebarButton from '$lib/components/SidebarButton.svelte';
   import AddGame from '$lib/components/home/AddGame.svelte';
-  import { goto } from '$app/navigation';
-  import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+  import { resolve } from '$app/paths';
+  import { convertFileSrc } from '@tauri-apps/api/core';
   import SquaresIcon from '$lib/components/SquaresIcon.svelte';
   import { appState } from '$lib/state.svelte';
   import SettingsButton from '$lib/components/SettingsButton.svelte';
   import { getAvailable } from '$lib/util';
+  import { goto } from '$app/navigation';
 
   let pinnedGames = $derived.by(() =>
     Object.entries(appState.gamesList)
-      .filter(([_, v]) => v.is_pinned)
+      .filter(([, v]) => v.is_pinned)
       .map(([k, v]) => {
         const altTitle = getAvailable(v.alt_title);
         const displayTitle =
@@ -30,7 +31,7 @@
   <section id="sidebar__header">
     <h1>多</h1>
     <div id="sidebar__header__buttons">
-      <SidebarButton onclick={() => goto('/')} tooltip="Library">
+      <SidebarButton onclick={() => goto(resolve('/'))} tooltip="Library">
         <SquaresIcon style="font-size: 24px;" />
       </SidebarButton>
 
@@ -54,9 +55,10 @@
 
 <style>
   nav {
-    height: 100vh;
+    height: 100%;
     width: 85px;
     padding-bottom: 1rem;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

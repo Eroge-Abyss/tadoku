@@ -7,7 +7,7 @@
     style?: string;
     tooltip: string;
     children?: Snippet;
-    onclick: (event: MouseEvent) => void;
+    onclick: (_event: MouseEvent) => void;
   }
 
   let {

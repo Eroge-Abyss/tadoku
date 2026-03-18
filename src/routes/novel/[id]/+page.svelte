@@ -1,25 +1,28 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
-  import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { open } from '@tauri-apps/plugin-dialog';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import { platform } from '@tauri-apps/plugin-os';
-  import { invoke } from '@tauri-apps/api/core';
   import NovelHeader from '$lib/components/novel/NovelHeader.svelte';
   import TabContainer from '$lib/components/novel/TabContainer.svelte';
   import { appState } from '$lib/state.svelte';
-  import { debounce } from '$lib/util';
   import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
-  import type { Process, Tab } from '$lib/types';
+  import type { ProcessItem, Tab } from '$lib/types';
   import { getAvailable } from '$lib/util';
   import { toast } from 'svelte-sonner';
+  import { goto } from '$app/navigation';
+
+  if (!page.params.id) {
+    throw goto(resolve('/'));
+  }
 
   const novel = $derived(appState.loadGame(page.params.id));
 
   // svelte-ignore state_referenced_locally
   if (!novel) {
-    throw goto('/');
+    throw goto(resolve('/'));
   }
 
   // Derived values
@@ -54,7 +57,7 @@
   let playing = $state(false);
   let activeMenu = $state(false);
   let editingNotes = $state(false);
-  let processList = $state<Process[]>([]);
+  let processList = $state<ProcessItem[]>([]);
   let processDialog = $state(false);
   let deleteDialog = $state(false);
   let resetStatsDialog = $state(false);
@@ -170,7 +173,7 @@
     deleteGame: async () => {
       await appState.deleteGame(novel.id);
       toast.success('Game deleted');
-      goto('/');
+      goto(resolve('/'));
     },
 
     resetStats: async () => {
@@ -186,7 +189,7 @@
       toast.success('Notes saved successfully');
       originalNotes = notes;
       editingNotes = false;
-    } catch (error) {
+    } catch {
       // Error is handled in appState
     }
   };
@@ -275,7 +278,6 @@
       {lastPlayedDate}
       {jitenCharCount}
       charsRead={novel.chars_read || 0}
-      playtimeMode={appState.playtimeMode}
       bind:notes
       bind:editingNotes
       onSaveNotes={handleSaveNotes}
@@ -287,7 +289,11 @@
 
 <style>
   .container {
-    padding: 25px;
+    padding: 20px;
+    padding-top: 0px;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
 
   .content {
@@ -295,5 +301,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    padding: 0 25px;
+    box-sizing: border-box;
   }
 </style>

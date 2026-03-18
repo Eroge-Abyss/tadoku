@@ -64,6 +64,16 @@ impl ExStaticPlaytime {
                         error!("Error emitting chars_read_updated event: {}", e);
                     }
                 }
+
+                if let Err(e) = app_handle.emit(
+                    "playtime",
+                    serde_json::json!({
+                        "status": "playing",
+                        "time": time
+                    }),
+                ) {
+                    error!("Error happened while emitting playtime: {}", e);
+                }
             } else {
                 warn!(
                     "PID mismatch: data PID {} != game PID {}",

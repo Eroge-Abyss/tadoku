@@ -1,7 +1,6 @@
 <script lang="ts">
   import { formatTime } from '$lib/util';
   import { fly } from 'svelte/transition';
-  import type { PlaytimeMode } from '$lib/types';
 
   type Props = {
     hoursPlayed: number;
@@ -10,10 +9,9 @@
     todayMinutesPlayed: number;
     firstPlayedDate: Date | null;
     lastPlayedDate: Date | null;
-    formatRelativeDate: (date: Date) => string;
+    formatRelativeDate: (_date: Date) => string;
     jitenCharCount?: number | null;
     charsRead?: number;
-    playtimeMode?: PlaytimeMode;
   };
 
   let {
@@ -26,7 +24,6 @@
     formatRelativeDate,
     jitenCharCount = null,
     charsRead = 0,
-    playtimeMode = 'classic',
   }: Props = $props();
 
   const progressPercent = $derived(

@@ -42,6 +42,7 @@
 
   <div class="confirm-dialog-content">
     <div class="message">
+      <!-- eslint-disable svelte/no-at-html-tags -->
       {@html message}
     </div>
     <div class="buttons">

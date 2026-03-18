@@ -4,7 +4,7 @@
 
   type Props = {
     categories: string[] | undefined;
-    toggleStatus: (status: string) => void;
+    toggleStatus: (_status: string) => void;
     clearStatuses: () => void;
     showUncategorized?: boolean;
   };
@@ -17,7 +17,7 @@
   }: Props = $props();
 </script>
 
-{#each GAME_STATUSES as statusItem}
+{#each GAME_STATUSES as statusItem (statusItem)}
   <label class="menu-item status-checkbox-label">
     {statusItem}
     <Checkbox

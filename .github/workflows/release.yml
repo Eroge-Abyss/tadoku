@@ -27,10 +27,10 @@ jobs:
       - name: Install frontend dependencies
         run: bun install
 
-      - name: Check frontend code
+      - name: Typecheck frontend code
         run: bun run check
 
-      - namne: Lint frontend code
+      - name: Lint frontend code
         run: bun run lint:fix
 
       - uses: tauri-apps/tauri-action@v0

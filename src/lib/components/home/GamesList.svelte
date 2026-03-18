@@ -2,7 +2,7 @@
   import { fly } from 'svelte/transition';
   import { elasticOut } from 'svelte/easing';
   import Card from '$lib/components/Card.svelte';
-  import { appState } from '$lib/state.svelte';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import type { Game } from '$lib/types';
   import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
   import NowPlaying from '$lib/components/home/NowPlaying.svelte';
@@ -12,7 +12,7 @@
   let { gamesList }: { gamesList: Record<string, Game> } = $props();
 
   function getTitle(game: Game): string {
-    if (appState.useJpForTitleTime) {
+    if (settingsStore.useJpForTitleTime) {
       const alt = getAvailable(game.alt_title);
       if (alt) return alt;
     }
@@ -29,29 +29,6 @@
       hours: Math.floor(seconds / 3600),
       minutes: Math.floor((seconds % 3600) / 60),
     };
-  });
-
-  let filteredGamesList = $derived.by(() => {
-    if (appState.selectedCategories.length === 0) {
-      return gamesList;
-    }
-    const filtered: Record<string, Game> = {};
-    for (const id in gamesList) {
-      const game = gamesList[id];
-      game.categories.forEach((status) => {
-        if (appState.selectedCategories.includes(status)) {
-          filtered[id] = game;
-        }
-      });
-
-      if (
-        game.categories.length === 0 &&
-        appState.selectedCategories.includes('Uncategorized')
-      ) {
-        filtered[id] = game;
-      }
-    }
-    return filtered;
   });
 </script>
 
@@ -72,7 +49,7 @@
     </div>
   </div>
   <div class="grid">
-    {#each Object.entries(filteredGamesList) as [id, game] (id)}
+    {#each Object.entries(gamesList) as [id, game] (id)}
       <div
         in:fly={{
           y: 50,

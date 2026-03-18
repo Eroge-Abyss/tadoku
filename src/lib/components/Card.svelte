@@ -2,7 +2,7 @@
   import { convertFileSrc } from '@tauri-apps/api/core';
   import { resolve } from '$app/paths';
   import { formatTime } from '$lib/util';
-  import { appState } from '$lib/state.svelte';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import NsfwPlaceholder from './NsfwPlaceholder.svelte';
   import { goto } from '$app/navigation';
 
@@ -25,7 +25,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <section onclick={() => goto(resolve(`/novel/${id}`))} class="card">
   <div class="card-image">
-    {#if isNsfw && appState?.hideNsfwImages}
+    {#if isNsfw && settingsStore.hideNsfwImages}
       <NsfwPlaceholder />
     {:else if image}
       <img src={image_url} alt={title} class:blur={isNsfw} />

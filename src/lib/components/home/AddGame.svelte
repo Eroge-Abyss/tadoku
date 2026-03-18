@@ -5,7 +5,7 @@
   import { toast } from 'svelte-sonner';
   import Dialog from '$lib/components/Dialog.svelte';
   import { platform } from '@tauri-apps/plugin-os';
-  import { appState } from '$lib/state.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
   import { debounce } from '$lib/util';
   import Checkbox from '$lib/components/Checkbox.svelte';
   import InfoNote from '../InfoNote.svelte';
@@ -23,7 +23,7 @@
   // VNDB mode state
   let search = $state('');
   let results = $state.raw<VndbResult[]>([]);
-  let selectedVn = $state.raw<VndbResult | null>(null);
+  let selectedVn = $state<VndbResult | null>(null);
   let showImage = $state(false);
   let charactersDownload = $state(false);
 
@@ -145,7 +145,7 @@
         characters: [],
       };
 
-      await appState.saveGame(vn.id, gameData, {
+      await gamesStore.saveGame(vn.id, gameData, {
         include_characters: charactersDownload,
       });
 
@@ -187,7 +187,9 @@
         is_nsfw: manualIsNsfw,
       };
 
-      await appState.saveGame(gameId, gameData, { include_characters: false });
+      await gamesStore.saveGame(gameId, gameData, {
+        include_characters: false,
+      });
 
       toast.success('Game saved successfully!');
       closeModal();

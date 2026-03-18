@@ -93,7 +93,7 @@ export interface VndbResult {
 
 export type SortOrder = 'title' | 'last_played' | 'playtime';
 
-export type DiscordPresenceMode = 'All' | 'None' | 'Menus';
+export type DiscordPresenceMode = 'All' | 'None' | 'InGame';
 
 export type PlaytimeMode = 'classic' | 'ex_static';
 

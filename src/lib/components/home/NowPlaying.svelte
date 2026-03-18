@@ -1,6 +1,7 @@
 <script lang="ts">
+  import { sessionStore } from '$lib/stores/session.svelte';
   import { onDestroy, onMount } from 'svelte';
-  import { appState } from '$lib/state.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
   import { resolve } from '$app/paths';
   import { listen, type UnlistenFn } from '@tauri-apps/api/event';
   import { goto } from '$app/navigation';
@@ -39,9 +40,9 @@
   });
 
   const currentGameData = $derived.by(() => {
-    const currentId = appState.currentGame?.id;
+    const currentId = sessionStore.currentGame?.id;
     if (!currentId) return null;
-    return appState.gamesList[currentId] ?? null;
+    return gamesStore.list[currentId] ?? null;
   });
 
   const formatDuration = (seconds: number): string => {
@@ -56,7 +57,7 @@
   };
 
   const openCurrentGame = () => {
-    const id = appState.currentGame?.id;
+    const id = sessionStore.currentGame?.id;
     if (!id) return;
     goto(resolve(`/novel/${id}`));
   };

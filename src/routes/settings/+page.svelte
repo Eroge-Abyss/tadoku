@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { SvelteMap } from 'svelte/reactivity';
-  import { appState } from '$lib/state.svelte.js';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import { getVersion } from '@tauri-apps/api/app';
   import { THEMES, COLOR_SWATCHES } from '$lib/constants';
   import type {
@@ -19,17 +19,20 @@
     'https://github.com/Eroge-Abyss/exSTATic-REMASTERED';
 
   let appVersion = $state<string>();
-  let selectedTheme = $state<string>(appState.themeSettings.theme);
-  let customColor = $state<string>(appState.themeSettings.accentColor);
-  let useCustomColor = $state<boolean>(appState.themeSettings.useCustomColor);
+  let selectedTheme = $state<string>(settingsStore.themeSettings.theme);
+  let customColor = $state<string>(settingsStore.themeSettings.accentColor);
+  let useCustomColor = $state<boolean>(
+    settingsStore.themeSettings.useCustomColor,
+  );
   let themeMap = new SvelteMap<string, Theme>();
+
   const selectHandlers: Record<string, () => void> = {};
 
   let colorOptionsVisible = $state<boolean>(false);
   let selectedPresenceMode = $state<DiscordPresenceMode>(
-    appState.discordPresenceMode,
+    settingsStore.discordPresenceMode,
   );
-  let playtimeMode = $state<PlaytimeMode>(appState.playtimeMode);
+  let playtimeMode = $state<PlaytimeMode>(settingsStore.playtimeMode);
 
   $effect(() => {
     if (THEMES.length > 0) {
@@ -43,11 +46,11 @@
   });
 
   $effect(() => {
-    selectedTheme = appState.themeSettings.theme;
-    customColor = appState.themeSettings.accentColor;
-    useCustomColor = appState.themeSettings.useCustomColor;
+    selectedTheme = settingsStore.themeSettings.theme;
+    customColor = settingsStore.themeSettings.accentColor;
+    useCustomColor = settingsStore.themeSettings.useCustomColor;
     colorOptionsVisible = useCustomColor;
-    selectedPresenceMode = appState.discordPresenceMode;
+    selectedPresenceMode = settingsStore.discordPresenceMode;
   });
 
   let previewColor = $derived(
@@ -63,20 +66,20 @@
   function selectTheme(themeId: string): void {
     requestAnimationFrame(() => {
       selectedTheme = themeId;
-      appState.updateThemeSettings({ theme: themeId });
+      settingsStore.updateThemeSettings({ theme: themeId });
     });
   }
 
   function toggleCustomColor(): void {
     if (useCustomColor) {
       useCustomColor = false;
-      appState.updateThemeSettings({ useCustomColor: false });
+      settingsStore.updateThemeSettings({ useCustomColor: false });
       setTimeout(() => {
         colorOptionsVisible = false;
       }, 300);
     } else {
       useCustomColor = true;
-      appState.updateThemeSettings({ useCustomColor: true });
+      settingsStore.updateThemeSettings({ useCustomColor: true });
       setTimeout(() => {
         colorOptionsVisible = true;
       }, 50);
@@ -87,7 +90,7 @@
     customColor = color;
     useCustomColor = true;
     colorOptionsVisible = true;
-    appState.updateThemeSettings({
+    settingsStore.updateThemeSettings({
       accentColor: color,
       useCustomColor: true,
     });
@@ -98,7 +101,7 @@
     customColor = input.value;
     useCustomColor = true;
     colorOptionsVisible = true;
-    appState.updateThemeSettings({
+    settingsStore.updateThemeSettings({
       accentColor: customColor,
       useCustomColor: true,
     });
@@ -106,17 +109,18 @@
 
   async function resetSettings(): Promise<void> {
     try {
-      appState.resetThemeSettings();
+      await settingsStore.resetThemeSettings();
 
-      selectedTheme = appState.themeSettings.theme;
-      customColor = appState.themeSettings.accentColor;
-      useCustomColor = appState.themeSettings.useCustomColor;
+      selectedTheme = settingsStore.themeSettings.theme;
+      customColor = settingsStore.themeSettings.accentColor;
+      useCustomColor = settingsStore.themeSettings.useCustomColor;
       colorOptionsVisible = useCustomColor;
 
-      appState.setShowRandomButton(true);
-      appState.setDisablePresenceOnNsfw(true);
-      appState.setDiscordPresenceMode('All');
-      toast.success('Settings reset to defaults');
+      await settingsStore.setShowRandomButton(true);
+      await settingsStore.setDisablePresenceOnNsfw(true);
+      await settingsStore.setDiscordPresenceMode('All');
+
+      toast.success('Settings reset successfully');
     } catch (error) {
       console.error('Error resetting settings:', error as Error);
       toast.error(`Failed to reset settings: ${error}`);
@@ -230,7 +234,8 @@
         <select
           id="presence-mode"
           bind:value={selectedPresenceMode}
-          onchange={() => appState.setDiscordPresenceMode(selectedPresenceMode)}
+          onchange={() =>
+            settingsStore.setDiscordPresenceMode(selectedPresenceMode)}
         >
           <option value="All">Show Presence for Everything</option>
           <option value="InGame">Show Presence for Games Only</option>
@@ -241,9 +246,11 @@
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
           class="switch"
-          class:active={appState.disablePresenceOnNsfw}
+          class:active={settingsStore.disablePresenceOnNsfw}
           onclick={() =>
-            appState.setDisablePresenceOnNsfw(!appState.disablePresenceOnNsfw)}
+            settingsStore.setDisablePresenceOnNsfw(
+              !settingsStore.disablePresenceOnNsfw,
+            )}
         >
           <span class="switch-thumb"></span>
         </button>
@@ -261,9 +268,9 @@
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
           class="switch"
-          class:active={appState.showRandomButton}
+          class:active={settingsStore.showRandomButton}
           onclick={() =>
-            appState.setShowRandomButton(!appState.showRandomButton)}
+            settingsStore.setShowRandomButton(!settingsStore.showRandomButton)}
         >
           <span class="switch-thumb"></span>
         </button>
@@ -274,9 +281,11 @@
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
           class="switch"
-          class:active={appState.useJpForTitleTime}
+          class:active={settingsStore.useJpForTitleTime}
           onclick={() =>
-            appState.setUseJpForTitleTime(!appState.useJpForTitleTime)}
+            settingsStore.setUseJpForTitleTime(
+              !settingsStore.useJpForTitleTime,
+            )}
         >
           <span class="switch-thumb"></span>
         </button>
@@ -289,8 +298,9 @@
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
           class="switch"
-          class:active={appState.hideNsfwImages}
-          onclick={() => appState.setHideNsfwImages(!appState.hideNsfwImages)}
+          class:active={settingsStore.hideNsfwImages}
+          onclick={() =>
+            settingsStore.setHideNsfwImages(!settingsStore.hideNsfwImages)}
         >
           <span class="switch-thumb"></span>
         </button>
@@ -305,7 +315,7 @@
           <select
             id="playtime-mode"
             bind:value={playtimeMode}
-            onchange={() => appState.setPlaytimeMode(playtimeMode)}
+            onchange={() => settingsStore.setPlaytimeMode(playtimeMode)}
           >
             <option value="classic">Classic</option>
             <option value="ex_static">Pull Data from exSTATic</option>
@@ -332,13 +342,6 @@
         </button>
       </div>
     </div>
-    <!--
-    <div class="settings-section">
-      <h2>App Settings</h2>
-      <button class="update-button">Check For Updates</button>
-      <button class="">DownloadUpdate</button>
-    </div>
-    -->
 
     <div class="settings-section danger-section">
       <div class="section-header">

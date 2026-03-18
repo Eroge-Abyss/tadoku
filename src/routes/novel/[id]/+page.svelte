@@ -7,7 +7,8 @@
   import { platform } from '@tauri-apps/plugin-os';
   import NovelHeader from '$lib/components/novel/NovelHeader.svelte';
   import TabContainer from '$lib/components/novel/TabContainer.svelte';
-  import { appState } from '$lib/state.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
+  import { sessionStore } from '$lib/stores/session.svelte';
   import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
   import type { ProcessItem, Tab } from '$lib/types';
   import { getAvailable } from '$lib/util';
@@ -18,7 +19,7 @@
     throw goto(resolve('/'));
   }
 
-  const novel = $derived(appState.loadGame(page.params.id));
+  const novel = $derived(gamesStore.getById(page.params.id as string));
 
   // svelte-ignore state_referenced_locally
   if (!novel) {
@@ -29,13 +30,12 @@
   const hoursPlayed = $derived(Math.floor(novel.playtime / 3600));
   const minutesPlayed = $derived(Math.floor((novel.playtime % 3600) / 60));
   // Goofy solution until I think of something better, at least it works xd
-  const todayDate = $derived(
+  const todayDate =
     new Date().getFullYear() +
-      '-' +
-      (new Date().getMonth() + 1).toString().padStart(2, '0') +
-      '-' +
-      new Date().getDate().toString().padStart(2, '0'),
-  );
+    '-' +
+    (new Date().getMonth() + 1).toString().padStart(2, '0') +
+    '-' +
+    new Date().getDate().toString().padStart(2, '0');
   const todayHoursPlayed = $derived(
     todayDate === novel.last_play_date
       ? Math.floor((novel.today_playtime || 0) / 3600)
@@ -59,14 +59,19 @@
   let editingNotes = $state(false);
   let processList = $state<ProcessItem[]>([]);
   let processDialog = $state(false);
-  let deleteDialog = $state(false);
+  let isDeleteDialogOpen = $state(false);
   let resetStatsDialog = $state(false);
   let selectedTab = $state('progress');
-  // svelte-ignore state_referenced_locally
-  let notes = $state(novel.notes);
-  // svelte-ignore state_referenced_locally
-  let originalNotes = novel.notes;
+  let notes = $state('');
+  let originalNotes = '';
   let downloadingCharacters = $state(false);
+
+  $effect(() => {
+    if (novel && !editingNotes) {
+      notes = novel.notes ?? '';
+      originalNotes = novel.notes ?? '';
+    }
+  });
 
   // Jiten character count is now pre-fetched at startup and stored in game data
   const jitenCharCount = $derived(getAvailable(novel.jiten_char_count));
@@ -97,7 +102,11 @@
 
   // Effects
   $effect(() => {
-    if (appState.currentGame && appState.currentGame.id === novel.id) {
+    if (
+      sessionStore.currentGame &&
+      novel &&
+      sessionStore.currentGame.id === novel.id
+    ) {
       playing = true;
     } else {
       playing = false;
@@ -119,17 +128,17 @@
       });
 
       if (newPath) {
-        await appState.updateGameProcessPath(novel.id, newPath);
+        await gamesStore.updateGameProcessPath(novel.id, newPath);
         toast.success('Process path updated');
       }
     } else {
-      processList = await appState.getActiveWindows();
+      processList = await gamesStore.getActiveWindows();
       processDialog = true;
     }
   };
 
   const openDeleteDialog = () => {
-    deleteDialog = true;
+    isDeleteDialogOpen = true;
   };
 
   const openResetStatsDialog = () => {
@@ -139,16 +148,17 @@
   // Game actions
   const gameActions = {
     startGame: async () => {
-      appState.startGame(novel.id);
+      if (novel) gamesStore.startGame(novel.id);
     },
 
     stopGame: async () => {
-      appState.closeGame();
+      gamesStore.closeGame();
     },
 
     togglePin: async () => {
+      if (!novel) return;
       const wasPinned = novel.is_pinned;
-      await appState.togglePinned(novel.id);
+      await gamesStore.togglePinned(novel.id);
       toast.success(wasPinned ? 'Game unpinned' : 'Game pinned');
     },
 
@@ -165,19 +175,22 @@
       });
 
       if (newPath) {
-        await appState.updateExePath(novel.id, newPath);
+        if (!novel) return;
+        await gamesStore.updateExePath(novel.id, newPath);
         toast.success('Executable path updated');
       }
     },
 
     deleteGame: async () => {
-      await appState.deleteGame(novel.id);
+      if (!novel) return;
+      await gamesStore.deleteGame(novel.id);
       toast.success('Game deleted');
       goto(resolve('/'));
     },
 
     resetStats: async () => {
-      await appState.resetStats(novel.id);
+      if (!novel) return;
+      await gamesStore.resetStats(novel.id);
       toast.success('Stats reset successfully');
     },
   };
@@ -185,12 +198,12 @@
   // Notes handlers
   const handleSaveNotes = async () => {
     try {
-      await appState.setGameNotes(novel.id, notes);
+      await gamesStore.setGameNotes(novel.id, notes);
       toast.success('Notes saved successfully');
       originalNotes = notes;
       editingNotes = false;
     } catch {
-      // Error is handled in appState
+      // Error is handled in gamesStore
     }
   };
 
@@ -206,7 +219,7 @@
   const handleDownloadCharacters = async () => {
     downloadingCharacters = true;
     try {
-      await appState.setCharacters(novel.id);
+      await gamesStore.setCharacters(novel.id);
       toast.success('Characters downloaded successfully');
     } catch (error) {
       console.error('Failed to download characters:', error);
@@ -245,7 +258,7 @@
     />
 
     <ConfirmDialog
-      bind:isOpen={deleteDialog}
+      bind:isOpen={isDeleteDialogOpen}
       title="Delete Game"
       onConfirm={gameActions.deleteGame}
       isDanger

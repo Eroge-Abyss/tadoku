@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ProcessItem } from '$lib/types';
   import Dialog from '$lib/components/Dialog.svelte';
-  import { appState } from '$lib/state.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
   import InfoNote from '../InfoNote.svelte';
   import { toast } from 'svelte-sonner';
 
@@ -26,7 +26,7 @@
 
   async function onConfirm(selectedProcessPath: string) {
     try {
-      await appState.updateGameProcessPath(gameId, selectedProcessPath);
+      await gamesStore.updateGameProcessPath(gameId, selectedProcessPath);
       toast.success('Process path updated');
     } catch {
       // Error handled in appState

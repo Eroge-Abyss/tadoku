@@ -1,21 +1,22 @@
 <script lang="ts">
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import SidebarButton from '$lib/components/SidebarButton.svelte';
   import AddGame from '$lib/components/home/AddGame.svelte';
   import { resolve } from '$app/paths';
   import { convertFileSrc } from '@tauri-apps/api/core';
   import SquaresIcon from '$lib/components/SquaresIcon.svelte';
-  import { appState } from '$lib/state.svelte';
+  import { gamesStore } from '$lib/stores/games.svelte';
   import SettingsButton from '$lib/components/SettingsButton.svelte';
   import { getAvailable } from '$lib/util';
   import { goto } from '$app/navigation';
 
   let pinnedGames = $derived.by(() =>
-    Object.entries(appState.gamesList)
+    Object.entries(gamesStore.list)
       .filter(([, v]) => v.is_pinned)
       .map(([k, v]) => {
         const altTitle = getAvailable(v.alt_title);
         const displayTitle =
-          appState.useJpForTitleTime && altTitle ? altTitle : v.title;
+          settingsStore.useJpForTitleTime && altTitle ? altTitle : v.title;
         return {
           id: k,
           char: displayTitle[0],
@@ -37,10 +38,12 @@
 
       {#each pinnedGames as { id, icon, char, title, altTitle } (id)}
         <SidebarButton
-          onclick={() => appState.startGame(id)}
+          onclick={() => gamesStore.startGame(id)}
           image={icon ? icon : undefined}
           text={icon ? undefined : char}
-          tooltip={appState.useJpForTitleTime && altTitle ? altTitle : title}
+          tooltip={settingsStore.useJpForTitleTime && altTitle
+            ? altTitle
+            : title}
         />
       {/each}
 

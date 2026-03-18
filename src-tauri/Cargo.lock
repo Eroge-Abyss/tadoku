@@ -5534,7 +5534,7 @@ dependencies = [
 
 [[package]]
 name = "tadoku"
-version = "1.9.1"
+version = "1.10.0"
 dependencies = [
  "anyhow",
  "chrono",

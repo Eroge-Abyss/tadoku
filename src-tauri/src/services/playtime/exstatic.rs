@@ -69,7 +69,7 @@ impl ExStaticPlaytime {
                     "playtime",
                     serde_json::json!({
                         "status": "playing",
-                        "time": time
+                        "time": game.current_playtime
                     }),
                 ) {
                     error!("Error happened while emitting playtime: {}", e);

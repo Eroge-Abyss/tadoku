@@ -9,11 +9,12 @@
   import TabContainer from '$lib/components/novel/TabContainer.svelte';
   import { gamesStore } from '$lib/stores/games.svelte';
   import { sessionStore } from '$lib/stores/session.svelte';
-  import ChangeProcess from '$lib/components/novel/ChangeProcess.svelte';
   import type { ProcessItem, Tab } from '$lib/types';
   import { getAvailable } from '$lib/util';
+  import { useGameActions } from '$lib/composables/useGameActions.svelte';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
+  import ProcessChangerDialog from '$lib/components/novel/ProcessChangerDialog.svelte';
 
   if (!page.params.id) {
     throw goto(resolve('/'));
@@ -146,54 +147,7 @@
   };
 
   // Game actions
-  const gameActions = {
-    startGame: async () => {
-      if (novel) gamesStore.startGame(novel.id);
-    },
-
-    stopGame: async () => {
-      gamesStore.closeGame();
-    },
-
-    togglePin: async () => {
-      if (!novel) return;
-      const wasPinned = novel.is_pinned;
-      await gamesStore.togglePinned(novel.id);
-      toast.success(wasPinned ? 'Game unpinned' : 'Game pinned');
-    },
-
-    editExe: async () => {
-      const newPath = await open({
-        multiple: false,
-        directory: false,
-        filters: [
-          {
-            name: 'Game exe or shortcut path',
-            extensions: ['exe', 'lnk', 'bat', 'sh'],
-          },
-        ],
-      });
-
-      if (newPath) {
-        if (!novel) return;
-        await gamesStore.updateExePath(novel.id, newPath);
-        toast.success('Executable path updated');
-      }
-    },
-
-    deleteGame: async () => {
-      if (!novel) return;
-      await gamesStore.deleteGame(novel.id);
-      toast.success('Game deleted');
-      goto(resolve('/'));
-    },
-
-    resetStats: async () => {
-      if (!novel) return;
-      await gamesStore.resetStats(novel.id);
-      toast.success('Stats reset successfully');
-    },
-  };
+  const gameActions = useGameActions(() => novel);
 
   // Notes handlers
   const handleSaveNotes = async () => {
@@ -218,14 +172,8 @@
 
   const handleDownloadCharacters = async () => {
     downloadingCharacters = true;
-    try {
-      await gamesStore.setCharacters(novel.id);
-      toast.success('Characters downloaded successfully');
-    } catch (error) {
-      console.error('Failed to download characters:', error);
-    } finally {
-      downloadingCharacters = false;
-    }
+    await gameActions.downloadCharacters();
+    downloadingCharacters = false;
   };
 
   function handleMenuClick(e: MouseEvent) {
@@ -273,7 +221,7 @@
       message={`Are you sure you want to reset stats for <i class="danger-highlight">${novel.title}</i> ?`}
     />
 
-    <ChangeProcess
+    <ProcessChangerDialog
       bind:isOpen={processDialog}
       gameId={novel.id}
       {processList}

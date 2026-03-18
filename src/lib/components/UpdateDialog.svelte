@@ -1,6 +1,7 @@
 <script lang="ts">
   import { check, Update } from '@tauri-apps/plugin-updater';
   import { onMount } from 'svelte';
+  import { ANIMATION_DELAY_SHORT_MS } from '$lib/constants';
   import Dialog from '$lib/components/Dialog.svelte';
   import InfoNote from './InfoNote.svelte';
   import { toast } from 'svelte-sonner';
@@ -27,7 +28,7 @@
         // so using the timeout makes `isOpen = true` in another execution cycle
         setTimeout(() => {
           isOpen = true;
-        }, 50);
+        }, ANIMATION_DELAY_SHORT_MS);
       })
       .catch((error) => console.error(error as Error));
   });

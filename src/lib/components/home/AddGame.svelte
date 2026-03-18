@@ -5,6 +5,7 @@
   import { toast } from 'svelte-sonner';
   import Dialog from '$lib/components/Dialog.svelte';
   import { platform } from '@tauri-apps/plugin-os';
+  import { onMount } from 'svelte';
   import { gamesStore } from '$lib/stores/games.svelte';
   import { debounce } from '$lib/util';
   import Checkbox from '$lib/components/Checkbox.svelte';
@@ -14,6 +15,11 @@
   const NSFW_RATE = 0.5;
 
   let showModal = $state(false);
+  let currentPlatform = $state('');
+
+  onMount(() => {
+    currentPlatform = platform();
+  });
 
   // shared state
   let mode: 'vndb' | 'manual' = $state('vndb');
@@ -133,13 +139,12 @@
 
     loading = true;
     try {
-      const gameData = {
+      const gameData: GameDto = {
         title: vn.title,
         alt_title: vn.alttitle,
         description: vn.description || 'No Description',
         exe_file_path: exe_path,
         process_file_path: exe_path,
-        categories: [],
         image_url: vn.image.url,
         is_nsfw: vn.image.sexual > NSFW_RATE,
         characters: [],
@@ -308,7 +313,7 @@
           />
         </div>
 
-        {#if platform() === 'linux'}
+        {#if currentPlatform === 'linux'}
           <InfoNote>
             If running via a script (e.g., Lutris), add the script as the
             executable and the original EXE as a process path in game settings
@@ -390,7 +395,7 @@
             <p class="image-path-hint">{manualImagePath}</p>
           {/if}
 
-          {#if platform() === 'linux'}
+          {#if currentPlatform === 'linux'}
             <InfoNote>
               If running via a script (e.g., Lutris), add the script as the
               executable and the original EXE as a process path in game settings

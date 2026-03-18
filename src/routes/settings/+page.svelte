@@ -3,7 +3,12 @@
   import { SvelteMap } from 'svelte/reactivity';
   import { settingsStore } from '$lib/stores/settings.svelte';
   import { getVersion } from '@tauri-apps/api/app';
-  import { THEMES, COLOR_SWATCHES } from '$lib/constants';
+  import {
+    THEMES,
+    COLOR_SWATCHES,
+    ANIMATION_DELAY_LONG_MS,
+    ANIMATION_DELAY_SHORT_MS,
+  } from '$lib/constants';
   import type {
     ColorSwatch,
     PlaytimeMode,
@@ -76,13 +81,13 @@
       settingsStore.updateThemeSettings({ useCustomColor: false });
       setTimeout(() => {
         colorOptionsVisible = false;
-      }, 300);
+      }, ANIMATION_DELAY_LONG_MS);
     } else {
       useCustomColor = true;
       settingsStore.updateThemeSettings({ useCustomColor: true });
       setTimeout(() => {
         colorOptionsVisible = true;
-      }, 50);
+      }, ANIMATION_DELAY_SHORT_MS);
     }
   }
 

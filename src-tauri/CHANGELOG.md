@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.1 (2026-03-18)
+
+## What's Changed
+* fix: use appropriate time for exstatic now playing by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/164
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.9.0...app-v1.9.1
+
 ## 1.9.0 (2026-03-18)
 
 ## What's Changed

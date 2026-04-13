@@ -1,12 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/refs/heads/main/schemas/config.json",
   "packages": {
-    "src-tauri": {
+    ".": {
       "release-type": "rust",
       "component": "app",
       "package-name": "tadoku",
       "prerelease": true,
-      "changelog-type": "github"
+      "changelog-type": "github",
+      "extra-files": [
+        "package.json",
+        "src-tauri/tauri.conf.json",
+        "src-tauri/Cargo.toml"
+      ]
     }
   },
   "include-component-in-tag": true,

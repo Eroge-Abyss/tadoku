@@ -6,7 +6,7 @@
   import { listen, type UnlistenFn } from '@tauri-apps/api/event';
   import { goto } from '$app/navigation';
 
-  let sessionTime = $state(0);
+  let sessionTime = $derived(sessionStore.currentPlaytime);
   let isPaused = $state(false);
   let unlisten: UnlistenFn | undefined;
   let inactivityTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -23,6 +23,7 @@
       'playtime',
       (event) => {
         sessionTime = event.payload.time;
+        sessionStore.setCurrentPlaytime(event.payload.time);
         isPaused = event.payload.status === 'paused';
 
         if (!isPaused) {

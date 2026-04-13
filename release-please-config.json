@@ -9,8 +9,14 @@
       "changelog-type": "github",
       "extra-files": [
         "package.json",
-        "src-tauri/tauri.conf.json",
-        "src-tauri/Cargo.toml"
+        {
+          "type": "toml",
+          "path": "src-tauri/Cargo.toml"
+        },
+        {
+          "type": "json",
+          "path": "src-tauri/tauri.conf.json"
+        }
       ]
     }
   },

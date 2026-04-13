@@ -203,9 +203,18 @@ class GamesStore {
   }
 
   async setGameNotes(gameId: string, notes: string): Promise<void> {
+    const previousNotes = this.#games[gameId]?.notes ?? '';
+    if (this.#games[gameId]) {
+      this.#games[gameId] = { ...this.#games[gameId], notes };
+    }
+
     try {
       await gamesService.setNotes(gameId, notes);
+      await this.refresh();
     } catch (error) {
+      if (this.#games[gameId]) {
+        this.#games[gameId] = { ...this.#games[gameId], notes: previousNotes };
+      }
       console.error(`Failed to set notes for game ${gameId}:`, error);
       toast.error(`Failed to save notes: ${error}`);
       throw error;

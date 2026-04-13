@@ -149,8 +149,8 @@
 
 {#if currentPlatform === 'linux'}
   <InfoNote>
-    If running via a script (e.g., Lutris), add the script as the executable
-    and the original EXE as a process path in game settings if not detected.
+    If running via a script (e.g., Lutris), add the script as the executable and
+    the original EXE as a process path in game settings if not detected.
   </InfoNote>
 {/if}
 
@@ -161,11 +161,7 @@
 
 <div class="form-handler">
   <button onclick={handlePickFile}>Select Game Executable</button>
-  <button
-    disabled={loading}
-    class="save-button"
-    onclick={saveVndbGame}
-  >
+  <button disabled={loading} class="save-button" onclick={saveVndbGame}>
     {#if loading}
       Saving...
     {:else}

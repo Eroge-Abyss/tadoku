@@ -50,6 +50,9 @@
   <UpdateDialog />
   <Toaster
     position="top-right"
+    offset={{
+      top: 30,
+    }}
     visibleToasts={1}
     toastOptions={{
       style:

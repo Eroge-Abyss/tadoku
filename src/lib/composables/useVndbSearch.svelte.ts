@@ -53,13 +53,21 @@ export function useVndbSearch() {
   }
 
   return {
-    get search() { return search; },
-    set search(value) { search = value; },
-    get results() { return results; },
-    get selectedVn() { return selectedVn; },
+    get search() {
+      return search;
+    },
+    set search(value) {
+      search = value;
+    },
+    get results() {
+      return results;
+    },
+    get selectedVn() {
+      return selectedVn;
+    },
     updateSearch,
     selectGame,
     reset,
-    searchFromPath
+    searchFromPath,
   };
 }

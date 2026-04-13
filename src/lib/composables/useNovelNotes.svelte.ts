@@ -37,11 +37,17 @@ export function useNovelNotes(getNovel: () => Novel) {
   }
 
   return {
-    get notes() { return notes; },
-    set notes(v) { notes = v; },
-    get editingNotes() { return editingNotes; },
+    get notes() {
+      return notes;
+    },
+    set notes(v) {
+      notes = v;
+    },
+    get editingNotes() {
+      return editingNotes;
+    },
     handleSaveNotes,
     handleCancelEdit,
-    handleStartEdit
+    handleStartEdit,
   };
 }

@@ -11,11 +11,13 @@
         "package.json",
         {
           "type": "toml",
-          "path": "src-tauri/Cargo.toml"
+          "path": "src-tauri/Cargo.toml",
+          "jsonpath": "$.package.version"
         },
         {
           "type": "json",
-          "path": "src-tauri/tauri.conf.json"
+          "path": "src-tauri/tauri.conf.json",
+          "jsonpath": "$.version"
         }
       ]
     }

@@ -6,7 +6,6 @@
 
   const getRandomGame = () => {
     const games = Object.entries(gamesStore.filtered);
-    console.log(games);
     if (games.length === 0) return;
     const randomIndex = Math.floor(Math.random() * games.length);
     const selectedGame = games[randomIndex][0];

@@ -5,7 +5,7 @@
   import { goto } from '$app/navigation';
 
   const getRandomGame = () => {
-    const games = Object.entries(gamesStore.list);
+    const games = Object.entries(gamesStore.filtered);
     if (games.length === 0) return;
     const randomIndex = Math.floor(Math.random() * games.length);
     const selectedGame = games[randomIndex][0];

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { convertFileSrc } from '@tauri-apps/api/core';
   import { fly } from 'svelte/transition';
-  import { openUrl } from '@tauri-apps/plugin-opener';
   import type { Character } from '$lib/types';
 
   let { characters = $bindable() }: { characters: Character[] } = $props();
@@ -14,10 +13,6 @@
       target="_blank"
       rel="noopener noreferrer"
       class="character-card"
-      onclick={(e) => {
-        e.preventDefault();
-        openUrl(`https://vndb.org/${character.id}`);
-      }}
     >
       {#if character.image_url}
         <img src={convertFileSrc(character.image_url)} alt={character.id} />

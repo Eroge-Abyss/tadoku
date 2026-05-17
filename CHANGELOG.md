@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.6 (2026-05-17)
+
+## What's Changed
+* fix: sort sidebar items by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/173
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.9.5...app-v1.9.6
+
 ## 1.9.5 (2026-04-20)
 
 **Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.9.4...app-v1.9.5

@@ -13,6 +13,8 @@
   let pinnedGames = $derived.by(() =>
     Object.entries(gamesStore.list)
       .filter(([, v]) => v.is_pinned)
+      // Sorting by title here should be just fine, no one will care anyways
+      .sort(([, a], [, b]) => a.title.localeCompare(b.title))
       .map(([k, v]) => {
         const altTitle = getAvailable(v.alt_title);
         const displayTitle =

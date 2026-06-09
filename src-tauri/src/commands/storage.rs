@@ -413,6 +413,24 @@ pub fn set_hide_nsfw_images(app_handle: AppHandle, to: bool) -> CmdResult<()> {
     Ok(())
 }
 
+#[tauri::command]
+pub fn get_blur_nsfw_images(app_handle: AppHandle) -> CmdResult<bool> {
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .blur_nsfw_images)
+}
+
+#[tauri::command]
+pub fn set_blur_nsfw_images(app_handle: AppHandle, to: bool) -> CmdResult<()> {
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
+    lock.update_settings(&app_handle, |s| s.blur_nsfw_images = to)
+        .context("Failed to update blur nsfw images")?;
+    Ok(())
+}
+
 /// Gets the Jiten API base URL
 #[tauri::command]
 pub fn get_jiten_base_url(app_handle: AppHandle) -> CmdResult<String> {

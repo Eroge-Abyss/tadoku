@@ -28,7 +28,11 @@
     {#if isNsfw && settingsStore.hideNsfwImages}
       <NsfwPlaceholder />
     {:else if image}
-      <img src={image_url} alt={title} class:blur={isNsfw} />
+      <img
+        src={image_url}
+        alt={title}
+        class:blur={isNsfw && settingsStore.blurNsfwImages}
+      />
     {:else}
       <div class="no-image">
         <i class="fa-solid fa-image"></i>

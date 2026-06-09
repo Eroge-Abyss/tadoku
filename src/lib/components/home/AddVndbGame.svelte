@@ -4,6 +4,7 @@
   import { platform } from '@tauri-apps/plugin-os';
   import { onMount } from 'svelte';
   import { gamesStore } from '$lib/stores/games.svelte';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import { pickExecutable, debounce } from '$lib/util';
   import Checkbox from '$lib/components/Checkbox.svelte';
   import InfoNote from '../InfoNote.svelte';
@@ -93,7 +94,7 @@
           onclick={() => vndb.selectGame(vn)}
         >
           <div class="suggestion-image">
-            {#if vn?.image?.sexual < NSFW_RATE}
+            {#if vn?.image?.sexual < NSFW_RATE || !settingsStore.blurNsfwImages}
               <img src={vn?.image?.url} alt={vn?.title} />
             {:else}
               <img src={vn?.image?.url} alt={vn?.title} class="blur" />
@@ -118,7 +119,7 @@
 {#if vndb.selectedVn}
   <div class="selected-suggestion">
     <div class="selected-image">
-      {#if vndb.selectedVn.image.sexual < NSFW_RATE || showImage}
+      {#if vndb.selectedVn.image.sexual < NSFW_RATE || showImage || !settingsStore.blurNsfwImages}
         <img src={vndb.selectedVn.image.url} alt={vndb.selectedVn.title} />
       {:else}
         <img

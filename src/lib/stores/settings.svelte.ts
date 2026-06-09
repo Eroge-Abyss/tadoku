@@ -16,6 +16,7 @@ class SettingsStore {
   #showRandomButton: boolean = $state(false);
   #useJpForTitleTime: boolean = $state(false);
   #hideNsfwImages: boolean = $state(false);
+  #blurNsfwImages: boolean = $state(true);
   #sortOrder: SortOrder | null = $state(null);
   #disablePresenceOnNsfw: boolean = $state(true);
   #selectedCategories: string[] = $state([]);
@@ -28,6 +29,7 @@ class SettingsStore {
       showRandom,
       useJp,
       hideNsfw,
+      blurNsfw,
       sortOrder,
       disablePresenceOnNsfw,
       selectedCategories,
@@ -38,6 +40,7 @@ class SettingsStore {
       settingsService.getShowRandomButton(),
       settingsService.getUseJpForTitleTime(),
       settingsService.getHideNsfwImages(),
+      settingsService.getBlurNsfwImages(),
       settingsService.getSortOrder(),
       settingsService.getDisablePresenceOnNsfw(),
       settingsService.getSelectedCategories(),
@@ -49,6 +52,7 @@ class SettingsStore {
     this.#showRandomButton = showRandom;
     this.#useJpForTitleTime = useJp;
     this.#hideNsfwImages = hideNsfw;
+    this.#blurNsfwImages = blurNsfw;
     this.#sortOrder = sortOrder;
     this.#disablePresenceOnNsfw = disablePresenceOnNsfw;
     this.#selectedCategories = selectedCategories;
@@ -148,6 +152,20 @@ class SettingsStore {
     } catch (error) {
       console.error('Failed to set hide NSFW images:', error);
       toast.error(`Failed to set hide NSFW images: ${error}`);
+      throw error;
+    }
+  }
+
+  get blurNsfwImages(): boolean {
+    return this.#blurNsfwImages;
+  }
+  async setBlurNsfwImages(blur: boolean): Promise<void> {
+    try {
+      this.#blurNsfwImages = blur;
+      await settingsService.setBlurNsfwImages(blur);
+    } catch (error) {
+      console.error('Failed to set blur NSFW images:', error);
+      toast.error(`Failed to set blur NSFW images: ${error}`);
       throw error;
     }
   }

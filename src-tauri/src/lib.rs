@@ -87,6 +87,8 @@ pub fn run() {
             commands::storage::set_use_jp_for_title_time,
             commands::storage::get_hide_nsfw_images,
             commands::storage::set_hide_nsfw_images,
+            commands::storage::get_blur_nsfw_images,
+            commands::storage::set_blur_nsfw_images,
             commands::storage::get_jiten_base_url,
             commands::storage::set_jiten_base_url,
             commands::opener::open_game,

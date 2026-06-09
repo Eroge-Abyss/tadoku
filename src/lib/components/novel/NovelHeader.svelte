@@ -125,7 +125,7 @@
         <img
           src={convertFileSrc(novel.image_url)}
           alt={novel.title}
-          class:blur={novel.is_nsfw}
+          class:blur={novel.is_nsfw && settingsStore.blurNsfwImages}
           in:fly={{ y: 50, duration: 500, delay: 300 }}
         />
       {:else}

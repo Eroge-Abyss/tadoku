@@ -312,6 +312,19 @@
         <span class="switch-label">Hide NSFW images in Home page</span>
       </div>
 
+      <div class="switch-container">
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button
+          class="switch"
+          class:active={settingsStore.blurNsfwImages}
+          onclick={() =>
+            settingsStore.setBlurNsfwImages(!settingsStore.blurNsfwImages)}
+        >
+          <span class="switch-thumb"></span>
+        </button>
+        <span class="switch-label">Blur NSFW images (Take Care)</span>
+      </div>
+
       <div class="playtime-group">
         <div class="select-container">
           <label for="playtime-mode"

@@ -83,6 +83,13 @@ export async function setHideNsfwImages(to: boolean): Promise<void> {
   await invoke('set_hide_nsfw_images', { to });
 }
 
+export async function getBlurNsfwImages(): Promise<boolean> {
+  return invoke('get_blur_nsfw_images');
+}
+export async function setBlurNsfwImages(to: boolean): Promise<void> {
+  await invoke('set_blur_nsfw_images', { to });
+}
+
 export async function getSelectedCategories(): Promise<string[]> {
   return invoke('get_selected_categories');
 }

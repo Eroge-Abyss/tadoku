@@ -109,3 +109,10 @@ export async function setSelectedCategories(
 ): Promise<void> {
   invoke('set_selected_categories', { categories });
 }
+
+export async function getCategories(): Promise<string[]> {
+  return invoke('get_categories');
+}
+export async function setCategories(categories: string[]): Promise<void> {
+  invoke('set_categories', { categories });
+}

@@ -1,4 +1,4 @@
-import { DEFAULT_THEME_SETTINGS } from '$lib/constants';
+import { DEFAULT_THEME_SETTINGS, DEFAULT_CATEGORIES } from '$lib/constants';
 import * as settingsService from '$lib/services/settings.service';
 import { applyTheme } from '$lib/theme';
 import { toast } from 'svelte-sonner';
@@ -22,6 +22,7 @@ class SettingsStore {
   #sortOrder: SortOrder | null = $state(null);
   #disablePresenceOnNsfw: boolean = $state(true);
   #selectedCategories: string[] = $state([]);
+  #categories: string[] = $state([]);
 
   async init(): Promise<void> {
     const [
@@ -36,6 +37,7 @@ class SettingsStore {
       sortOrder,
       disablePresenceOnNsfw,
       selectedCategories,
+      categories,
     ] = await Promise.all([
       settingsService.getTheme(),
       settingsService.getDiscordMode(),
@@ -48,6 +50,7 @@ class SettingsStore {
       settingsService.getSortOrder(),
       settingsService.getDisablePresenceOnNsfw(),
       settingsService.getSelectedCategories(),
+      settingsService.getCategories(),
     ]);
 
     this.#theme = theme;
@@ -61,6 +64,12 @@ class SettingsStore {
     this.#sortOrder = sortOrder;
     this.#disablePresenceOnNsfw = disablePresenceOnNsfw;
     this.#selectedCategories = selectedCategories;
+    this.#categories = categories;
+
+    if (this.#categories.length === 0) {
+      this.#categories = [...DEFAULT_CATEGORIES];
+      await settingsService.setCategories(this.#categories);
+    }
 
     applyTheme(this.#theme);
   }
@@ -227,6 +236,20 @@ class SettingsStore {
     } catch (error) {
       console.error('Failed to set selected categories:', error);
       toast.error(`Failed to set selected categories: ${error}`);
+      throw error;
+    }
+  }
+
+  get categories(): string[] {
+    return this.#categories;
+  }
+  async setCategories(categories: string[]): Promise<void> {
+    try {
+      this.#categories = categories;
+      await settingsService.setCategories(categories);
+    } catch (error) {
+      console.error('Failed to set categories:', error);
+      toast.error(`Failed to set categories: ${error}`);
       throw error;
     }
   }

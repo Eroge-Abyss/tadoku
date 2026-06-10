@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GAME_STATUSES } from '$lib/constants';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import Checkbox from './Checkbox.svelte';
 
   type Props = {
@@ -17,26 +17,28 @@
   }: Props = $props();
 </script>
 
-{#each GAME_STATUSES as statusItem (statusItem)}
-  <label class="menu-item status-checkbox-label">
-    {statusItem}
-    <Checkbox
-      id={`checkbox-${statusItem}`}
-      checked={categories ? categories.includes(statusItem) : false}
-      onchange={() => toggleStatus(statusItem)}
-    />
-  </label>
-{/each}
-{#if showUncategorized}
-  <label class="menu-item status-checkbox-label">
-    Uncategorized
-    <Checkbox
-      id="checkbox-Uncategorized"
-      checked={categories ? categories.includes('Uncategorized') : false}
-      onchange={() => toggleStatus('Uncategorized')}
-    />
-  </label>
-{/if}
+<div class="status-list-container">
+  {#each settingsStore.categories as statusItem (statusItem)}
+    <label class="menu-item status-checkbox-label">
+      {statusItem}
+      <Checkbox
+        id={`checkbox-${statusItem}`}
+        checked={categories ? categories.includes(statusItem) : false}
+        onchange={() => toggleStatus(statusItem)}
+      />
+    </label>
+  {/each}
+  {#if showUncategorized}
+    <label class="menu-item status-checkbox-label">
+      Uncategorized
+      <Checkbox
+        id="checkbox-Uncategorized"
+        checked={categories ? categories.includes('Uncategorized') : false}
+        onchange={() => toggleStatus('Uncategorized')}
+      />
+    </label>
+  {/if}
+</div>
 {#if categories && categories.length > 0}
   <div class="menu-divider"></div>
   <button onclick={clearStatuses} class="menu-item danger">
@@ -46,6 +48,29 @@
 {/if}
 
 <style>
+  .status-list-container {
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .status-list-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .status-list-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .status-list-container::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+  }
+
+  .status-list-container::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary);
+  }
+
   .menu-item {
     width: 100%;
     border: 0;

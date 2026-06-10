@@ -8,6 +8,7 @@
     COLOR_SWATCHES,
     ANIMATION_DELAY_LONG_MS,
     ANIMATION_DELAY_SHORT_MS,
+    DEFAULT_CATEGORIES,
   } from '$lib/constants';
   import type {
     ColorSwatch,
@@ -42,6 +43,38 @@
   let playtimeDisplayMode = $state<PlaytimeDisplayMode>(
     settingsStore.playtimeDisplayMode,
   );
+
+  let newCategoryName = $state('');
+
+  async function addCategory() {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    if (settingsStore.categories.includes(trimmed)) {
+      toast.error('Category already exists');
+      return;
+    }
+    const updated = [...settingsStore.categories, trimmed];
+    await settingsStore.setCategories(updated);
+    newCategoryName = '';
+    toast.success('Category added');
+  }
+
+  async function removeCategory(category: string) {
+    const updated = settingsStore.categories.filter((c) => c !== category);
+    await settingsStore.setCategories(updated);
+    // Also remove from selected filters if it was there
+    if (settingsStore.selectedCategories.includes(category)) {
+      await settingsStore.setSelectedCategories(
+        settingsStore.selectedCategories.filter((c) => c !== category),
+      );
+    }
+    toast.success('Category removed');
+  }
+
+  async function resetCategories() {
+    await settingsStore.setCategories([...DEFAULT_CATEGORIES]);
+    toast.success('Categories reset to defaults');
+  }
 
   $effect(() => {
     if (THEMES.length > 0) {
@@ -331,6 +364,44 @@
         <span class="switch-label">Blur NSFW images (Take Care)</span>
       </div>
 
+      <div class="category-management">
+        <div class="category-header">
+          <h3>Manage Categories</h3>
+          <button class="reset-link" onclick={resetCategories}>
+            Reset to defaults
+          </button>
+        </div>
+        <div class="category-list">
+          {#each settingsStore.categories as category (category)}
+            <div class="category-item">
+              <span>{category}</span>
+              <button
+                class="remove-category"
+                onclick={() => removeCategory(category)}
+                aria-label="Remove category"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          {/each}
+        </div>
+        <div class="add-category">
+          <input
+            type="text"
+            placeholder="New category name..."
+            bind:value={newCategoryName}
+            onkeydown={(e) => e.key === 'Enter' && addCategory()}
+          />
+          <button
+            class="add-button"
+            onclick={addCategory}
+            aria-label="Add category"
+          >
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+      </div>
+
       <div class="playtime-group">
         <div class="select-container">
           <label for="playtime-display-mode">Total Playtime Display Mode:</label
@@ -416,6 +487,115 @@
     flex-direction: column;
     gap: 0.75rem;
   }
+
+  .category-management {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .category-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--main-text);
+    opacity: 0.9;
+  }
+
+  .category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .category-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.875rem;
+  }
+
+  .remove-category {
+    background: none;
+    border: none;
+    color: var(--main-text);
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      opacity 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .remove-category:hover {
+    opacity: 1;
+    color: #f7768e;
+  }
+
+  .add-category {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .add-category input {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    color: var(--main-text);
+    font-size: 0.875rem;
+  }
+
+  .add-category input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .add-button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 1rem;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+  }
+
+  .add-button:hover {
+    filter: brightness(1.1);
+  }
+
+  .reset-link {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+
+  .reset-link:hover {
+    opacity: 1;
+  }
+
   .select-container {
     display: flex;
     flex-direction: column;

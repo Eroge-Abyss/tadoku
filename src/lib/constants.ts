@@ -64,7 +64,7 @@ export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
   useCustomColor: false,
 };
 
-export const GAME_STATUSES = [
+export const DEFAULT_CATEGORIES = [
   'Completed',
   'Playing',
   'Planned',

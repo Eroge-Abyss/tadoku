@@ -38,10 +38,19 @@ pub enum PlaytimeMode {
     ExStatic,
 }
 
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum PlaytimeDisplayMode {
+    #[default]
+    All,
+    Filtered,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
     pub disable_presence_on_nsfw: bool,
     pub playtime_mode: PlaytimeMode,
+    pub playtime_display_mode: PlaytimeDisplayMode,
     pub use_jp_for_title_time: bool,
     pub theme_settings: ThemeSettings,
     pub sort_order: SortOrder,
@@ -57,6 +66,7 @@ impl Default for Settings {
         Self {
             disable_presence_on_nsfw: true,
             playtime_mode: PlaytimeMode::default(),
+            playtime_display_mode: PlaytimeDisplayMode::default(),
             use_jp_for_title_time: false,
             theme_settings: ThemeSettings::default(),
             sort_order: SortOrder::default(),

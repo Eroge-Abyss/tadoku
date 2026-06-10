@@ -18,15 +18,37 @@
 
   useWindowTitlebar();
 
+  function handleKeydown(event: KeyboardEvent) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+      event.preventDefault();
+      const searchInput = document.getElementById('game-search-input');
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }
+  }
+
   onMount(async () => {
+    window.addEventListener('keydown', handleKeydown);
     await Promise.all([settingsStore.init(), gamesStore.init()]);
 
     listen('current_game', (e: Event<CurrentGame | null>) => {
       sessionStore.set(e.payload);
     });
+
+    listen(
+      'playtime',
+      (event: Event<{ status: 'playing' | 'paused'; time: number }>) => {
+        const currentId = sessionStore.currentGame?.id;
+        if (currentId) {
+          gamesStore.updatePlaytime(currentId, event.payload.time);
+        }
+      },
+    );
   });
 
   onDestroy(() => {
+    window.removeEventListener('keydown', handleKeydown);
     sessionStore.destroy();
   });
 </script>

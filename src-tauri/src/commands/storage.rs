@@ -6,7 +6,7 @@ use crate::services::{
     stores::{
         categories::{Categories, CategoriesStore},
         games::{Game, Games, GamesStore},
-        settings::{PlaytimeMode, SortOrder, ThemeSettings},
+        settings::{PlaytimeDisplayMode, PlaytimeMode, SortOrder, ThemeSettings},
     },
 };
 use anyhow::Context;
@@ -374,6 +374,26 @@ pub fn set_playtime_mode(app_handle: AppHandle, to: PlaytimeMode) -> CmdResult<(
     let mut lock = state.lock()?;
     lock.update_settings(&app_handle, |s| s.playtime_mode = to)
         .context("Failed to update playtime mode")?;
+    Ok(())
+}
+
+/// Gets playtime display mode
+#[tauri::command]
+pub fn get_playtime_display_mode(app_handle: AppHandle) -> CmdResult<PlaytimeDisplayMode> {
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .playtime_display_mode)
+}
+
+/// Saves new playtime display mode to disk
+#[tauri::command]
+pub fn set_playtime_display_mode(app_handle: AppHandle, to: PlaytimeDisplayMode) -> CmdResult<()> {
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
+    lock.update_settings(&app_handle, |s| s.playtime_display_mode = to)
+        .context("Failed to update playtime display mode")?;
     Ok(())
 }
 

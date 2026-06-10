@@ -8,6 +8,7 @@
   import NowPlaying from '$lib/components/home/NowPlaying.svelte';
   import { formatTime } from '$lib/util';
   import { getAvailable } from '$lib/util';
+  import { gamesStore } from '$lib/stores/games.svelte';
 
   let { gamesList }: { gamesList: Record<string, Game> } = $props();
 
@@ -18,28 +19,19 @@
     }
     return game.title;
   }
-
-  const totalPlaytime = $derived.by(() => {
-    const seconds = Object.values(gamesList).reduce(
-      (sum, game) => sum + game.playtime,
-      0,
-    );
-    return {
-      seconds,
-      hours: Math.floor(seconds / 3600),
-      minutes: Math.floor((seconds % 3600) / 60),
-    };
-  });
 </script>
 
 <div class="container">
   <div class="header">
     <div class="title-area">
       <h1>Visual Novels</h1>
-      {#if totalPlaytime.seconds > 0}
+      {#if gamesStore.totalPlaytime.seconds > 0}
         <span class="total-playtime">
           <i class="fa-solid fa-clock"></i>
-          {formatTime(totalPlaytime.hours, totalPlaytime.minutes)} total
+          {formatTime(
+            gamesStore.totalPlaytime.hours,
+            gamesStore.totalPlaytime.minutes,
+          )} total
         </span>
       {/if}
     </div>

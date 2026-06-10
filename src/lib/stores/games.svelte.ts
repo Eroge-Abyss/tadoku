@@ -5,6 +5,7 @@ import type { Game, GameDto, Novel, Options, ProcessItem } from '$lib/types';
 
 class GamesStore {
   #games: Record<string, Game> = $state({});
+  searchQuery: string = $state('');
 
   get list(): Record<string, Game> {
     return this.#games;
@@ -40,6 +41,40 @@ class GamesStore {
             settingsStore.selectedCategories.includes('Uncategorized')),
       ),
     );
+  }
+
+  get searched(): Record<string, Game> {
+    if (!this.searchQuery) {
+      return Object.fromEntries(Object.entries(this.filtered));
+    }
+
+    const sortedEntries = Object.entries(this.sorted); // Search should ignore filters
+    return Object.fromEntries(
+      sortedEntries.filter(([, g]) =>
+        g.title.toLowerCase().includes(this.searchQuery.toLowerCase()),
+      ),
+    );
+  }
+
+  get totalPlaytime(): { seconds: number; hours: number; minutes: number } {
+    const games =
+      settingsStore.playtimeDisplayMode === 'filtered'
+        ? Object.values(this.searched)
+        : Object.values(this.#games);
+
+    const seconds = games.reduce((sum, game) => sum + game.playtime, 0);
+    return {
+      seconds,
+      hours: Math.floor(seconds / 3600),
+      minutes: Math.floor((seconds % 3600) / 60),
+    };
+  }
+
+  updatePlaytime(id: string, seconds: number): void {
+    const game = this.#games[id];
+    if (game) {
+      this.#games[id] = { ...game, playtime: seconds };
+    }
   }
 
   #byPlaytime = ([_a, a]: [string, Game], [_b, b]: [string, Game]): number => {

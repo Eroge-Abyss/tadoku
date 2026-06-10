@@ -12,6 +12,7 @@
   import type {
     ColorSwatch,
     PlaytimeMode,
+    PlaytimeDisplayMode,
     DiscordPresenceMode,
     Theme,
   } from '$lib/types';
@@ -38,6 +39,9 @@
     settingsStore.discordPresenceMode,
   );
   let playtimeMode = $state<PlaytimeMode>(settingsStore.playtimeMode);
+  let playtimeDisplayMode = $state<PlaytimeDisplayMode>(
+    settingsStore.playtimeDisplayMode,
+  );
 
   $effect(() => {
     if (THEMES.length > 0) {
@@ -56,6 +60,7 @@
     useCustomColor = settingsStore.themeSettings.useCustomColor;
     colorOptionsVisible = useCustomColor;
     selectedPresenceMode = settingsStore.discordPresenceMode;
+    playtimeDisplayMode = settingsStore.playtimeDisplayMode;
   });
 
   let previewColor = $derived(
@@ -124,6 +129,7 @@
       await settingsStore.setShowRandomButton(true);
       await settingsStore.setDisablePresenceOnNsfw(true);
       await settingsStore.setDiscordPresenceMode('All');
+      await settingsStore.setPlaytimeDisplayMode('all');
 
       toast.success('Settings reset successfully');
     } catch (error) {
@@ -326,6 +332,20 @@
       </div>
 
       <div class="playtime-group">
+        <div class="select-container">
+          <label for="playtime-display-mode">Total Playtime Display Mode:</label
+          >
+          <select
+            id="playtime-display-mode"
+            bind:value={playtimeDisplayMode}
+            onchange={() =>
+              settingsStore.setPlaytimeDisplayMode(playtimeDisplayMode)}
+          >
+            <option value="all">Total of All Games</option>
+            <option value="filtered">Total of Currently Filtered Games</option>
+          </select>
+        </div>
+
         <div class="select-container">
           <label for="playtime-mode"
             >Playtime Recording Mode (relaunch game to take effect):</label

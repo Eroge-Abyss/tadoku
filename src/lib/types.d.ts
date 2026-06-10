@@ -97,6 +97,8 @@ export type DiscordPresenceMode = 'All' | 'None' | 'InGame';
 
 export type PlaytimeMode = 'classic' | 'ex_static';
 
+export type PlaytimeDisplayMode = 'all' | 'filtered';
+
 export type Tab = {
   id: string;
   label: string;

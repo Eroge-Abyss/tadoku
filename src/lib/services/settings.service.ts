@@ -1,5 +1,6 @@
 import type {
   DiscordPresenceMode,
+  PlaytimeDisplayMode,
   PlaytimeMode,
   SortOrder,
   ThemeSettings,
@@ -60,6 +61,16 @@ export async function getPlaytimeMode(): Promise<PlaytimeMode> {
 
 export async function setPlaytimeMode(mode: PlaytimeMode): Promise<void> {
   await invoke('set_playtime_mode', { to: mode });
+}
+
+export async function getPlaytimeDisplayMode(): Promise<PlaytimeDisplayMode> {
+  return invoke('get_playtime_display_mode');
+}
+
+export async function setPlaytimeDisplayMode(
+  mode: PlaytimeDisplayMode,
+): Promise<void> {
+  await invoke('set_playtime_display_mode', { to: mode });
 }
 
 export async function getShowRandomButton(): Promise<boolean> {

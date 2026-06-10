@@ -6,19 +6,11 @@
   import type { Game } from '$lib/types';
   import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
   import NowPlaying from '$lib/components/home/NowPlaying.svelte';
-  import { formatTime } from '$lib/util';
+  import { formatTime, getPreferredTitle } from '$lib/util';
   import { getAvailable } from '$lib/util';
   import { gamesStore } from '$lib/stores/games.svelte';
 
   let { gamesList }: { gamesList: Record<string, Game> } = $props();
-
-  function getTitle(game: Game): string {
-    if (settingsStore.useJpForTitleTime) {
-      const alt = getAvailable(game.alt_title);
-      if (alt) return alt;
-    }
-    return game.title;
-  }
 </script>
 
 <div class="container">
@@ -54,7 +46,7 @@
           {id}
           image={game.image_url}
           isNsfw={game.is_nsfw}
-          title={getTitle(game)}
+          title={getPreferredTitle(game)}
           playtime={game.playtime}
         />
       </div>

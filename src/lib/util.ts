@@ -1,5 +1,5 @@
 import { settingsStore } from '$lib/stores/settings.svelte';
-import type { Fetchable } from './types';
+import type { Fetchable, Game } from './types';
 import { open } from '@tauri-apps/plugin-dialog';
 
 export function getAvailable<T>(fetchable: Fetchable<T>): T | null {
@@ -117,4 +117,57 @@ export async function pickImage(): Promise<string | null> {
     ],
   });
   return file as string | null;
+}
+
+export function getPreferredTitle(game: Game): string {
+  const altTitle = getAvailable(game.alt_title);
+  return settingsStore.useJpForTitleTime && altTitle ? altTitle : game.title;
+}
+
+export function parseReleaseNotes(md: string): string {
+  if (!md) return '';
+
+  return (
+    md
+      // 1. Clean HTML entities to prevent rendering issues
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+
+      // 2. Headings (## Heading)
+      .replace(
+        /^##\s+(.*)$/gm,
+        '<h2 class="text-xl font-bold mt-4 mb-2">$1</h2>',
+      )
+
+      // 3. Bold text (**text**)
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+
+      // 4. Code tags (`code`)
+      .replace(
+        /`(.*?)`/g,
+        '<code class="bg-gray-100 dark:bg-gray-800 px-1 rounded text-sm">$1</code>',
+      )
+
+      // 5. GitHub Profiles (@username) -> Turn into links
+      .replace(
+        /@([a-zA-Z0-9-]+)/g,
+        '<a href="https://github.com" target="_blank" class="text-blue-500 hover:underline">@$1</a>',
+      )
+
+      // 6. GitHub URL autolinking (standalone https://... links)
+      .replace(
+        /(?<!=")(https:\/\/github\.com\/[^\s<]+)/g,
+        '<a href="$1" target="_blank" class="text-blue-500 hover:underline">$1</a>',
+      )
+
+      // 7. Bullet points (* text) -> Wrap inside styled list tags
+      .replace(
+        /^\*\s+(.*)$/gm,
+        '<li class="list-disc ml-5 my-1 text-sm">$1</li>',
+      )
+
+      // 8. Simple paragraphs / spacing
+      .replace(/\n\n/g, '<br/>')
+  );
 }

@@ -4,6 +4,12 @@ import type { CurrentGame } from '$lib/types';
 class SessionStore {
   #currentGame: CurrentGame | null = $state(null);
   #currentPlaytime: number = $state(0);
+  #contextMenu = $state({
+    visible: false,
+    x: 0,
+    y: 0,
+    gameId: null as string | null,
+  });
 
   get currentGame() {
     return this.#currentGame;
@@ -11,6 +17,18 @@ class SessionStore {
 
   get currentPlaytime() {
     return this.#currentPlaytime;
+  }
+
+  get contextMenu() {
+    return this.#contextMenu;
+  }
+
+  showContextMenu(x: number, y: number, gameId: string) {
+    this.#contextMenu = { visible: true, x, y, gameId };
+  }
+
+  hideContextMenu() {
+    this.#contextMenu.visible = false;
   }
 
   set(game: CurrentGame | null): void {

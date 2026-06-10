@@ -2,6 +2,7 @@ import { settingsStore } from '$lib/stores/settings.svelte';
 import * as gamesService from '$lib/services/games.service';
 import { toast } from 'svelte-sonner';
 import type { Game, GameDto, Novel, Options, ProcessItem } from '$lib/types';
+import { getPreferredTitle } from '$lib/util';
 
 class GamesStore {
   #games: Record<string, Game> = $state({});
@@ -50,8 +51,11 @@ class GamesStore {
 
     const sortedEntries = Object.entries(this.sorted); // Search should ignore filters
     return Object.fromEntries(
-      sortedEntries.filter(([, g]) =>
-        g.title.toLowerCase().includes(this.searchQuery.toLowerCase()),
+      sortedEntries.filter(
+        ([, g]) =>
+          // Filter on either title or alt_title if available
+          g.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          getPreferredTitle(g).includes(this.searchQuery.toLowerCase()),
       ),
     );
   }

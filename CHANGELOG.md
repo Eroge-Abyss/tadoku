@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.10.0 (2026-06-10)
+
+## What's Changed
+* feat: add nsfw blur option by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/175
+* feat: add search bar and total time options by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/177
+* feat: add custom categories and context menu for cards by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/178
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.9.6...app-v1.10.0
+
 ## 1.9.6 (2026-05-17)
 
 ## What's Changed

@@ -4,6 +4,7 @@ import { applyTheme } from '$lib/theme';
 import { toast } from 'svelte-sonner';
 import type {
   DiscordPresenceMode,
+  PlaytimeDisplayMode,
   PlaytimeMode,
   SortOrder,
   ThemeSettings,
@@ -13,6 +14,7 @@ class SettingsStore {
   #theme: ThemeSettings = $state({ ...DEFAULT_THEME_SETTINGS });
   #discordMode: DiscordPresenceMode = $state('All');
   #playtimeMode: PlaytimeMode = $state('classic');
+  #playtimeDisplayMode: PlaytimeDisplayMode = $state('all');
   #showRandomButton: boolean = $state(false);
   #useJpForTitleTime: boolean = $state(false);
   #hideNsfwImages: boolean = $state(false);
@@ -26,6 +28,7 @@ class SettingsStore {
       theme,
       discordMode,
       playtimeMode,
+      playtimeDisplayMode,
       showRandom,
       useJp,
       hideNsfw,
@@ -37,6 +40,7 @@ class SettingsStore {
       settingsService.getTheme(),
       settingsService.getDiscordMode(),
       settingsService.getPlaytimeMode(),
+      settingsService.getPlaytimeDisplayMode(),
       settingsService.getShowRandomButton(),
       settingsService.getUseJpForTitleTime(),
       settingsService.getHideNsfwImages(),
@@ -49,6 +53,7 @@ class SettingsStore {
     this.#theme = theme;
     this.#discordMode = discordMode;
     this.#playtimeMode = playtimeMode;
+    this.#playtimeDisplayMode = playtimeDisplayMode;
     this.#showRandomButton = showRandom;
     this.#useJpForTitleTime = useJp;
     this.#hideNsfwImages = hideNsfw;
@@ -110,6 +115,20 @@ class SettingsStore {
     } catch (error) {
       console.error('Failed to set playtime mode:', error);
       toast.error(`Failed to set playtime mode: ${error}`);
+      throw error;
+    }
+  }
+
+  get playtimeDisplayMode(): PlaytimeDisplayMode {
+    return this.#playtimeDisplayMode;
+  }
+  async setPlaytimeDisplayMode(mode: PlaytimeDisplayMode): Promise<void> {
+    try {
+      this.#playtimeDisplayMode = mode;
+      await settingsService.setPlaytimeDisplayMode(mode);
+    } catch (error) {
+      console.error('Failed to set playtime display mode:', error);
+      toast.error(`Failed to set playtime display mode: ${error}`);
       throw error;
     }
   }

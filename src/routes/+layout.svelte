@@ -35,6 +35,16 @@
     listen('current_game', (e: Event<CurrentGame | null>) => {
       sessionStore.set(e.payload);
     });
+
+    listen(
+      'playtime',
+      (event: Event<{ status: 'playing' | 'paused'; time: number }>) => {
+        const currentId = sessionStore.currentGame?.id;
+        if (currentId) {
+          gamesStore.updatePlaytime(currentId, event.payload.time);
+        }
+      },
+    );
   });
 
   onDestroy(() => {

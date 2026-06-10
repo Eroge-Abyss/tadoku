@@ -4,7 +4,6 @@ import type { CurrentGame } from '$lib/types';
 class SessionStore {
   #currentGame: CurrentGame | null = $state(null);
   #currentPlaytime: number = $state(0);
-  #refreshInterval: ReturnType<typeof setInterval> | undefined;
 
   get currentGame() {
     return this.#currentGame;
@@ -17,10 +16,6 @@ class SessionStore {
   set(game: CurrentGame | null): void {
     this.#currentGame = game;
     this.#currentPlaytime = 0;
-    clearInterval(this.#refreshInterval);
-    if (game) {
-      this.#refreshInterval = setInterval(() => gamesStore.refresh(), 60_000);
-    }
     gamesStore.refresh();
   }
 
@@ -28,9 +23,7 @@ class SessionStore {
     this.#currentPlaytime = Math.max(0, Math.floor(playtime));
   }
 
-  destroy(): void {
-    clearInterval(this.#refreshInterval);
-  }
+  destroy(): void {}
 }
 
 export const sessionStore = new SessionStore();

@@ -2,12 +2,10 @@
   import { fly } from 'svelte/transition';
   import { elasticOut } from 'svelte/easing';
   import Card from '$lib/components/Card.svelte';
-  import { settingsStore } from '$lib/stores/settings.svelte';
   import type { Game } from '$lib/types';
   import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
   import NowPlaying from '$lib/components/home/NowPlaying.svelte';
   import { formatTime, getPreferredTitle } from '$lib/util';
-  import { getAvailable } from '$lib/util';
   import { gamesStore } from '$lib/stores/games.svelte';
 
   let { gamesList }: { gamesList: Record<string, Game> } = $props();

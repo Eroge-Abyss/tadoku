@@ -77,6 +77,7 @@
         <div class="update-notes">
           <h5>What's new:</h5>
           {#if update.body && update.body.trim().length > 0}
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -->
             {@html parseReleaseNotes(update.body)}
           {:else}
             <p>

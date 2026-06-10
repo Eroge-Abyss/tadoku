@@ -72,6 +72,15 @@
       });
 
       toast.success('Game saved successfully!');
+
+      // Reset state
+      exe_path = null;
+      manualTitle = '';
+      manualAltTitle = '';
+      manualDescription = '';
+      manualImagePath = '';
+      manualIsNsfw = false;
+
       closeModal();
     } catch (error) {
       console.error('Error saving manual game:', error);

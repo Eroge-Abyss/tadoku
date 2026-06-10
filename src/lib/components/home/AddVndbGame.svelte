@@ -63,6 +63,12 @@
       });
 
       toast.success('Game saved successfully!');
+
+      // Reset state
+      exe_path = null;
+      charactersDownload = false;
+      vndb.reset();
+
       closeModal();
     } catch (error) {
       console.error('Error saving game:', error);

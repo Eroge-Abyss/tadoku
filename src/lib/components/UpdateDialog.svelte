@@ -5,6 +5,7 @@
   import Dialog from '$lib/components/Dialog.svelte';
   import InfoNote from './InfoNote.svelte';
   import { toast } from 'svelte-sonner';
+  import { parseReleaseNotes } from '$lib/util';
 
   const GITHUB_RELEASE_URL =
     'https://github.com/Eroge-Abyss/tadoku/releases/latest';
@@ -76,7 +77,7 @@
         <div class="update-notes">
           <h5>What's new:</h5>
           {#if update.body && update.body.trim().length > 0}
-            <p>{update.body}</p>
+            {@html parseReleaseNotes(update.body)}
           {:else}
             <p>
               Check <a

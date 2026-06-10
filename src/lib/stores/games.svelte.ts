@@ -42,6 +42,18 @@ class GamesStore {
     );
   }
 
+  get searched(): Record<string, Game> {
+    if (!this.searchQuery) {
+      return Object.fromEntries(Object.entries(this.filtered));
+    }
+
+    const sortedEntries = Object.entries(this.sorted); // Search should ignore filters
+    return Object.fromEntries(
+      sortedEntries.filter(([, g]) =>
+        g.title.toLowerCase().includes(this.searchQuery.toLowerCase()),
+      ),
+    );
+  }
   #byPlaytime = ([_a, a]: [string, Game], [_b, b]: [string, Game]): number => {
     return b.playtime - a.playtime || this.#byTitle([_a, a], [_b, b]);
   };

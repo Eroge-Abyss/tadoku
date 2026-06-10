@@ -5,7 +5,7 @@
 </script>
 
 <main class="container home">
-  <GamesList gamesList={gamesStore.filtered} />
+  <GamesList gamesList={gamesStore.searched} />
   <RandomGameButton />
 </main>
 

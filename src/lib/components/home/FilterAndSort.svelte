@@ -4,6 +4,7 @@
   import { settingsStore } from '$lib/stores/settings.svelte';
   import type { SortOrder } from '$lib/types';
   import { withMenuClose } from '$lib/util';
+  import { gamesStore } from '$lib/stores/games.svelte';
 
   let menuToggleRef: HTMLButtonElement;
   // svelte-ignore non_reactive_update
@@ -84,106 +85,155 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<div class="filter-sort-container">
-  <button
-    onclick={() => (activeMenu = !activeMenu)}
-    class="menu-toggle"
-    class:active={activeMenu}
-    bind:this={menuToggleRef}
-  >
-    <i class="fa-solid fa-filter"></i>
-    Filter & Sort
-  </button>
-
-  {#if activeMenu}
-    <div
-      class="secondary-menu"
-      in:fly={{ y: -10, duration: 200 }}
-      bind:this={filterSortMenuRef}
+<div class="controls-container">
+  <div class="search-wrapper">
+    <i class="fa-solid fa-search"></i>
+    <input
+      id="game-search-input"
+      type="text"
+      placeholder="Search..."
+      bind:value={gamesStore.searchQuery}
+    />
+  </div>
+  <div class="filter-sort-container">
+    <button
+      onclick={() => (activeMenu = !activeMenu)}
+      class="menu-toggle"
+      class:active={activeMenu}
+      bind:this={menuToggleRef}
     >
-      <h3>Sort By</h3>
-      <div class="menu-item-with-submenu">
-        <button
-          onclick={() => (showSortMenu = !showSortMenu)}
-          class="menu-item sort-menu-item-toggle"
-        >
-          <i class="fa-solid fa-arrow-down-short-wide"></i>
-          {currentSortOption.charAt(0).toUpperCase() +
-            currentSortOption.slice(1).replace('_', ' ')}
-          <i class="fa-solid fa-chevron-right chevron"></i>
-        </button>
+      <i class="fa-solid fa-filter"></i>
+      Filter & Sort
+    </button>
 
-        {#if showSortMenu}
-          <div
-            class="sort-submenu secondary-menu"
-            in:fly={{ x: 10, duration: 200 }}
+    {#if activeMenu}
+      <div
+        class="secondary-menu"
+        in:fly={{ y: -10, duration: 200 }}
+        bind:this={filterSortMenuRef}
+      >
+        <h3>Sort By</h3>
+        <div class="menu-item-with-submenu">
+          <button
+            onclick={() => (showSortMenu = !showSortMenu)}
+            class="menu-item sort-menu-item-toggle"
           >
-            <button
-              onclick={withMenuClose(
-                () => setSortOrder('title'),
-                () => (showSortMenu = false),
-              )}
-              class="menu-item"
-              class:active={currentSortOption === 'title'}
-            >
-              Title
-            </button>
-            <button
-              onclick={withMenuClose(
-                () => setSortOrder('last_played'),
-                () => (showSortMenu = false),
-              )}
-              class="menu-item"
-              class:active={currentSortOption === 'last_played'}
-            >
-              Last Played
-            </button>
-            <button
-              onclick={withMenuClose(
-                () => setSortOrder('playtime'),
-                () => (showSortMenu = false),
-              )}
-              class="menu-item"
-              class:active={currentSortOption === 'playtime'}
-            >
-              Playtime
-            </button>
-          </div>
-        {/if}
-      </div>
+            <i class="fa-solid fa-arrow-down-short-wide"></i>
+            {currentSortOption.charAt(0).toUpperCase() +
+              currentSortOption.slice(1).replace('_', ' ')}
+            <i class="fa-solid fa-chevron-right chevron"></i>
+          </button>
 
-      <div class="menu-divider"></div>
+          {#if showSortMenu}
+            <div
+              class="sort-submenu secondary-menu"
+              in:fly={{ x: 10, duration: 200 }}
+            >
+              <button
+                onclick={withMenuClose(
+                  () => setSortOrder('title'),
+                  () => (showSortMenu = false),
+                )}
+                class="menu-item"
+                class:active={currentSortOption === 'title'}
+              >
+                Title
+              </button>
+              <button
+                onclick={withMenuClose(
+                  () => setSortOrder('last_played'),
+                  () => (showSortMenu = false),
+                )}
+                class="menu-item"
+                class:active={currentSortOption === 'last_played'}
+              >
+                Last Played
+              </button>
+              <button
+                onclick={withMenuClose(
+                  () => setSortOrder('playtime'),
+                  () => (showSortMenu = false),
+                )}
+                class="menu-item"
+                class:active={currentSortOption === 'playtime'}
+              >
+                Playtime
+              </button>
+            </div>
+          {/if}
+        </div>
 
-      <h3>Filter By</h3>
-      <div class="menu-item-with-submenu">
-        <button
-          onclick={() => (showStatusMenu = !showStatusMenu)}
-          class="menu-item status-menu-item-toggle"
-        >
-          <i class="fa-solid fa-tags"></i>
-          Status
-          <i class="fa-solid fa-chevron-right chevron"></i>
-        </button>
+        <div class="menu-divider"></div>
 
-        {#if showStatusMenu}
-          <div
-            class="status-submenu secondary-menu"
-            in:fly={{ x: 10, duration: 200 }}
+        <h3>Filter By</h3>
+        <div class="menu-item-with-submenu">
+          <button
+            onclick={() => (showStatusMenu = !showStatusMenu)}
+            class="menu-item status-menu-item-toggle"
           >
-            <StatusSelector
-              categories={settingsStore.selectedCategories}
-              {toggleStatus}
-              {clearStatuses}
-              showUncategorized
-            />
-          </div>
-        {/if}
+            <i class="fa-solid fa-tags"></i>
+            Status
+            <i class="fa-solid fa-chevron-right chevron"></i>
+          </button>
+
+          {#if showStatusMenu}
+            <div
+              class="status-submenu secondary-menu"
+              in:fly={{ x: 10, duration: 200 }}
+            >
+              <StatusSelector
+                categories={settingsStore.selectedCategories}
+                {toggleStatus}
+                {clearStatuses}
+                showUncategorized
+              />
+            </div>
+          {/if}
+        </div>
       </div>
-    </div>
-  {/if}
+    {/if}
+  </div>
 </div>
 
 <style>
+  .controls-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .search-wrapper {
+    position: relative;
+  }
+
+  .search-wrapper i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--main-text);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .search-wrapper input {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--small-radius);
+    padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+    font-size: 16px;
+    color: var(--main-text);
+    transition: all 0.3s ease;
+    width: 180px;
+    height: 40px;
+    box-sizing: border-box;
+  }
+
+  .search-wrapper input:focus {
+    outline: 1px solid var(--secondary);
+    background: color-mix(in srgb, var(--accent), var(--main-text) 5%);
+  }
+
   .filter-sort-container {
     position: relative;
     display: inline-block;
@@ -202,6 +252,8 @@
     align-items: center;
     gap: 0.5rem;
     white-space: nowrap;
+    height: 40px;
+    box-sizing: border-box;
   }
 
   .menu-toggle:hover {

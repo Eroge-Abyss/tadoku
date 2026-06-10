@@ -7,6 +7,7 @@
   import { listen } from '@tauri-apps/api/event';
   import UpdateDialog from '$lib/components/UpdateDialog.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
+  import ContextMenu from '$lib/components/ContextMenu.svelte';
   import { Toaster } from 'svelte-sonner';
   import { gamesStore } from '$lib/stores/games.svelte';
   import { settingsStore } from '$lib/stores/settings.svelte';
@@ -69,6 +70,7 @@
   <div class="content">
     {@render children()}
   </div>
+  <ContextMenu />
   <UpdateDialog />
   <Toaster
     position="top-right"

@@ -5,6 +5,7 @@
   import { settingsStore } from '$lib/stores/settings.svelte';
   import NsfwPlaceholder from './NsfwPlaceholder.svelte';
   import { goto } from '$app/navigation';
+  import { sessionStore } from '$lib/stores/session.svelte';
 
   type Props = {
     id: string;
@@ -19,11 +20,20 @@
   const minutesPlayed = $derived(Math.floor((playtime % 3600) / 60));
 
   const image_url = $derived(image ? convertFileSrc(image) : '');
+
+  function handleContextMenu(e: MouseEvent) {
+    e.preventDefault();
+    sessionStore.showContextMenu(e.clientX, e.clientY, id);
+  }
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<section onclick={() => goto(resolve(`/novel/${id}`))} class="card">
+<section
+  onclick={() => goto(resolve(`/novel/${id}`))}
+  oncontextmenu={handleContextMenu}
+  class="card"
+>
   <div class="card-image">
     {#if isNsfw && settingsStore.hideNsfwImages}
       <NsfwPlaceholder />

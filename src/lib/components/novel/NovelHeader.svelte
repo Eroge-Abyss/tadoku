@@ -194,6 +194,7 @@
             <div class="menu-item-with-submenu">
               <button
                 onclick={() => (showStatusMenu = !showStatusMenu)}
+                onmouseenter={() => (showStatusMenu = true)}
                 class="menu-item"
               >
                 <i class="fa-solid fa-tags"></i>
@@ -204,8 +205,11 @@
               {#if showStatusMenu}
                 <div
                   class="status-submenu secondary-menu"
+                  role="menu"
+                  tabindex="-1"
                   in:fly={{ x: 10, duration: 200 }}
                   bind:this={statusMenuRef}
+                  onmouseleave={() => (showStatusMenu = false)}
                 >
                   <StatusSelector
                     categories={novel.categories}

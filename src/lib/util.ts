@@ -1,5 +1,5 @@
 import { settingsStore } from '$lib/stores/settings.svelte';
-import type { Fetchable } from './types';
+import type { Fetchable, Game } from './types';
 import { open } from '@tauri-apps/plugin-dialog';
 
 export function getAvailable<T>(fetchable: Fetchable<T>): T | null {
@@ -117,4 +117,9 @@ export async function pickImage(): Promise<string | null> {
     ],
   });
   return file as string | null;
+}
+
+export function getPreferredTitle(game: Game): string {
+  const altTitle = getAvailable(game.alt_title);
+  return settingsStore.useJpForTitleTime && altTitle ? altTitle : game.title;
 }

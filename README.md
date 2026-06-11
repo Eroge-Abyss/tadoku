@@ -59,6 +59,7 @@ Whether you're a Japanese language learner using visual novels for immersion or 
 - **Cross-platform**: Native support for Windows, with Linux compatibility
 - **VNDB Integration**: Automatic game information retrieval from VNDB
 - **Time Tracking**: Precise playtime monitoring with two tracking modes
+- **Jiten Integration**: Fetches Japanese character counts for visual novels, helping learners gauge reading difficulty and length.
 - **Discord Rich Presence**: Share your current reading activity
 - **Privacy-focused**: All data stored locally on your machine
 
@@ -67,21 +68,31 @@ Whether you're a Japanese language learner using visual novels for immersion or 
 ## Features
 
 ### Core Features
-- **Visual Novel Library Management**: Add, edit, and organize your VN collection
-- **Automatic Playtime Tracking**: Monitor time spent reading each visual novel
-- **VNDB API Integration**: Search and import game information from VNDB database
-- **Game Launcher**: Launch games directly from the application
-- **Progress Tracking**: Keep track of your reading progress and completion status
+
+- **Visual Novel Library Management**: Add, edit, and organize your VN collection, with support for manual additions and import from VNDB.
+- **Automatic Playtime Tracking**: Monitor time spent reading each visual novel.
+- **VNDB API Integration**: Search and import comprehensive game information from VNDB database.
+- **Game Launcher**: Launch games directly from the application.
+- **Progress Tracking**: Keep track of your reading progress and completion status.
+- **Flexible Filtering & Sorting**: Easily find games with advanced filtering and sorting options.
 
 ### Advanced Features
-- **NSFW Content Filtering**: Built-in blur filter for NSFW images (configurable)
-- **Pinned Games**: Quick access to your favorite or currently reading visual novels
-- **Character Information**: Optional character tracking and information display
-- **Discord Rich Presence**: Display current reading activity on Discord
-- **ExStatic Integration**: Enhanced playtime accuracy for Japanese learning
 
+- **Category Management**: Create custom categories to organize your library and filter your games.
+- **Jiten Integration**: Fetches Japanese character counts for visual novels, helping learners gauge reading difficulty and length.
+- **In-App Update System**: Stay up-to-date with the latest features and bug fixes effortlessly.
+- **Customizable Theming**: Personalize your experience with multiple built-in themes and custom accent colors.
+- **NSFW Content Filtering**: Built-in blur filter for NSFW images (configurable).
+- **Pinned Games**: Quick access to your favorite or currently reading visual novels.
+- **Character & Notes Management**: Track character information and personal notes for each novel.
+- **Discord Rich Presence**: Display current reading activity on Discord.
+- **ExStatic Integration**: Enhanced playtime accuracy for Japanese learners.
+- **Random Game Selector**: Discover new or forgotten visual novels in your library.
+- **Statistics Reset**: Option to reset playtime and other statistics for a specific game.
+- **Customizable Playtime**: Choose how to display playtime information and opt to use Japanese titles for tracking.
 
 ### Platform Support
+
 - **Windows**: Full native support with all features
 - **Linux**: Basic support (requires building from source)
 - **Cross-platform Data**: Portable configuration and database files
@@ -93,10 +104,12 @@ Whether you're a Japanese language learner using visual novels for immersion or 
 ### Prerequisites
 
 For end users:
+
 - Windows 10/11 (recommended) or Linux distribution
 - Internet connection for VNDB integration (works offline after downloading games info)
 
 For developers:
+
 - **Rust**: Install from [rustup.rs](https://rustup.rs/)
 - **Bun**: Install from [bun.sh](https://bun.sh/)
 - **Node.js**: Version 18+ (if not using Bun)
@@ -104,28 +117,33 @@ For developers:
 ### Download & Install
 
 #### Windows
+
 1. Visit the [Releases page](https://github.com/Eroge-Abyss/tadoku/releases)
 2. Download the latest `.exe` installer
 3. Run the installer and follow the setup wizard
 4. Launch Tadoku from the Start menu or desktop shortcut
 
 #### Linux
+
 Currently, Linux users need to build from source. Pre-built binaries may be available in future releases.
 
 ### Building from Source
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/Eroge-Abyss/tadoku.git
    cd tadoku
    ```
 
 2. **Install dependencies**:
+
    ```bash
    bun install
    ```
 
 3. **Development build**:
+
    ```bash
    bun run tauri dev
    ```
@@ -161,6 +179,7 @@ Tadoku offers two playtime tracking modes:
 - **ExStatic Integration**: Enhanced accuracy for Japanese learners
 
 **To start tracking**:
+
 1. Launch a game from your library
 2. Tadoku automatically detects when the game is running
 3. View accumulated playtime in the game details
@@ -208,16 +227,19 @@ For Japanese learners using text hooker tools:
 ### Tech Stack
 
 **Frontend**:
+
 - SvelteKit 2.x
 - TypeScript
 - Vite
 
 **Backend**:
+
 - Rust with Tauri 2.x
 - VNDB API integration
 - Discord Rich Presence SDK
 
 **Build Tools**:
+
 - Bun (package manager)
 - Tauri CLI
 - Rust toolchain
@@ -241,16 +263,19 @@ tadoku/
 ### Building
 
 **Development**:
+
 ```bash
 bun run tauri dev
 ```
 
 **Production**:
+
 ```bash
 bun run tauri build
 ```
 
 **Linting and Formatting**:
+
 ```bash
 bun run format
 bun run check
@@ -263,12 +288,14 @@ bun run check
 We welcome contributions from the community! Here's how you can help:
 
 ### Getting Started
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
 3. Make your changes and test thoroughly
 4. Submit a pull request with a detailed description
 
 ### Areas for Contribution
+
 - Bug fixes and performance improvements
 - New features and enhancements
 - Documentation improvements
@@ -276,6 +303,7 @@ We welcome contributions from the community! Here's how you can help:
 - Testing and QA
 
 ### Guidelines
+
 - Follow the existing code style and conventions
 - Update documentation as needed
 
@@ -286,15 +314,18 @@ We welcome contributions from the community! Here's how you can help:
 ### Common Issues
 
 **Game not launching**:
+
 - Verify the executable path is correct
 - Check file permissions
 - Ensure the game is not already running
 
 **Playtime not tracking**:
+
 - Confirm classic mode tracking is enabled
 - Check if the game process is being detected
 
 **VNDB search not working**:
+
 - Check internet connection
 - Verify VNDB API is accessible
 - Try searching with different keywords
@@ -302,6 +333,7 @@ We welcome contributions from the community! Here's how you can help:
 ### Log Files
 
 Logs are stored in:
+
 - **Windows**: `C:\Users\{username}\AppData\Local\tauri\logs`
 - **Linux**: `/home/{username}/.local/share/tauri/logs`
 
@@ -342,20 +374,24 @@ Remember to unset the environment variable if you no longer need debug mode (e.g
 ## Screenshots
 
 ### Main Library View
+
 ![Main Library](assets/main_library.png)
-*Overview of your visual novel library with playtime tracking*
+_Overview of your visual novel library with playtime tracking_
 
 ### Game Details Page
+
 ![Game Details](assets/game_details.png)
-*Detailed information about individual games including characters and progress*
+_Detailed information about individual games including characters and progress_
 
 ### Add Game Modal
+
 ![Add Game](assets/add_game.png)
-*VNDB integration for easy game addition*
+_VNDB integration for easy game addition_
 
 ### Characters Page
+
 ![Characters](assets/characters.png)
-*Character information and tracking (optional feature)*
+_Character information and tracking (optional feature)_
 
 ---
 
@@ -363,6 +399,7 @@ Remember to unset the environment variable if you no longer need debug mode (e.g
 
 - **[Tauri](https://tauri.app/)**: For providing an excellent framework for building lightweight desktop applications
 - **[VNDB](https://vndb.org/)**: For maintaining the comprehensive Visual Novel database and API
+- **[jiten.moe](https://jiten.moe/)**: For providing the Jiten API for Japanese character count data.
 - **[SvelteKit](https://kit.svelte.dev/)**: For enabling fast and reactive frontend development
 
 ---
@@ -387,6 +424,7 @@ If you encounter issues or have questions:
 ### Bug Reports
 
 When reporting bugs, please include:
+
 - Operating system and version
 - Tadoku version
 - Steps to reproduce the issue
@@ -396,6 +434,7 @@ When reporting bugs, please include:
 ### Feature Requests
 
 We welcome suggestions for new features! Please:
+
 - Check existing feature requests first
 - Provide detailed use cases
 - Explain the expected benefit to users

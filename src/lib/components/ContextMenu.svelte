@@ -5,13 +5,15 @@
   import { fly } from 'svelte/transition';
   import StatusSelector from './StatusSelector.svelte';
   import ConfirmDialog from './ConfirmDialog.svelte';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { getPreferredTitle } from '$lib/util';
 
   // svelte-ignore non_reactive_update
   let menuRef: HTMLDivElement;
   let showStatusSubmenu = $state(false);
   let isDeleteDialogOpen = $state(false);
+
+  let openSubmenuLeft = $state(false);
 
   const gameId = $derived(sessionStore.contextMenu.gameId);
   const game = $derived(gameId ? gamesStore.getById(gameId) : undefined);
@@ -21,6 +23,33 @@
   function close() {
     sessionStore.hideContextMenu();
     showStatusSubmenu = false;
+    // Reset state when closing so the fly-in transition direction is predictable
+    openSubmenuLeft = false;
+  }
+
+  async function handleSubmenuOpen() {
+    showStatusSubmenu = true;
+
+    await tick();
+
+    if (!menuRef) return;
+
+    const submenu = menuRef.querySelector('.status-submenu') as HTMLElement;
+    if (!submenu) return;
+
+    // Measure the main context menu, not the submenu's fluid position
+    const menuRect = menuRef.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+
+    // Calculate where the right edge WOULD be if it opened on the right side
+    const expectedRightBound = menuRect.right + submenu.offsetWidth;
+
+    // Check against the window width, completely ignoring the submenu's current left/right positioning
+    if (expectedRightBound > windowWidth) {
+      openSubmenuLeft = true;
+    } else {
+      openSubmenuLeft = false;
+    }
   }
 
   async function toggleStatus(status: string) {
@@ -95,8 +124,14 @@
     <div class="menu-item-with-submenu">
       <button
         class="menu-item"
-        onmouseenter={() => (showStatusSubmenu = true)}
-        onclick={() => (showStatusSubmenu = !showStatusSubmenu)}
+        onmouseenter={handleSubmenuOpen}
+        onclick={() => {
+          if (showStatusSubmenu) {
+            showStatusSubmenu = false;
+          } else {
+            handleSubmenuOpen();
+          }
+        }}
       >
         <i class="fa-solid fa-tags"></i>
         Status
@@ -106,9 +141,10 @@
       {#if showStatusSubmenu}
         <div
           class="status-submenu"
+          class:open-left={openSubmenuLeft}
           role="menu"
           tabindex="-1"
-          in:fly={{ x: 5, duration: 150 }}
+          in:fly={{ x: openSubmenuLeft ? -5 : 5, duration: 150 }}
           onmouseleave={() => (showStatusSubmenu = false)}
         >
           <StatusSelector
@@ -139,7 +175,7 @@
       class="menu-item danger"
       onclick={async () => {
         isDeleteDialogOpen = true;
-        close(); // Close the context menu immediately
+        close();
       }}
     >
       <i class="fa-regular fa-trash-can"></i>
@@ -247,5 +283,13 @@
     padding: 0.5rem;
     min-width: 180px;
     margin-left: 0.25rem;
+  }
+
+  /* Flips the submenu positioning dynamically */
+  .status-submenu.open-left {
+    left: auto;
+    right: 100%;
+    margin-left: 0;
+    margin-right: 0.25rem;
   }
 </style>

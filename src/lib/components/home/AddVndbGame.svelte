@@ -167,7 +167,16 @@
 </InfoNote>
 
 <div class="form-handler">
-  <button onclick={handlePickFile}>Select Game Executable</button>
+  <div class="exe-selector">
+    {#if exe_path}
+      <div class="selected-exe-path">
+        <i class="fa-regular fa-file-code"></i>
+        <span title={exe_path}>{exe_path}</span>
+      </div>
+    {/if}
+    <button onclick={handlePickFile}>Select Game Executable</button>
+  </div>
+
   <button disabled={loading} class="save-button" onclick={saveVndbGame}>
     {#if loading}
       Saving...
@@ -432,6 +441,33 @@
     flex-direction: column;
     gap: 1rem;
     margin-top: 1rem;
+  }
+
+  .exe-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .selected-exe-path {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.25rem;
+    color: var(--secondary-text);
+    font-size: 13px;
+  }
+
+  .selected-exe-path span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    direction: ltr;
+  }
+
+  .selected-exe-path i {
+    font-size: 14px;
+    opacity: 0.8;
   }
 
   button {

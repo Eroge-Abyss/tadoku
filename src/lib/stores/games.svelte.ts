@@ -74,13 +74,6 @@ class GamesStore {
     };
   }
 
-  updatePlaytime(id: string, seconds: number): void {
-    const game = this.#games[id];
-    if (game) {
-      this.#games[id] = { ...game, playtime: seconds };
-    }
-  }
-
   #byPlaytime = ([_a, a]: [string, Game], [_b, b]: [string, Game]): number => {
     return b.playtime - a.playtime || this.#byTitle([_a, a], [_b, b]);
   };

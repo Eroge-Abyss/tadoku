@@ -36,7 +36,7 @@ tauri-plugin-prevent-default = "1.0.2"
 x-win = "3.0.0"
 tungstenite = "0.17"
 tokio-tungstenite = "*"
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "time"] }
 futures-util = "0.3"
 tauri-plugin-log = "2"
 log = "0.4.27"

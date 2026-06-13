@@ -26,7 +26,8 @@ export function useGameActions(getNovel: () => Novel | undefined) {
 
     editExe: async () => {
       const novel = getNovel();
-      if (!novel) return;
+      if (!novel) return null;
+
       const newPath = await open({
         multiple: false,
         directory: false,
@@ -41,7 +42,9 @@ export function useGameActions(getNovel: () => Novel | undefined) {
       if (newPath) {
         await gamesStore.updateExePath(novel.id, newPath);
         toast.success('Executable path updated');
+        return newPath;
       }
+      return null;
     },
 
     deleteGame: async () => {

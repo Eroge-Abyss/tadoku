@@ -39,6 +39,8 @@
   let processDialog = $state(false);
   let isDeleteDialogOpen = $state(false);
   let resetStatsDialog = $state(false);
+  let showProcessPathConfirm = $state(false);
+  let newExePath = $state<string | null>(null);
   let selectedTab = $state('progress');
   let downloadingCharacters = $state(false);
 
@@ -125,6 +127,21 @@
     downloadingCharacters = false;
   };
 
+  const handleEditExe = async () => {
+    const path = await gameActions.editExe();
+    if (path) {
+      newExePath = path;
+      showProcessPathConfirm = true;
+    }
+  };
+
+  const onConfirmProcessPathChange = async () => {
+    if (newExePath) {
+      await gamesStore.updateGameProcessPath(novel.id, newExePath);
+      toast.success('Process path updated');
+    }
+  };
+
   function handleMenuClick(e: MouseEvent) {
     // Check if the click occurred directly on the modal backdrop
     if ((e.target as HTMLElement)?.classList.contains('secondary-menu')) {
@@ -147,7 +164,7 @@
       onStartGame={gameActions.startGame}
       onStopGame={gameActions.stopGame}
       onTogglePin={gameActions.togglePin}
-      onEditExe={gameActions.editExe}
+      onEditExe={handleEditExe}
       onProcessDialog={openProcessDialog}
       onDeleteDialog={openDeleteDialog}
       onResetStats={openResetStatsDialog}
@@ -168,6 +185,13 @@
       title="Reset Stats"
       isDanger
       message={`Are you sure you want to reset stats for <i class="danger-highlight">${novel.title}</i> ?`}
+    />
+
+    <ConfirmDialog
+      bind:isOpen={showProcessPathConfirm}
+      title="Update Process Path"
+      onConfirm={onConfirmProcessPathChange}
+      message="Do you want to change process path to point to the new exe too?"
     />
 
     <ProcessChangerDialog

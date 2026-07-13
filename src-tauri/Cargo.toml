@@ -31,7 +31,7 @@ url = "2.5.4"
 tauri-plugin-shell = "2"
 sysinfo = "0.33.1"
 discord-rich-presence = "0.2.5"
-lnk = "0.5.1"
+lnk = "0.6.4"
 tauri-plugin-prevent-default = "1.0.2"
 x-win = "3.0.0"
 tungstenite = "0.17"
@@ -44,9 +44,12 @@ tauri-plugin-os = "2"
 chrono = "0.4.42"
 tokio-util = "0.7.18"
 anyhow = "1.0.102"
+dunce = "1.0.5"
+shell-words = "1.1.1"
 
 [target.'cfg(windows)'.dependencies]
 windows-icons = "0.1.1"
+winsplit = "0.1.0"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"

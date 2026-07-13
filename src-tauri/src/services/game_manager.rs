@@ -9,6 +9,7 @@ use crate::{
     },
 };
 use anyhow::Context;
+use lnk::encoding::WINDOWS_1252;
 use log::{debug, error};
 use serde_json::json;
 use std::{path::PathBuf, time::Duration};
@@ -55,10 +56,10 @@ impl<'a> GameManager<'a> {
 
     fn launch_process(&self, game: &Game) -> Result<()> {
         let mut exe_path = PathBuf::from(&game.exe_file_path);
-        let mut args = String::new();
+        let mut args_str = String::new();
 
         if exe_path.extension().unwrap_or_default() == "lnk" {
-            Self::handle_open_lnk(&mut exe_path, &mut args)?;
+            Self::handle_open_lnk(&mut exe_path, &mut args_str)?;
         }
 
         let current_dir = exe_path
@@ -70,8 +71,8 @@ impl<'a> GameManager<'a> {
             .command(&exe_path)
             .current_dir(current_dir);
 
-        if !args.is_empty() {
-            command = command.arg(args);
+        if !args_str.is_empty() {
+            command = command.args(Self::split_args(&args_str));
         }
 
         command.spawn().context("Failed to spawn game process")?;
@@ -162,30 +163,59 @@ impl<'a> GameManager<'a> {
 
     fn handle_open_lnk(exe_path: &mut PathBuf, args: &mut String) -> anyhow::Result<()> {
         debug!("Handling .lnk file: {:?}", exe_path);
-        let lnk = lnk::ShellLink::open(&exe_path)
-            .map_err(|e| anyhow::anyhow!("LNK error: {:?}", e))
+
+        let lnk = lnk::ShellLink::open(&exe_path, WINDOWS_1252)
             .context(format!("Error opening .lnk file {:?}", exe_path))?;
 
-        let working_dir = lnk.working_dir().as_ref().context(format!(
-            "Missing working directory in .lnk file: {:?}",
-            exe_path
-        ))?;
-        let relative_path = lnk.relative_path().as_ref().context(format!(
-            "Missing relative path in .lnk file: {:?}",
-            exe_path
-        ))?;
         *args = lnk
-            .arguments()
+            .string_data()
+            .command_line_arguments()
             .as_ref()
             .unwrap_or(&String::new())
             .to_owned();
-        *exe_path = std::fs::canonicalize(PathBuf::from(working_dir).join(relative_path))
-            .context("Error resolving canonical path for .lnk file")?;
+
+        let mut resolved_path = None;
+
+        if let Some(target) = lnk.link_target() {
+            resolved_path = Some(PathBuf::from(target));
+        }
+
+        if resolved_path.is_none() {
+            if let Some(rel_path) = lnk.string_data().relative_path() {
+                if let Some(parent_dir) = exe_path.parent() {
+                    resolved_path = Some(parent_dir.join(rel_path));
+                }
+            }
+        }
+
+        let final_path = resolved_path.context(format!(
+            "Could not resolve a valid target path in .lnk file: {:?}",
+            exe_path
+        ))?;
+
+        *exe_path = dunce::canonicalize(&final_path).context(format!(
+            "Error resolving canonical path for: {:?}",
+            final_path
+        ))?;
 
         debug!(
             "Successfully processed .lnk file. Resolved exe_path: {:?}, args: {:?}",
             exe_path, args
         );
+
         Ok(())
+    }
+
+    fn split_args(args_str: &str) -> Vec<String> {
+        #[cfg(target_os = "windows")]
+        {
+            winsplit::split(args_str)
+        }
+
+        #[cfg(not(target_os = "windows"))]
+        {
+            shell_words::split(args_str)
+                .unwrap_or_else(|_| args_str.split_whitespace().map(|s| s.to_string()).collect())
+        }
     }
 }

@@ -90,7 +90,7 @@
                 <span>Try a different search term</span>
               </div>
             {:else}
-              {#each filteredItems as item (item.exe_path)}
+              {#each filteredItems as item, i (item.exe_path + i)}
                 <button
                   role="option"
                   aria-selected={process === item}
@@ -239,7 +239,7 @@
       0 2px 8px rgba(0, 0, 0, 0.2);
     display: none;
     animation: slideDown 0.2s ease;
-    z-index: 1000;
+    z-index: 9999;
   }
 
   @keyframes slideDown {
@@ -377,5 +377,16 @@
   .empty-state span {
     font-size: 13px;
     color: var(--secondary-text);
+  }
+
+  .game-form {
+    margin: 1rem;
+    position: relative;
+  }
+
+  .dropdown {
+    position: relative;
+    font-family: Arial, sans-serif;
+    z-index: 1010;
   }
 </style>

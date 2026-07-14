@@ -79,6 +79,8 @@
       transform: translate(0, 100%) scale(0.8);
       transition: all 0.2s ease-in-out;
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Optional shadow */
+      overflow: visible;
+      position: relative;
 
       & header {
         display: flex;
@@ -104,7 +106,7 @@
 
       & .dialog-content {
         margin: 1rem;
-        /* Add padding or styling for the content area if needed */
+        overflow: visible;
       }
     }
   }

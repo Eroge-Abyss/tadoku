@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.10.5 (2026-07-14)
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.10.4...app-v1.10.5
+
 ## 1.10.4 (2026-07-14)
 
 ## What's Changed

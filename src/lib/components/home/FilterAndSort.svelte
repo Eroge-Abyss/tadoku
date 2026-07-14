@@ -92,6 +92,7 @@
       id="game-search-input"
       type="text"
       placeholder="Search..."
+      autocomplete="off"
       bind:value={gamesStore.searchQuery}
     />
   </div>

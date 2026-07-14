@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.10.4 (2026-07-14)
+
+## What's Changed
+* fix: lnk shortcut path creation and process selector item visibility by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/187
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.10.3...app-v1.10.4
+
 ## 1.10.3 (2026-06-13)
 
 **Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.10.2...app-v1.10.3

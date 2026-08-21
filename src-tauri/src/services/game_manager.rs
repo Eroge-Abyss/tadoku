@@ -132,12 +132,14 @@ impl<'a> GameManager<'a> {
                 Fetchable::Available(alt) if settings.use_jp_for_title_time => alt.clone(),
                 _ => game.title.clone(),
             };
-            let _ = pres.set_presence(DiscordGameDetails::new(
-                game_id,
-                &title,
-                &game.image_url,
-                game.is_nsfw && settings.disable_presence_on_nsfw,
-            ));
+            let _ = pres.set_presence(DiscordGameDetails {
+                id: game_id.to_string(),
+                title,
+                image_url: game.image_url.clone(),
+                nsfw_mode: game.is_nsfw && settings.disable_presence_on_nsfw,
+                chars_read: game.chars_read,
+                today_playtime: game.today_playtime,
+            });
         }
     }
 

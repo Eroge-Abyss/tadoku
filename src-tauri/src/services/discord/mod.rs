@@ -8,7 +8,6 @@ use discord_rich_presence::{
 };
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
-use std::time;
 
 const DISCORD_CLIENT_ID: &str = "1333425743572500490";
 
@@ -59,11 +58,12 @@ impl DiscordPresence {
         let url = format!("https://vndb.org/{}", details.id);
         debug!("VNDB URL: {}", url);
 
-        let start = time::SystemTime::now();
-        let since_the_epoch = start
-            .duration_since(time::UNIX_EPOCH)
-            .expect("Time went backwards");
-        let unix_timestamp = since_the_epoch.as_secs();
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        let today_start_timestamp = now.saturating_sub(details.today_playtime) as i64;
 
         let (assets, buttons) = if details.nsfw_mode {
             debug!("NSFW mode is enabled, hiding buttons");
@@ -75,23 +75,43 @@ impl DiscordPresence {
             debug!("NSFW mode is disabled, showing details button");
             (
                 Assets::new()
-                    .large_image(details.image_url)
-                    .large_text(details.title),
+                    .large_image(&details.image_url)
+                    .large_text(&details.title),
                 vec![Button::new("Game Details", &url)],
             )
         };
 
+        let mut activity = Activity::new()
+            .name(&details.title)
+            .details("via Tadoku")
+            .details_url(env!("CARGO_PKG_REPOSITORY"))
+            .assets(assets)
+            .timestamps(Timestamps::new().start(today_start_timestamp))
+            .buttons(buttons);
+
+        let state_text;
+        if details.chars_read > 0 {
+            state_text = format!("{} chars read", Self::format_number(details.chars_read));
+            activity = activity.state(&state_text);
+        }
+
         self.client
-            .set_activity(
-                Activity::new()
-                    .name(details.title)
-                    .details("via Tadoku")
-                    .details_url(env!("CARGO_PKG_REPOSITORY"))
-                    .assets(assets)
-                    .timestamps(Timestamps::new().start(unix_timestamp as i64))
-                    .buttons(buttons),
-            )
+            .set_activity(activity)
             .map_err(|e| anyhow!("Failed to set Discord activity: {e}"))
+    }
+
+    fn format_number(n: u64) -> String {
+        let s = n.to_string();
+        let bytes = s.as_bytes();
+        let mut res = String::new();
+        let len = bytes.len();
+        for (idx, &b) in bytes.iter().enumerate() {
+            if idx > 0 && (len - idx) % 3 == 0 {
+                res.push(',');
+            }
+            res.push(b as char);
+        }
+        res
     }
 
     pub fn reset_presence(&mut self) -> Result<()> {

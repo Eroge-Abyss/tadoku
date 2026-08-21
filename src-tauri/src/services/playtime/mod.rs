@@ -138,6 +138,32 @@ impl PlaytimeService {
             }
         }
 
+        // Update Discord Rich Presence
+        if let Some(game) = self.store.get(&game_id) {
+            let state = self.app_handle.state::<ManagedState>();
+            if let Ok(mut lock) = state.lock() {
+                let settings = lock.settings.clone();
+                if let Some(pres) = &mut lock.presence {
+                    let title = match &game.alt_title {
+                        crate::prelude::Fetchable::Available(alt)
+                            if settings.use_jp_for_title_time =>
+                        {
+                            alt.clone()
+                        }
+                        _ => game.title.clone(),
+                    };
+                    let _ = pres.set_presence(crate::services::discord::DiscordGameDetails {
+                        id: game_id,
+                        title,
+                        image_url: game.image_url,
+                        nsfw_mode: game.is_nsfw && settings.disable_presence_on_nsfw,
+                        chars_read,
+                        today_playtime: game.today_playtime,
+                    });
+                }
+            }
+        }
+
         Ok(())
     }
 

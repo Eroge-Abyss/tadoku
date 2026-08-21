@@ -9,6 +9,7 @@
   import SettingsButton from '$lib/components/SettingsButton.svelte';
   import { getAvailable } from '$lib/util';
   import { goto } from '$app/navigation';
+  import { sessionStore } from '$lib/stores/session.svelte';
 
   let pinnedGames = $derived.by(() =>
     Object.entries(gamesStore.list)
@@ -40,7 +41,18 @@
 
       {#each pinnedGames as { id, icon, char, title, altTitle } (id)}
         <SidebarButton
-          onclick={() => gamesStore.startGame(id)}
+          active={sessionStore.currentGame?.id === id}
+          onclick={() => {
+            if (sessionStore.currentGame?.id === id) {
+              gamesStore.closeGame();
+            } else {
+              gamesStore.startGame(id);
+            }
+          }}
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            sessionStore.showContextMenu(e.clientX, e.clientY, id, true);
+          }}
           image={icon ? icon : undefined}
           text={icon ? undefined : char}
           tooltip={settingsStore.useJpForTitleTime && altTitle

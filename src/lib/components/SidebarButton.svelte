@@ -6,8 +6,10 @@
     image?: string | null;
     style?: string;
     tooltip: string;
+    active?: boolean;
     children?: Snippet;
     onclick: (_event: MouseEvent) => void;
+    oncontextmenu?: (_event: MouseEvent) => void;
   }
 
   let {
@@ -15,16 +17,18 @@
     image = null,
     style = '',
     tooltip = '',
+    active = false,
     children,
     onclick = () => {},
+    oncontextmenu = () => {},
   }: Props = $props();
 </script>
 
-<div class="sidebar-button-wrapper" {style}>
+<div class="sidebar-button-wrapper" class:active {style}>
   <span id="border"></span>
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div id="btn" {onclick}>
+  <div id="btn" {onclick} {oncontextmenu}>
     <div id="btn__content">
       {#if image}
         <img src={image} alt="game-icon" />
@@ -48,6 +52,7 @@
     align-items: center;
     position: relative;
 
+    &.active #border,
     &:hover #border {
       opacity: 1;
     }

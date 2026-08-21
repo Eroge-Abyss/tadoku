@@ -12,7 +12,7 @@
 
 <style>
   .note {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--secondary-text);
     text-align: left;
     margin: 0;

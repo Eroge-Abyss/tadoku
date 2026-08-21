@@ -86,6 +86,15 @@ impl<'a> GameManager<'a> {
                 Some(pid) => pid,
                 None => {
                     error!("Timeout: couldn't find process for {}", game_id);
+                    if let Err(e) = app_handle.emit(
+                        "game_not_detected",
+                        json!({
+                            "id": game_id,
+                            "title": game.title,
+                        }),
+                    ) {
+                        error!("Error emitting game_not_detected event: {}", e);
+                    }
                     return;
                 }
             };

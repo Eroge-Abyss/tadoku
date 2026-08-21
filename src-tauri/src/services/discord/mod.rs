@@ -28,7 +28,7 @@ pub struct DiscordPresence {
 impl DiscordPresence {
     pub fn new(mode: DiscordPresenceMode) -> Result<Self> {
         info!("Initializing Discord presence with mode: {:?}", mode);
-        let mut client = DiscordIpcClient::new(DISCORD_CLIENT_ID).map_err(|e| anyhow!("{e}"))?;
+        let mut client = DiscordIpcClient::new(DISCORD_CLIENT_ID);
 
         client
             .connect()
@@ -65,27 +65,28 @@ impl DiscordPresence {
             .expect("Time went backwards");
         let unix_timestamp = since_the_epoch.as_secs();
 
-        let assets = if details.nsfw_mode {
-            Assets::new().large_image("app_icon").large_text("Tadoku")
-        } else {
-            Assets::new()
-                .large_image(details.image_url)
-                .large_text(details.title)
-        };
-
-        let buttons = if details.nsfw_mode {
+        let (assets, buttons) = if details.nsfw_mode {
             debug!("NSFW mode is enabled, hiding buttons");
-            vec![]
+            (
+                Assets::new().large_image("app_icon").large_text("Tadoku"),
+                vec![],
+            )
         } else {
             debug!("NSFW mode is disabled, showing details button");
-            vec![Button::new("Game Details", &url)]
+            (
+                Assets::new()
+                    .large_image(details.image_url)
+                    .large_text(details.title),
+                vec![Button::new("Game Details", &url)],
+            )
         };
 
         self.client
             .set_activity(
                 Activity::new()
-                    .state(details.title)
-                    .details("Playing")
+                    .name(details.title)
+                    .details("via Tadoku")
+                    .details_url(env!("CARGO_PKG_REPOSITORY"))
                     .assets(assets)
                     .timestamps(Timestamps::new().start(unix_timestamp as i64))
                     .buttons(buttons),

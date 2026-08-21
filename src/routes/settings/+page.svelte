@@ -301,6 +301,20 @@
         <span class="switch-label">Hide image and VNDB link for NSFW games</span
         >
       </div>
+      <div class="switch-container">
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button
+          class="switch"
+          class:active={settingsStore.showCharsInPresence}
+          onclick={() =>
+            settingsStore.setShowCharsInPresence(
+              !settingsStore.showCharsInPresence,
+            )}
+        >
+          <span class="switch-thumb"></span>
+        </button>
+        <span class="switch-label">Show read characters in Discord status</span>
+      </div>
     </div>
 
     <div class="settings-section">

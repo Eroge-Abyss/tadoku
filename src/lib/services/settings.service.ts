@@ -55,6 +55,14 @@ export async function setDisablePresenceOnNsfw(to: boolean): Promise<void> {
   await invoke('set_nsfw_presence_status', { to });
 }
 
+export async function getShowCharsInPresence(): Promise<boolean> {
+  return invoke('get_show_chars_in_presence');
+}
+
+export async function setShowCharsInPresence(to: boolean): Promise<void> {
+  await invoke('set_show_chars_in_presence', { to });
+}
+
 export async function getPlaytimeMode(): Promise<PlaytimeMode> {
   return invoke('get_playtime_mode');
 }

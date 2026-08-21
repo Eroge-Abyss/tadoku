@@ -49,6 +49,7 @@ pub enum PlaytimeDisplayMode {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
     pub disable_presence_on_nsfw: bool,
+    pub show_chars_in_presence: bool,
     pub playtime_mode: PlaytimeMode,
     pub playtime_display_mode: PlaytimeDisplayMode,
     pub use_jp_for_title_time: bool,
@@ -65,6 +66,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             disable_presence_on_nsfw: true,
+            show_chars_in_presence: true,
             playtime_mode: PlaytimeMode::default(),
             playtime_display_mode: PlaytimeDisplayMode::default(),
             use_jp_for_title_time: false,

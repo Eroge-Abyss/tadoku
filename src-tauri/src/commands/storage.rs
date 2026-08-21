@@ -471,3 +471,23 @@ pub fn set_jiten_base_url(app_handle: AppHandle, url: String) -> CmdResult<()> {
         .context("Failed to update jiten base url")?;
     Ok(())
 }
+
+/// Gets show chars in presence setting
+#[tauri::command]
+pub fn get_show_chars_in_presence(app_handle: AppHandle) -> CmdResult<bool> {
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .show_chars_in_presence)
+}
+
+/// Saves show chars in presence setting to storage
+#[tauri::command]
+pub fn set_show_chars_in_presence(app_handle: AppHandle, to: bool) -> CmdResult<()> {
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
+    lock.update_settings(&app_handle, |s| s.show_chars_in_presence = to)
+        .context("Failed to update show chars in presence")?;
+    Ok(())
+}

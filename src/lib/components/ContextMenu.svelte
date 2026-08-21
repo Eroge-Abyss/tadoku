@@ -7,6 +7,8 @@
   import ConfirmDialog from './ConfirmDialog.svelte';
   import { onMount, tick } from 'svelte';
   import { getPreferredTitle } from '$lib/util';
+  import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
 
   // svelte-ignore non_reactive_update
   let menuRef: HTMLDivElement;
@@ -20,6 +22,8 @@
   const isPlaying = $derived(
     Boolean(sessionStore.currentGame && sessionStore.currentGame.id === gameId),
   );
+
+  const isSidebar = $derived(sessionStore.contextMenu.isSidebar);
 
   const actions = useGameActions(() => game);
 
@@ -122,6 +126,19 @@
       </button>
     {/if}
 
+    {#if isSidebar}
+      <button
+        class="menu-item"
+        onclick={() => {
+          goto(resolve(`/novel/${game.id}`));
+          close();
+        }}
+      >
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        Go to Game Page
+      </button>
+    {/if}
+
     <button
       class="menu-item"
       onclick={async () => {
@@ -137,66 +154,68 @@
       {game.is_pinned ? 'Unpin' : 'Pin'}
     </button>
 
-    <div class="menu-item-with-submenu">
+    {#if !isSidebar}
+      <div class="menu-item-with-submenu">
+        <button
+          class="menu-item"
+          onmouseenter={handleSubmenuOpen}
+          onclick={() => {
+            if (showStatusSubmenu) {
+              showStatusSubmenu = false;
+            } else {
+              handleSubmenuOpen();
+            }
+          }}
+        >
+          <i class="fa-solid fa-tags"></i>
+          Status
+          <i class="fa-solid fa-chevron-right chevron"></i>
+        </button>
+
+        {#if showStatusSubmenu}
+          <div
+            class="status-submenu"
+            class:open-left={openSubmenuLeft}
+            role="menu"
+            tabindex="-1"
+            in:fly={{ x: openSubmenuLeft ? -5 : 5, duration: 150 }}
+            onmouseleave={() => (showStatusSubmenu = false)}
+          >
+            <StatusSelector
+              categories={game.categories}
+              {toggleStatus}
+              clearStatuses={async () => {
+                if (gameId) await gamesStore.setGameCategories(gameId, []);
+              }}
+            />
+          </div>
+        {/if}
+      </div>
+
+      <div class="menu-divider"></div>
+
       <button
         class="menu-item"
-        onmouseenter={handleSubmenuOpen}
-        onclick={() => {
-          if (showStatusSubmenu) {
-            showStatusSubmenu = false;
-          } else {
-            handleSubmenuOpen();
-          }
+        onclick={async () => {
+          await actions.editExe();
+          close();
         }}
       >
-        <i class="fa-solid fa-tags"></i>
-        Status
-        <i class="fa-solid fa-chevron-right chevron"></i>
+        <i class="fa-regular fa-pen-to-square"></i>
+        Edit Executable
       </button>
 
-      {#if showStatusSubmenu}
-        <div
-          class="status-submenu"
-          class:open-left={openSubmenuLeft}
-          role="menu"
-          tabindex="-1"
-          in:fly={{ x: openSubmenuLeft ? -5 : 5, duration: 150 }}
-          onmouseleave={() => (showStatusSubmenu = false)}
-        >
-          <StatusSelector
-            categories={game.categories}
-            {toggleStatus}
-            clearStatuses={async () => {
-              if (gameId) await gamesStore.setGameCategories(gameId, []);
-            }}
-          />
-        </div>
-      {/if}
-    </div>
-
-    <div class="menu-divider"></div>
-
-    <button
-      class="menu-item"
-      onclick={async () => {
-        await actions.editExe();
-        close();
-      }}
-    >
-      <i class="fa-regular fa-pen-to-square"></i>
-      Edit Executable
-    </button>
-
-    <button
-      class="menu-item danger"
-      onclick={async () => {
-        isDeleteDialogOpen = true;
-        close();
-      }}
-    >
-      <i class="fa-regular fa-trash-can"></i>
-      Delete Game
-    </button>
+      <button
+        class="menu-item danger"
+        onclick={async () => {
+          isDeleteDialogOpen = true;
+          close();
+        }}
+      >
+        <i class="fa-regular fa-trash-can"></i>
+        Delete Game
+      </button>
+    {/if}
   </div>
 {/if}
 

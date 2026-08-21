@@ -9,6 +9,7 @@ class SessionStore {
     x: 0,
     y: 0,
     gameId: null as string | null,
+    isSidebar: false,
   });
 
   get currentGame() {
@@ -23,8 +24,8 @@ class SessionStore {
     return this.#contextMenu;
   }
 
-  showContextMenu(x: number, y: number, gameId: string) {
-    this.#contextMenu = { visible: true, x, y, gameId };
+  showContextMenu(x: number, y: number, gameId: string, isSidebar = false) {
+    this.#contextMenu = { visible: true, x, y, gameId, isSidebar };
   }
 
   hideContextMenu() {

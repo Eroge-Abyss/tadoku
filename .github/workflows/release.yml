@@ -10,11 +10,22 @@ jobs:
   publish-tauri:
     permissions:
       contents: write
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest, ubuntu-22.04]
+
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libxdo-dev xdg-utils
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -49,9 +60,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          NO_STRIP: 'true'
         with:
           tagName: ${{ github.ref_name }}
           releaseDraft: true
           prerelease: false
           releaseBody: ${{ steps.get_notes.outputs.notes }}
-          args: ''

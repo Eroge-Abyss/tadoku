@@ -25,72 +25,73 @@ impl ProcessMonitor {
 
             let sync_handler = Self::sync_handler(Arc::clone(&playtime_service));
 
-            loop {
-                let (pid, playtime_mode) = {
-                    let state = app_handle.state::<ManagedState>();
-                    let mut state = state.lock()?;
-                    let game_state = state
-                        .game
-                        .as_mut()
-                        .ok_or(anyhow!("Couldn't find the game"))?;
-                    (game_state.pid, state.settings.playtime_mode)
-                };
+            let res: anyhow::Result<()> = async {
+                let mut interval = tokio::time::interval(Duration::from_secs(1));
+                interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+                interval.tick().await; // skip first immediate tick
 
-                system.refresh_processes_specifics(
-                    ProcessesToUpdate::Some(&[Pid::from_u32(pid)]),
-                    true,
-                    ProcessRefreshKind::everything(),
-                );
+                loop {
+                    interval.tick().await;
 
-                let process_playtime = system.process(Pid::from_u32(pid)).map(|p| p.run_time());
+                    let (pid, playtime_mode) = {
+                        let state = app_handle.state::<ManagedState>();
+                        let mut state = state.lock()?;
+                        let game_state = state
+                            .game
+                            .as_mut()
+                            .ok_or(anyhow!("Couldn't find the game"))?;
+                        (game_state.pid, state.settings.playtime_mode)
+                    };
 
-                match process_playtime {
-                    Some(_) => {
-                        debug!("Sleeping for 1 second");
-                        tokio::time::sleep(Duration::from_secs(1)).await;
+                    system.refresh_processes_specifics(
+                        ProcessesToUpdate::Some(&[Pid::from_u32(pid)]),
+                        true,
+                        ProcessRefreshKind::everything(),
+                    );
 
-                        if !matches!(playtime_mode, PlaytimeMode::Classic) {
-                            debug!("Playtime mode is not Classic, skipping iteration");
-                            continue;
-                        }
+                    let process_playtime = system.process(Pid::from_u32(pid)).map(|p| p.run_time());
 
-                        debug!("Playtime mode is Classic, proceeding with tracking");
-
-                        #[cfg(windows)]
-                        {
-                            if let Ok(active_window) = x_win::get_active_window() {
-                                if active_window.id != pid {
-                                    debug!("Game is not active, pausing playtime");
-                                    playtime_service.pause_time();
-                                    continue;
-                                }
-                            } else {
-                                debug!("Failed to get active window");
+                    match process_playtime {
+                        Some(_) => {
+                            if !matches!(playtime_mode, PlaytimeMode::Classic) {
+                                debug!("Playtime mode is not Classic, skipping tracking logic");
                                 continue;
                             }
+
+                            #[cfg(windows)]
+                            {
+                                if let Ok(active_window) = x_win::get_active_window() {
+                                    if active_window.id != pid {
+                                        playtime_service.pause_time();
+                                        continue;
+                                    }
+                                } else {
+                                    debug!("Failed to get active window");
+                                    continue;
+                                }
+                            }
+
+                            playtime_service.record_time(1);
                         }
-
-                        debug!("Game is active, incrementing playtime");
-
-                        playtime_service.record_time(1);
-                    }
-                    None => {
-                        info!("Game process not found, stopping playtime tracking");
-                        sync_handler.abort();
-                        playtime_service.end_session();
-                        break;
+                        None => {
+                            info!("Game process not found, stopping playtime tracking");
+                            playtime_service.end_session();
+                            break;
+                        }
                     }
                 }
+                Ok(())
             }
+            .await;
 
-            anyhow::Ok(())
+            sync_handler.abort();
+            res
         });
     }
 
     fn sync_handler(playtime_service: Arc<PlaytimeService>) -> JoinHandle<()> {
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(Duration::from_secs(60));
-            // First tick completes immediately, skip
             interval.tick().await;
 
             loop {

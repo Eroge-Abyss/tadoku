@@ -1,9 +1,7 @@
-use crate::services::state::ManagedState;
 use crate::services::discord::DiscordPresence;
+use crate::services::state::ManagedState;
 use log::{debug, error, info, warn};
 use tauri::{AppHandle, Manager};
-
-
 
 pub fn initialize(app_handle: &AppHandle) -> tauri::Result<()> {
     info!("Initializing Discord presence");

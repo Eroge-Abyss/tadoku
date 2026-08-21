@@ -91,10 +91,10 @@ impl<'a> GameSaver<'a> {
         &self,
         game_id: &str,
         mut game: Game,
-        image_path: Option<String>,
+        _image_path: Option<String>,
     ) -> Result<Game> {
         #[cfg(windows)]
-        if let Some(ref saved_path) = image_path {
+        if let Some(ref saved_path) = _image_path {
             debug!("Extracting and saving icon for game {}", game_id);
             let icon = windows_icons::get_icon_by_path(&game.exe_file_path);
             let icon_path = format!("{}.icon.png", saved_path);

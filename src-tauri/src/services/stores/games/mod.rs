@@ -141,28 +141,37 @@ impl GamesStore {
         serde_json::from_value::<Game>(game_val.clone()).ok()
     }
 
-    /// Logic-heavy helpers that benefit from being in the store layer
-    pub fn update_playtime(&self, game_id: &str, playtime: u64) -> Result<()> {
+    pub fn sync_game_session(
+        &self,
+        game_id: &str,
+        delta_playtime: u64,
+        chars_read: Option<u64>,
+        set_last_played: bool,
+    ) -> Result<()> {
         self.update_game(game_id, |game| {
-            game.playtime += playtime;
-            let current_date = Local::now().format("%Y-%m-%d").to_string();
+            if delta_playtime > 0 {
+                game.playtime += delta_playtime;
+                let current_date = Local::now().format("%Y-%m-%d").to_string();
 
-            if game.last_play_date.as_ref() != Some(&current_date) {
-                game.today_playtime = playtime;
-                game.last_play_date = Some(current_date);
-            } else {
-                game.today_playtime += playtime;
+                if game.last_play_date.as_ref() != Some(&current_date) {
+                    game.today_playtime = delta_playtime;
+                    game.last_play_date = Some(current_date);
+                } else {
+                    game.today_playtime += delta_playtime;
+                }
             }
-        })
-    }
 
-    pub fn update_last_played(&self, game_id: &str) -> Result<()> {
-        self.update_game(game_id, |game| {
-            let start = time::SystemTime::now();
-            let since_the_epoch = start
-                .duration_since(time::UNIX_EPOCH)
-                .expect("Time went backwards");
-            game.last_played = Some(since_the_epoch.as_secs());
+            if let Some(chars) = chars_read {
+                game.chars_read = chars;
+            }
+
+            if set_last_played {
+                let start = time::SystemTime::now();
+                let since_the_epoch = start
+                    .duration_since(time::UNIX_EPOCH)
+                    .expect("Time went backwards");
+                game.last_played = Some(since_the_epoch.as_secs());
+            }
         })
     }
 

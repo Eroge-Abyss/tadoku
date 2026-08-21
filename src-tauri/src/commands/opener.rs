@@ -28,6 +28,6 @@ pub fn get_active_windows() -> CmdResult<Vec<ActiveWindow>> {
 pub fn close_game(app_handle: AppHandle) -> CmdResult<()> {
     GameManager::new(&app_handle)
         .close()
-        .context("Failed to open game")?;
+        .context("Failed to close game")?;
     Ok(())
 }

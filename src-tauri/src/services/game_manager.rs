@@ -121,6 +121,7 @@ impl<'a> GameManager<'a> {
         state.game = Some(GameState {
             pid: pid.as_u32(),
             id: game_id.to_string(),
+            chars_read: game.chars_read,
             ..Default::default()
         });
 
@@ -131,12 +132,14 @@ impl<'a> GameManager<'a> {
                 Fetchable::Available(alt) if settings.use_jp_for_title_time => alt.clone(),
                 _ => game.title.clone(),
             };
-            let _ = pres.set_presence(DiscordGameDetails::new(
-                game_id,
-                &title,
-                &game.image_url,
-                game.is_nsfw && settings.disable_presence_on_nsfw,
-            ));
+            let _ = pres.set_presence(DiscordGameDetails {
+                id: game_id.to_string(),
+                title,
+                image_url: game.image_url.clone(),
+                nsfw_mode: game.is_nsfw && settings.disable_presence_on_nsfw,
+                chars_read: game.chars_read,
+                today_playtime: game.today_playtime,
+            });
         }
     }
 
@@ -149,7 +152,7 @@ impl<'a> GameManager<'a> {
             }
         };
 
-        playtime::ClassicPlaytime::spawn(app_handle);
+        playtime::ProcessMonitor::spawn(app_handle);
 
         if let Err(e) = store.set_first_played(game_id) {
             error!("Error setting first played for {}: {}", game_id, e);

@@ -90,7 +90,7 @@ impl DiscordPresence {
             .buttons(buttons);
 
         let state_text;
-        if details.chars_read > 0 {
+        if details.show_chars && details.chars_read > 0 {
             state_text = format!("{} chars read", Self::format_number(details.chars_read));
             activity = activity.state(&state_text);
         }

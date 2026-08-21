@@ -86,6 +86,15 @@ impl<'a> GameManager<'a> {
                 Some(pid) => pid,
                 None => {
                     error!("Timeout: couldn't find process for {}", game_id);
+                    if let Err(e) = app_handle.emit(
+                        "game_not_detected",
+                        json!({
+                            "id": game_id,
+                            "title": game.title,
+                        }),
+                    ) {
+                        error!("Error emitting game_not_detected event: {}", e);
+                    }
                     return;
                 }
             };
@@ -137,6 +146,7 @@ impl<'a> GameManager<'a> {
                 title,
                 image_url: game.image_url.clone(),
                 nsfw_mode: game.is_nsfw && settings.disable_presence_on_nsfw,
+                show_chars: settings.show_chars_in_presence,
                 chars_read: game.chars_read,
                 today_playtime: game.today_playtime,
             });

@@ -157,6 +157,7 @@ impl PlaytimeService {
                         title,
                         image_url: game.image_url,
                         nsfw_mode: game.is_nsfw && settings.disable_presence_on_nsfw,
+                        show_chars: settings.show_chars_in_presence,
                         chars_read,
                         today_playtime: game.today_playtime,
                     });

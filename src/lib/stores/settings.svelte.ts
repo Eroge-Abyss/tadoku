@@ -21,6 +21,7 @@ class SettingsStore {
   #blurNsfwImages: boolean = $state(true);
   #sortOrder: SortOrder | null = $state(null);
   #disablePresenceOnNsfw: boolean = $state(true);
+  #showCharsInPresence: boolean = $state(true);
   #selectedCategories: string[] = $state([]);
   #categories: string[] = $state([]);
 
@@ -36,6 +37,7 @@ class SettingsStore {
       blurNsfw,
       sortOrder,
       disablePresenceOnNsfw,
+      showCharsInPresence,
       selectedCategories,
       categories,
     ] = await Promise.all([
@@ -49,6 +51,7 @@ class SettingsStore {
       settingsService.getBlurNsfwImages(),
       settingsService.getSortOrder(),
       settingsService.getDisablePresenceOnNsfw(),
+      settingsService.getShowCharsInPresence(),
       settingsService.getSelectedCategories(),
       settingsService.getCategories(),
     ]);
@@ -63,6 +66,7 @@ class SettingsStore {
     this.#blurNsfwImages = blurNsfw;
     this.#sortOrder = sortOrder;
     this.#disablePresenceOnNsfw = disablePresenceOnNsfw;
+    this.#showCharsInPresence = showCharsInPresence;
     this.#selectedCategories = selectedCategories;
     this.#categories = categories;
 
@@ -222,6 +226,20 @@ class SettingsStore {
     } catch (error) {
       console.error('Failed to set disable presence on NSFW:', error);
       toast.error(`Failed to set disable presence on NSFW: ${error}`);
+      throw error;
+    }
+  }
+
+  get showCharsInPresence(): boolean {
+    return this.#showCharsInPresence;
+  }
+  async setShowCharsInPresence(show: boolean): Promise<void> {
+    try {
+      this.#showCharsInPresence = show;
+      await settingsService.setShowCharsInPresence(show);
+    } catch (error) {
+      console.error('Failed to set show chars in presence:', error);
+      toast.error(`Failed to set show chars in presence: ${error}`);
       throw error;
     }
   }

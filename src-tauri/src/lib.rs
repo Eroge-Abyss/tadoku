@@ -93,6 +93,8 @@ pub fn run() {
             commands::storage::set_blur_nsfw_images,
             commands::storage::get_jiten_base_url,
             commands::storage::set_jiten_base_url,
+            commands::storage::get_show_chars_in_presence,
+            commands::storage::set_show_chars_in_presence,
             commands::opener::open_game,
             commands::opener::close_game,
             commands::opener::get_active_windows

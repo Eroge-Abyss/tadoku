@@ -8,7 +8,7 @@
   import UpdateDialog from '$lib/components/UpdateDialog.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import ContextMenu from '$lib/components/ContextMenu.svelte';
-  import { Toaster } from 'svelte-sonner';
+  import { Toaster, toast } from 'svelte-sonner';
   import { gamesStore } from '$lib/stores/games.svelte';
   import { settingsStore } from '$lib/stores/settings.svelte';
   import { sessionStore } from '$lib/stores/session.svelte';
@@ -31,24 +31,38 @@
 
   let unlistenCurrentGame: (() => void) | undefined;
   let unlistenStatsSynced: (() => void) | undefined;
+  let unlistenGameNotDetected: (() => void) | undefined;
 
   onMount(async () => {
     window.addEventListener('keydown', handleKeydown);
     await Promise.all([settingsStore.init(), gamesStore.init()]);
 
-    unlistenCurrentGame = await listen('current_game', (e: Event<CurrentGame | null>) => {
-      sessionStore.set(e.payload);
-    });
+    unlistenCurrentGame = await listen(
+      'current_game',
+      (e: Event<CurrentGame | null>) => {
+        sessionStore.set(e.payload);
+      },
+    );
 
     unlistenStatsSynced = await listen('stats_synced', () => {
       gamesStore.refresh();
     });
+
+    unlistenGameNotDetected = await listen(
+      'game_not_detected',
+      (e: Event<{ id: string; title: string }>) => {
+        toast.error(`Game isn't detected: ${e.payload.title}`, {
+          duration: Number.POSITIVE_INFINITY,
+        });
+      },
+    );
   });
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeydown);
     if (unlistenCurrentGame) unlistenCurrentGame();
     if (unlistenStatsSynced) unlistenStatsSynced();
+    if (unlistenGameNotDetected) unlistenGameNotDetected();
     sessionStore.destroy();
   });
 </script>

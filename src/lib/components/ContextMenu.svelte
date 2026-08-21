@@ -17,6 +17,9 @@
 
   const gameId = $derived(sessionStore.contextMenu.gameId);
   const game = $derived(gameId ? gamesStore.getById(gameId) : undefined);
+  const isPlaying = $derived(
+    Boolean(sessionStore.currentGame && sessionStore.currentGame.id === gameId),
+  );
 
   const actions = useGameActions(() => game);
 
@@ -95,16 +98,29 @@
 
     <div class="menu-divider"></div>
 
-    <button
-      class="menu-item"
-      onclick={async () => {
-        await actions.startGame();
-        close();
-      }}
-    >
-      <i class="fa-solid fa-play"></i>
-      Start Game
-    </button>
+    {#if isPlaying}
+      <button
+        class="menu-item"
+        onclick={async () => {
+          await actions.stopGame();
+          close();
+        }}
+      >
+        <i class="fa-solid fa-stop"></i>
+        Close Game
+      </button>
+    {:else}
+      <button
+        class="menu-item"
+        onclick={async () => {
+          await actions.startGame();
+          close();
+        }}
+      >
+        <i class="fa-solid fa-play"></i>
+        Start Game
+      </button>
+    {/if}
 
     <button
       class="menu-item"

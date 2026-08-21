@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.11.0 (2026-08-21)
+
+## What's Changed
+* feat(presence): use currently playing game name as app title and improve playtime counters by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/191
+* feat(ui): add context menu to pinned games  by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/193
+* feat: show a persistent toast when game is not detected by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/194
+* chore(cd): add deb and appimage versions by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/195
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.10.5...app-v1.11.0
+
 ## 1.10.5 (2026-07-14)
 
 **Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.10.4...app-v1.10.5

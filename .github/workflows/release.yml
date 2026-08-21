@@ -62,7 +62,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           NO_STRIP: 'true'
         with:
-          tagName: ${{ github.ref_name }}
+          tagName: ${{ steps.release.outputs.tag_name }}
           releaseDraft: true
           prerelease: false
           releaseBody: ${{ steps.get_notes.outputs.notes }}

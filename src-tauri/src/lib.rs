@@ -15,7 +15,7 @@ struct ShutdownToken(CancellationToken);
 fn setup_app(app: &AppHandle) -> anyhow::Result<()> {
     let token = app.state::<ShutdownToken>().0.clone();
     setup::run(app)?;
-    playtime::ExStaticPlaytime::spawn(app, token);
+    playtime::ExStaticPlaytime::spawn(app, token)?;
     Ok(())
 }
 
@@ -105,6 +105,13 @@ pub fn run() {
             info!("Exit requested, signaling shutdown.");
             let token = app_handle.state::<ShutdownToken>().0.clone();
             token.cancel();
+
+            // End active game session to flush remaining playtime/characters
+            if let Ok(store) = services::stores::games::GamesStore::new(app_handle) {
+                let service = services::playtime::PlaytimeService::new(app_handle.clone(), store);
+                service.end_session();
+            }
+
             // Give tasks a moment to shut down before the app forcefully closes.
             std::thread::sleep(std::time::Duration::from_millis(500));
         }

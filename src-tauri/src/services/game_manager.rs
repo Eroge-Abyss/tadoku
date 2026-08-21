@@ -121,6 +121,7 @@ impl<'a> GameManager<'a> {
         state.game = Some(GameState {
             pid: pid.as_u32(),
             id: game_id.to_string(),
+            chars_read: game.chars_read,
             ..Default::default()
         });
 
@@ -149,7 +150,7 @@ impl<'a> GameManager<'a> {
             }
         };
 
-        playtime::ClassicPlaytime::spawn(app_handle);
+        playtime::ProcessMonitor::spawn(app_handle);
 
         if let Err(e) = store.set_first_played(game_id) {
             error!("Error setting first played for {}: {}", game_id, e);

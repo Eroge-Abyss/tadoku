@@ -13,6 +13,8 @@ pub struct GameState {
     pub id: String,
     pub pid: u32,
     pub current_playtime: u64,
+    pub unflushed_seconds: u64,
+    pub chars_read: u64,
 }
 
 #[derive(Default)]

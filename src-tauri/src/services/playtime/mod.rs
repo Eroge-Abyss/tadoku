@@ -132,6 +132,10 @@ impl PlaytimeService {
         if unflushed_seconds > 0 || chars_read > 0 {
             self.store
                 .sync_game_session(&game_id, unflushed_seconds, Some(chars_read), false)?;
+
+            if let Err(e) = self.app_handle.emit("stats_synced", ()) {
+                error!("Error emitting stats_synced event: {}", e);
+            }
         }
 
         Ok(())
@@ -166,6 +170,8 @@ impl PlaytimeService {
                 .sync_game_session(&game_id, unflushed_seconds, Some(chars_read), true)
         {
             error!("Error saving session on exit: {}", e);
+        } else if let Err(e) = self.app_handle.emit("stats_synced", ()) {
+            error!("Error emitting stats_synced event: {}", e);
         }
 
         if let Err(e) = self

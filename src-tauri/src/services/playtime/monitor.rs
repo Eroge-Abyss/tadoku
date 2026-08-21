@@ -98,6 +98,7 @@ impl ProcessMonitor {
                 if let Err(e) = playtime_service.flush() {
                     error!("Error during periodic playtime flush: {}", e);
                 }
+                debug!("Flushed updated state to disk")
             }
         })
     }

@@ -29,17 +29,26 @@
     }
   }
 
+  let unlistenCurrentGame: (() => void) | undefined;
+  let unlistenStatsSynced: (() => void) | undefined;
+
   onMount(async () => {
     window.addEventListener('keydown', handleKeydown);
     await Promise.all([settingsStore.init(), gamesStore.init()]);
 
-    listen('current_game', (e: Event<CurrentGame | null>) => {
+    unlistenCurrentGame = await listen('current_game', (e: Event<CurrentGame | null>) => {
       sessionStore.set(e.payload);
+    });
+
+    unlistenStatsSynced = await listen('stats_synced', () => {
+      gamesStore.refresh();
     });
   });
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeydown);
+    if (unlistenCurrentGame) unlistenCurrentGame();
+    if (unlistenStatsSynced) unlistenStatsSynced();
     sessionStore.destroy();
   });
 </script>

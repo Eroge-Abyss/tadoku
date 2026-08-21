@@ -4,7 +4,6 @@ import type { CurrentGame } from '$lib/types';
 class SessionStore {
   #currentGame: CurrentGame | null = $state(null);
   #currentPlaytime: number = $state(0);
-  #refreshInterval: ReturnType<typeof setInterval> | undefined;
   #contextMenu = $state({
     visible: false,
     x: 0,
@@ -35,10 +34,6 @@ class SessionStore {
   set(game: CurrentGame | null): void {
     this.#currentGame = game;
     this.#currentPlaytime = 0;
-    clearInterval(this.#refreshInterval);
-    if (game) {
-      this.#refreshInterval = setInterval(() => gamesStore.refresh(), 60_000);
-    }
     gamesStore.refresh();
   }
 

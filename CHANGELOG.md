@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.11.2 (2026-08-22)
+
+## What's Changed
+* fix(exstatic): process detection on linux by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/200
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.11.1...app-v1.11.2
+
 ## 1.11.1 (2026-08-22)
 
 ## What's Changed

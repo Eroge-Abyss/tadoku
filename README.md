@@ -93,9 +93,9 @@ Whether you're a Japanese language learner using visual novels for immersion or 
 
 ### Platform Support
 
-- **Windows**: Full native support with all features
-- **Linux**: Basic support (requires building from source)
-- **Cross-platform Data**: Portable configuration and database files
+- **Windows**: Full native support (Windows 10/11) with NSIS installer.
+- **Linux**: Native support with **AppImage** and **DEB** packages. Includes Wine/Proton compatibility for tracking Windows visual novels and text hooker integrations.
+- **Cross-platform Data**: Portable configuration and database files.
 
 ---
 
@@ -113,19 +113,44 @@ For developers:
 - **Rust**: Install from [rustup.rs](https://rustup.rs/)
 - **Bun**: Install from [bun.sh](https://bun.sh/)
 - **Node.js**: Version 18+ (if not using Bun)
+- **Linux System Dependencies** (if building on Linux):
+  - **Ubuntu / Debian**:
+    ```bash
+    sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libxdo-dev xdg-utils
+    ```
+  - **Arch Linux**:
+    ```bash
+    sudo pacman -S webkit2gtk-4.1 libappindicator-gtk3 librsvg patchelf xdotool xdg-utils
+    ```
+  - **Fedora**:
+    ```bash
+    sudo dnf install webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel patchelf libxdo-devel xdg-utils
+    ```
 
 ### Download & Install
 
 #### Windows
 
 1. Visit the [Releases page](https://github.com/Eroge-Abyss/tadoku/releases)
-2. Download the latest `.exe` installer
+2. Download the latest `.exe` installer (`Tadoku_x.x.x_x64-setup.exe`)
 3. Run the installer and follow the setup wizard
 4. Launch Tadoku from the Start menu or desktop shortcut
 
 #### Linux
 
-Currently, Linux users need to build from source. Pre-built binaries may be available in future releases.
+Pre-built packages are available on the [Releases page](https://github.com/Eroge-Abyss/tadoku/releases):
+
+- **AppImage (Universal)**:
+  ```bash
+  # Make executable and run
+  chmod +x Tadoku_*.AppImage
+  ./Tadoku_*.AppImage
+  ```
+
+- **Debian / Ubuntu (`.deb`)**:
+  ```bash
+  sudo apt install ./Tadoku_*_amd64.deb
+  ```
 
 ### Building from Source
 
@@ -136,7 +161,7 @@ Currently, Linux users need to build from source. Pre-built binaries may be avai
    cd tadoku
    ```
 
-2. **Install dependencies**:
+2. **Install frontend dependencies**:
 
    ```bash
    bun install
@@ -175,14 +200,17 @@ Currently, Linux users need to build from source. Pre-built binaries may be avai
 
 Tadoku offers two playtime tracking modes:
 
-- **Classic Tracking**: Monitors active game windows automatically
-- **ExStatic Integration**: Enhanced accuracy for Japanese learners
+- **Classic Tracking**: Monitors active game processes automatically.
+- **ExStatic Integration**: Enhanced accuracy for Japanese learners using text hookers.
 
 **To start tracking**:
 
 1. Launch a game from your library
 2. Tadoku automatically detects when the game is running
 3. View accumulated playtime in the game details
+
+> [!TIP]
+> **Linux & Wine / Proton**: Tadoku natively tracks Windows games running via Wine, Proton, Lutris, or Bottles by monitoring the underlying game process (`wine-preloader` / `wine64-preloader`).
 
 ### Managing Your Library
 
@@ -198,11 +226,12 @@ Tadoku offers two playtime tracking modes:
 
 ### ExStatic Integration
 
-For Japanese learners using text hooker tools:
+For Japanese learners using text hooker tools (such as Textractor):
 
 1. **Install ExStatic Fork**: Use the [custom Tadoku-compatible version](https://github.com/kofta999/exSTATic)
 2. **Configure Settings**: Change playtime recording mode to ExStatic in Tadoku settings
-3. **Enhanced Tracking**: Get more accurate playtime based on actual text reading
+3. **Enhanced Tracking**: Get more accurate playtime and character read counts based on actual text reading.
+4. **Linux Compatibility**: Textractor running under Wine will automatically route character and playtime data to Tadoku over local WebSocket (`127.0.0.1:6969`).
 
 ---
 

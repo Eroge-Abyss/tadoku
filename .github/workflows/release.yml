@@ -26,6 +26,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libxdo-dev xdg-utils
+          curl -Lo /tmp/appimagetool https://github.com/AppImage/appimagetool/releases/latest/download/appimagetool-x86_64.AppImage
+          chmod +x /tmp/appimagetool
+          sudo mv /tmp/appimagetool /usr/local/bin/appimagetool
+          # appimagetool itself is an AppImage; extract it so it runs
+          # without FUSE, which GitHub runners don't have.
+          cd /usr/local/bin && sudo /usr/local/bin/appimagetool --appimage-extract > /dev/null
+          sudo mv squashfs-root /usr/local/appimagetool-squashfs-root
+          sudo ln -sf /usr/local/appimagetool-squashfs-root/AppRun /usr/local/bin/appimagetool
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -62,7 +70,16 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           NO_STRIP: 'true'
         with:
-          tagName: ${{ steps.release.outputs.tag_name }}
+          tagName: ${{ github.ref_name }}
           releaseDraft: true
           prerelease: false
           releaseBody: ${{ steps.get_notes.outputs.notes }}
+
+      - name: Patch AppImage for Wayland EGL compatibility (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APPIMAGE_PATH="$(find src-tauri/target/release/bundle/appimage -name '*.AppImage' | head -n1)"
+          bash scripts/patch-appimage-wayland.sh "$APPIMAGE_PATH"
+          gh release upload "${{ github.ref_name }}" "$APPIMAGE_PATH" --clobber

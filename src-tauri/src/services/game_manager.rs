@@ -130,6 +130,7 @@ impl<'a> GameManager<'a> {
         state.game = Some(GameState {
             pid: pid.as_u32(),
             id: game_id.to_string(),
+            process_file_path: game.process_file_path.clone(),
             chars_read: game.chars_read,
             ..Default::default()
         });

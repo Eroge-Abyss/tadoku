@@ -6,7 +6,7 @@ pub struct CommandError(pub anyhow::Error);
 
 impl Display for CommandError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", &format!("{:#}", self.0))
+        write!(f, "{:#}", self.0)
     }
 }
 

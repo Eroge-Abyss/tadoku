@@ -150,25 +150,17 @@ impl ExStaticPlaytime {
     fn handle(&self, data: ExStaticData) -> Result<()> {
         debug!("Handling ExStatic data: {:?}", data);
 
-        let (is_exstatic, game_pid, game_id) = {
-            let managed = self.app_handle.state::<ManagedState>();
-            let state = managed
-                .lock()
-                .map_err(|e| anyhow::anyhow!("Error acquiring mutex lock: {}", e))?;
+        let managed = self.app_handle.state::<ManagedState>();
+        let mut state = managed
+            .lock()
+            .map_err(|e| anyhow::anyhow!("Error acquiring mutex lock: {}", e))?;
 
-            (
-                matches!(&state.settings.playtime_mode, PlaytimeMode::ExStatic),
-                state.game.as_ref().map(|g| g.pid),
-                state.game.as_ref().map(|g| g.id.clone()),
-            )
-        };
-
-        if !is_exstatic {
+        if !matches!(&state.settings.playtime_mode, PlaytimeMode::ExStatic) {
             debug!("PlaytimeMode is not ExStatic, ignoring data");
             return Ok(());
         }
 
-        let Some(active_pid) = game_pid else {
+        let Some(ref mut game_state) = state.game else {
             debug!("No game running, ignoring data");
             return Ok(());
         };
@@ -178,14 +170,26 @@ impl ExStaticPlaytime {
             return Ok(());
         };
 
-        if matched_pid.as_u32() != active_pid {
-            warn!(
-                "PID mismatch: data PID {} != game PID {}",
-                matched_pid.as_u32(),
-                active_pid
-            );
-            return Ok(());
+        if matched_pid.as_u32() != game_state.pid {
+            if game_state.matches_path(&data.process_path) {
+                debug!(
+                    "Updating active game PID from {} to {} based on process path match",
+                    game_state.pid,
+                    matched_pid.as_u32()
+                );
+                game_state.pid = matched_pid.as_u32();
+            } else {
+                warn!(
+                    "PID mismatch: data PID {} != game PID {}",
+                    matched_pid.as_u32(),
+                    game_state.pid
+                );
+                return Ok(());
+            }
         }
+
+        let game_id = game_state.id.clone();
+        drop(state);
 
         let time = data.time.round() as u64;
         if time > 0 {
@@ -193,9 +197,7 @@ impl ExStaticPlaytime {
         }
 
         if let Some(chars_read) = data.chars_read {
-            if let Some(id) = game_id {
-                debug!("Updating chars_read for game {} to {}", id, chars_read);
-            }
+            debug!("Updating chars_read for game {} to {}", game_id, chars_read);
             self.playtime_service.record_chars_read(chars_read);
         }
 

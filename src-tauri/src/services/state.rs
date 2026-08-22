@@ -12,9 +12,34 @@ use tauri::AppHandle;
 pub struct GameState {
     pub id: String,
     pub pid: u32,
+    pub process_file_path: String,
     pub current_playtime: u64,
     pub unflushed_seconds: u64,
     pub chars_read: u64,
+}
+
+impl GameState {
+    pub fn matches_path(&self, incoming: &str) -> bool {
+        if incoming.trim().is_empty() || self.process_file_path.trim().is_empty() {
+            return false;
+        }
+
+        #[cfg(windows)]
+        {
+            self.process_file_path.eq_ignore_ascii_case(incoming)
+        }
+
+        #[cfg(not(windows))]
+        {
+            use crate::services::system::SystemService;
+            let norm_incoming = SystemService::normalize_wine_path(incoming).to_lowercase();
+            let norm_configured =
+                SystemService::normalize_wine_path(&self.process_file_path).to_lowercase();
+            norm_incoming == norm_configured
+                || norm_configured.contains(&norm_incoming)
+                || norm_incoming.contains(&norm_configured)
+        }
+    }
 }
 
 #[derive(Default)]

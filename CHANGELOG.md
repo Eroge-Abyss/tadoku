@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.11.1 (2026-08-22)
+
+## What's Changed
+* chore: set new releases to draft by default by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/196
+* fix(store): backup old json if its corrupt and fix path normalization on linux by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/198
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.11.0...app-v1.11.1
+
 ## 1.11.0 (2026-08-21)
 
 ## What's Changed

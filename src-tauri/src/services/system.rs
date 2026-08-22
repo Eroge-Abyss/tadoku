@@ -51,6 +51,26 @@ impl SystemService {
         }
     }
 
+    /// Normalizes a Windows-style path (as reported by WinAPI calls like
+    /// QueryFullProcessImageNameW when running under Wine, e.g.
+    /// "Z:\run\media\myhdd\mygame\game.exe") into the Unix-style path it
+    /// actually corresponds to on disk (e.g. "/run/media/myhdd/mygame/game.exe").
+    ///
+    /// Wine's default prefix maps the Z: drive directly to the Unix root "/",
+    /// so a leading single-letter-colon drive prefix is stripped and all
+    /// backslashes are converted to forward slashes. Paths that don't match
+    /// the Windows drive-letter pattern are returned unchanged (already Unix
+    /// paths, or on Windows where no normalization is needed).
+    #[cfg(not(windows))]
+    fn normalize_wine_path(path: &str) -> String {
+        let stripped = path
+            .strip_prefix(|c: char| c.is_ascii_alphabetic())
+            .and_then(|s| s.strip_prefix(':'))
+            .filter(|_| path.chars().nth(1) == Some(':'))
+            .unwrap_or(path);
+        stripped.replace('\\', "/")
+    }
+
     /// Gets the PID of a saved game's process file path
     pub fn get_pid_from_process_path(process_file_path: &str) -> Option<Pid> {
         let s = System::new_with_specifics(
@@ -65,6 +85,7 @@ impl SystemService {
 
                 #[cfg(not(windows))]
                 {
+                    let normalized_needle = Self::normalize_wine_path(process_file_path);
                     let normalized_path = process
                         .cmd()
                         .iter()
@@ -73,7 +94,7 @@ impl SystemService {
                         .join(" ")
                         .replace("\\", "/");
 
-                    if normalized_path.contains(process_file_path) {
+                    if normalized_path.contains(&normalized_needle) {
                         return Some(process.pid());
                     }
                 }

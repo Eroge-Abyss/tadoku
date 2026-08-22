@@ -6,7 +6,6 @@
       "component": "app",
       "package-name": "tadoku",
       "changelog-type": "github",
-      "draft": true,
       "extra-files": [
         "package.json",
         {

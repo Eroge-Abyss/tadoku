@@ -33,14 +33,18 @@ impl ProcessMonitor {
                 loop {
                     interval.tick().await;
 
-                    let (pid, playtime_mode) = {
+                    let (pid, process_path, playtime_mode) = {
                         let state = app_handle.state::<ManagedState>();
                         let mut state = state.lock()?;
                         let game_state = state
                             .game
                             .as_mut()
                             .ok_or(anyhow!("Couldn't find the game"))?;
-                        (game_state.pid, state.settings.playtime_mode)
+                        (
+                            game_state.pid,
+                            game_state.process_file_path.clone(),
+                            state.settings.playtime_mode,
+                        )
                     };
 
                     system.refresh_processes_specifics(
@@ -49,36 +53,52 @@ impl ProcessMonitor {
                         ProcessRefreshKind::everything(),
                     );
 
-                    let process_playtime = system.process(Pid::from_u32(pid)).map(|p| p.run_time());
+                    let process_exists = system.process(Pid::from_u32(pid)).is_some();
 
-                    match process_playtime {
-                        Some(_) => {
-                            if !matches!(playtime_mode, PlaytimeMode::Classic) {
-                                debug!("Playtime mode is not Classic, skipping tracking logic");
-                                continue;
-                            }
-
-                            #[cfg(windows)]
-                            {
-                                if let Ok(active_window) = x_win::get_active_window() {
-                                    if active_window.id != pid {
-                                        playtime_service.pause_time();
-                                        continue;
-                                    }
-                                } else {
-                                    debug!("Failed to get active window");
-                                    continue;
+                    if !process_exists {
+                        // Check if a child / preloader process is running under the configured path
+                        let new_pid =
+                            crate::services::system::SystemService::get_pid_from_process_path(
+                                &process_path,
+                            );
+                        if let Some(new_pid) = new_pid.filter(|p| p.as_u32() != pid) {
+                            debug!(
+                                "Classic monitor: PID changed from {} to {}",
+                                pid,
+                                new_pid.as_u32()
+                            );
+                            if let Ok(mut state) = app_handle.state::<ManagedState>().lock() {
+                                if let Some(ref mut game_state) = state.game {
+                                    game_state.pid = new_pid.as_u32();
                                 }
                             }
-
-                            playtime_service.record_time(1);
+                            continue;
                         }
-                        None => {
-                            info!("Game process not found, stopping playtime tracking");
-                            playtime_service.end_session();
-                            break;
+
+                        info!("Game process not found, stopping playtime tracking");
+                        playtime_service.end_session();
+                        break;
+                    }
+
+                    if !matches!(playtime_mode, PlaytimeMode::Classic) {
+                        debug!("Playtime mode is not Classic, skipping tracking logic");
+                        continue;
+                    }
+
+                    #[cfg(windows)]
+                    {
+                        if let Ok(active_window) = x_win::get_active_window() {
+                            if active_window.id != pid {
+                                playtime_service.pause_time();
+                                continue;
+                            }
+                        } else {
+                            debug!("Failed to get active window");
+                            continue;
                         }
                     }
+
+                    playtime_service.record_time(1);
                 }
                 Ok(())
             }

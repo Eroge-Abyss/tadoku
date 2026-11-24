@@ -124,3 +124,10 @@ export async function getCategories(): Promise<string[]> {
 export async function setCategories(categories: string[]): Promise<void> {
   invoke('set_categories', { categories });
 }
+
+export async function getMinimizeToTrayOnClose(): Promise<boolean> {
+  return invoke('get_minimize_to_tray_on_close');
+}
+export async function setMinimizeToTrayOnClose(to: boolean): Promise<void> {
+  invoke('set_minimize_to_tray_on_close', { to });
+}

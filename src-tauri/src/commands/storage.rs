@@ -491,3 +491,23 @@ pub fn set_show_chars_in_presence(app_handle: AppHandle, to: bool) -> CmdResult<
         .context("Failed to update show chars in presence")?;
     Ok(())
 }
+
+/// Gets minimize to tray on close setting
+#[tauri::command]
+pub fn get_minimize_to_tray_on_close(app_handle: AppHandle) -> CmdResult<bool> {
+    Ok(app_handle
+        .state::<ManagedState>()
+        .lock()?
+        .settings
+        .minimize_to_tray_on_close)
+}
+
+/// Saves minimize to tray on close setting to storage
+#[tauri::command]
+pub fn set_minimize_to_tray_on_close(app_handle: AppHandle, to: bool) -> CmdResult<()> {
+    let state = app_handle.state::<ManagedState>();
+    let mut lock = state.lock()?;
+    lock.update_settings(&app_handle, |s| s.minimize_to_tray_on_close = to)
+        .context("Failed to update minimize to tray on close")?;
+    Ok(())
+}

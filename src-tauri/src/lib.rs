@@ -28,6 +28,13 @@ pub fn run() {
     };
 
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_os::init())
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -54,6 +61,20 @@ pub fn run() {
             }
             info!("Tadoku application setup completed successfully");
             Ok(())
+        })
+        // Used to force hiding on close, so the tray is usable
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                let app = window.app_handle();
+                let settings = app.state::<services::state::ManagedState>();
+                if let Ok(guard) = settings.lock() {
+                    let minimize_to_tray = guard.settings.minimize_to_tray_on_close;
+                    if minimize_to_tray {
+                        api.prevent_close();
+                        let _ = window.hide();
+                    }
+                }
+            }
         })
         .invoke_handler(tauri::generate_handler![
             commands::vndb::fetch_vn_info,
@@ -95,6 +116,8 @@ pub fn run() {
             commands::storage::set_jiten_base_url,
             commands::storage::get_show_chars_in_presence,
             commands::storage::set_show_chars_in_presence,
+            commands::storage::get_minimize_to_tray_on_close,
+            commands::storage::set_minimize_to_tray_on_close,
             commands::opener::open_game,
             commands::opener::close_game,
             commands::opener::get_active_windows

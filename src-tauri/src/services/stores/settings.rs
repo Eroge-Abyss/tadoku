@@ -60,6 +60,7 @@ pub struct Settings {
     pub hide_nsfw_images: bool,
     pub blur_nsfw_images: bool,
     pub jiten_base_url: String,
+    pub minimize_to_tray_on_close: bool,
 }
 
 impl Default for Settings {
@@ -77,6 +78,7 @@ impl Default for Settings {
             hide_nsfw_images: false,
             blur_nsfw_images: true,
             jiten_base_url: "https://api.jiten.moe".to_string(),
+            minimize_to_tray_on_close: true,
         }
     }
 }

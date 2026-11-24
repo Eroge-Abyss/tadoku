@@ -7,6 +7,7 @@ import { getPreferredTitle } from '$lib/util';
 class GamesStore {
   #games: Record<string, Game> = $state({});
   searchQuery: string = $state('');
+  homeScrollTop: number = $state(0);
 
   get list(): Record<string, Game> {
     return this.#games;

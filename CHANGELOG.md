@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.12.0 (2026-11-24)
+
+## What's Changed
+* feat: add close to tray and a tray menu by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/202
+* fix: stay on old location in games list when going to home page and double click goes to top by @kofta999 in https://github.com/Eroge-Abyss/tadoku/pull/205
+
+
+**Full Changelog**: https://github.com/Eroge-Abyss/tadoku/compare/app-v1.11.2...app-v1.12.0
+
 ## 1.11.2 (2026-08-22)
 
 ## What's Changed

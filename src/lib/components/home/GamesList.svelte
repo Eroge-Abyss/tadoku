@@ -1,6 +1,7 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
   import { elasticOut } from 'svelte/easing';
+  import { onMount } from 'svelte';
   import Card from '$lib/components/Card.svelte';
   import type { Game } from '$lib/types';
   import FilterAndSort from '$lib/components/home/FilterAndSort.svelte';
@@ -9,6 +10,18 @@
   import { gamesStore } from '$lib/stores/games.svelte';
 
   let { gamesList }: { gamesList: Record<string, Game> } = $props();
+
+  let gridEl: HTMLDivElement;
+
+  function handleScroll() {
+    gamesStore.homeScrollTop = gridEl.scrollTop;
+  }
+
+  onMount(() => {
+    if (gridEl) {
+      gridEl.scrollTop = gamesStore.homeScrollTop;
+    }
+  });
 </script>
 
 <div class="container">
@@ -42,7 +55,7 @@
       </p>
     </div>
   {:else}
-    <div class="grid">
+    <div class="grid" bind:this={gridEl} onscroll={handleScroll}>
       {#each Object.entries(gamesList) as [id, game] (id)}
         <div
           in:fly={{

@@ -9,7 +9,18 @@
   import SettingsButton from '$lib/components/SettingsButton.svelte';
   import { getAvailable } from '$lib/util';
   import { goto } from '$app/navigation';
+  import { page } from '$app/state';
   import { sessionStore } from '$lib/stores/session.svelte';
+
+  function goHome() {
+    if (page.url.pathname === resolve('/')) {
+      gamesStore.homeScrollTop = 0;
+      const grid = document.querySelector('.grid');
+      if (grid) grid.scrollTop = 0;
+    } else {
+      goto(resolve('/'));
+    }
+  }
 
   let pinnedGames = $derived.by(() =>
     Object.entries(gamesStore.list)
@@ -35,7 +46,7 @@
   <section id="sidebar__header">
     <h1>多</h1>
     <div id="sidebar__header__buttons">
-      <SidebarButton onclick={() => goto(resolve('/'))} tooltip="Library">
+      <SidebarButton onclick={goHome} tooltip="Library">
         <SquaresIcon style="font-size: 24px;" />
       </SidebarButton>
 

@@ -163,6 +163,7 @@
       await settingsStore.setDisablePresenceOnNsfw(true);
       await settingsStore.setDiscordPresenceMode('All');
       await settingsStore.setPlaytimeDisplayMode('all');
+      await settingsStore.setMinimizeToTrayOnClose(true);
 
       toast.success('Settings reset successfully');
     } catch (error) {
@@ -333,6 +334,21 @@
           <span class="switch-thumb"></span>
         </button>
         <span class="switch-label">Show random game button in Home page</span>
+      </div>
+
+      <div class="switch-container">
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button
+          class="switch"
+          class:active={settingsStore.minimizeToTrayOnClose}
+          onclick={() =>
+            settingsStore.setMinimizeToTrayOnClose(
+              !settingsStore.minimizeToTrayOnClose,
+            )}
+        >
+          <span class="switch-thumb"></span>
+        </button>
+        <span class="switch-label">Minimize to tray on close</span>
       </div>
 
       <div class="switch-container">

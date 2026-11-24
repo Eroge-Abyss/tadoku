@@ -16,6 +16,7 @@ class SettingsStore {
   #playtimeMode: PlaytimeMode = $state('classic');
   #playtimeDisplayMode: PlaytimeDisplayMode = $state('all');
   #showRandomButton: boolean = $state(false);
+  #minimizeToTrayOnClose: boolean = $state(true);
   #useJpForTitleTime: boolean = $state(false);
   #hideNsfwImages: boolean = $state(false);
   #blurNsfwImages: boolean = $state(true);
@@ -40,6 +41,7 @@ class SettingsStore {
       showCharsInPresence,
       selectedCategories,
       categories,
+      minimizeToTrayOnClose,
     ] = await Promise.all([
       settingsService.getTheme(),
       settingsService.getDiscordMode(),
@@ -54,6 +56,7 @@ class SettingsStore {
       settingsService.getShowCharsInPresence(),
       settingsService.getSelectedCategories(),
       settingsService.getCategories(),
+      settingsService.getMinimizeToTrayOnClose(),
     ]);
 
     this.#theme = theme;
@@ -69,6 +72,7 @@ class SettingsStore {
     this.#showCharsInPresence = showCharsInPresence;
     this.#selectedCategories = selectedCategories;
     this.#categories = categories;
+    this.#minimizeToTrayOnClose = minimizeToTrayOnClose;
 
     if (this.#categories.length === 0) {
       this.#categories = [...DEFAULT_CATEGORIES];
@@ -156,6 +160,20 @@ class SettingsStore {
     } catch (error) {
       console.error('Failed to set show random button:', error);
       toast.error(`Failed to set show random button: ${error}`);
+      throw error;
+    }
+  }
+
+  get minimizeToTrayOnClose(): boolean {
+    return this.#minimizeToTrayOnClose;
+  }
+  async setMinimizeToTrayOnClose(minimize: boolean): Promise<void> {
+    try {
+      this.#minimizeToTrayOnClose = minimize;
+      await settingsService.setMinimizeToTrayOnClose(minimize);
+    } catch (error) {
+      console.error('Failed to set minimize to tray on close:', error);
+      toast.error(`Failed to set minimize to tray on close: ${error}`);
       throw error;
     }
   }
